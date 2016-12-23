@@ -6,6 +6,27 @@ function hyang(selector){
     var version = "1.0"
     var doc = document
     var con = console
+    var _this = this
+    this.hyang = function(ele){
+        if(_this.String(ele)) ele = doc.querySelector(ele)
+        else ele = window
+        /**
+         * 事件绑定
+         */
+        this.on = function(event,func){
+            doc.addEventListener(event,func)
+        }
+        this.html = function(xhtml){
+           if(_this.nil(xhtml)) return ele.innerHTML
+           ele.innerHTML = xhtml
+        }
+        this.append = function(xhtml){
+            var str = this.html()
+            str += xhtml
+            this.html(str)
+        }
+       return this 
+    }
     /**
      * 载入网站执行
      */
@@ -99,6 +120,13 @@ function hyang(selector){
      */
     this.object = function(value){
         if(typeof(value) == 'object') return true
+        return false
+    }
+    /**
+     * 检测是否为string
+     */
+    this.String = function(value){
+        if(typeof(value) == 'string') return true
         return false
     }
 }
