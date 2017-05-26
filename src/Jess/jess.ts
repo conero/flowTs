@@ -18,7 +18,7 @@ class Jess{
         this.descrip = "SessionStorage 和 LocalStorage 对象 v-k数据库";
         this.engine = sengine? sengine:'session';
         if(name) this.table;
-        this.tableJson = {};
+        this.tableJson = this.getJson();
     }
     // 设置表名或作用名
     setName(name){

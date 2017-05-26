@@ -15,7 +15,7 @@ var Jess = (function () {
         this.engine = sengine ? sengine : 'session';
         if (name)
             this.table;
-        this.tableJson = {};
+        this.tableJson = this.getJson();
     }
     // 设置表名或作用名
     Jess.prototype.setName = function (name) {
