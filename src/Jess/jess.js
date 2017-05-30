@@ -1,9 +1,9 @@
 /**
  * @start 2017年5月26日 星期五
  * @name storage处理
- * @version 0.0.2
+ * @version 0.0.3
  * @author Joshua Coenro
- * @date 20170527
+ * @date 20170530
  * @other tsc 学习与实践
  */
 var Jess = (function () {
@@ -15,7 +15,7 @@ var Jess = (function () {
     function Jess(name, sengine) {
         this.name = name;
         this.sengine = sengine;
-        this.version = "0.0.2";
+        this.version = "0.0.3";
         this.descrip = "SessionStorage 和 LocalStorage 对象 v-k数据库";
         this.engine = sengine ? sengine : 'session';
         if (name)
@@ -40,6 +40,8 @@ var Jess = (function () {
             content = sessionStorage.getItem(this.table);
         if (content)
             this.tableJson = JSON.parse(content);
+        else
+            this.tableJson = {};
         return this.tableJson;
     };
     /**
