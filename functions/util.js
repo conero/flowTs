@@ -18,5 +18,20 @@
         tmpStr = tmpStr.substr(tmpStr.indexOf('=',tmpStr)+1);
         return tmpStr;                
     }
+   /**
+    * 数组合并
+    * @param array1,array2,...
+    */
+    Util.prototype.ArrayMerge = function(){
+		   var args = arguments;
+		   var baseArray = args.length > 0? args[0] : [];
+		   if(args.length > 1){
+			   for(var i=1; i<args.length; i++){
+				   var uArr = args[i];
+				   for(var j=0; j<uArr.length; j++){baseArray.push(uArr[j]);}
+			   }
+		   }
+		   return baseArray;
+	   };
     window.Util = new Util();
 })();
