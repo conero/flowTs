@@ -1,26 +1,49 @@
-## 项目介绍
-    Joshua(js)   开始日期 2016年10月8日 星期六
-    author:     Joshua Conero
-    说明： 
-        开发js轻量级运行库，如类jQuery的hyang库，借助当前的浏览器特性实现jQuery功能
-        同时为其他页面提供js CDN服务 ?? 此项无法开源中国无法实现
-        实现JavaScript前端点子
-## 项目介绍
- +   HyangJs     依托现代浏览器的特性实现以前的jQuery化风格编程>> 博客-你不需要jQuery(x)??
- +   scommJs     window.open，以及iframe之间页面通信(Signal communication), HTML5 通信特性
- +   communication API
-        HTML5定义的MessageEvent接口也是HTML5 WebSockets和HTML5 WebWorkers的一部分
-        
- - 参考
-    用纯JavaScript替代jQuery的技巧   http://netsmell.com/post/you-do-not-need-jquery.html
-    你不需要jQuery(X)           http://www.webhek.com/how-to-forget-about-jquery-and-start-using-native
+# zmapp-workflow (工作流)
+- 2018年1月4日 星期四
+- Joshua Conero
 
-## 其他
-+ 源(origin) 规则(scheme)、主机(host)、端口(post)组成 scheme://host:post/  
-## HTML5
-    WebSocket
-    web workers
-    communication API
+## 基于jQuery/Raphael 库
+> 矢量图处理库
 
-## 概念化
- +  webSocket 浏览器与服务器全双工通信
+
+## src
+- 基本文件介绍
+    - flow.js   工作流容器生成算法，可迁移至其他的项目中
+    - worker.js 实际工作流的相关控制，与业务紧密联系
+    - util.js 内部项目使用的助手函数
+
+worker
+```javascript
+var config = {
+    w: '宽度*'
+    h: '高度*'
+    x: '起点坐标 +'
+    y: '起点坐标 +'
+
+}
+```
+
+## flow 节点类型
+> 所有节点都由： 容器(container/c), 标签组成(label)
+- endpoint  端点
+
+
+
+## 更新日志
+- ***V1.0.1/180105***
+    - webpack 
+        - sass 环境安装
+            - npm install sass-loader node-sass webpack --save-dev (尝试失败)
+    - 实现
+        - 系统库架构
+            - flow.js 基础节点绘制、物理特性计算。可用于其他库处理
+            - NodeBase.js 公共基础节点处理类， 分为： Endpoint(端点)/Judge(判断)/Operation(操作)
+            - worker.js 业务逻辑处理库，与本节点相关
+        - 系统实现
+            - 绘制基本数据节点类型： 端点、 判断 、 操作
+            - 几点间的连线实现
+            - 拖动事件
+                - 节点拖动以及与连接线联动
+- ***V1.0.0/180104***
+    - git 仓库初始化
+    - webpack 打包工具配置

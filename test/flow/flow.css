@@ -1,0 +1,23 @@
+/**
+2018年1月5日 星期五
+公共基础样式文件
+**/
+
+.flow-body > svg{
+    /* width: 200px;
+    height: 200px; */
+    border-left: 1px solid rgb(209, 195, 197);
+    border-top: 1px solid rgb(209, 195, 197);
+    background-image: 
+        -webkit-linear-gradient(180deg, rgb(209, 195, 197) 1px, transparent 1px) , 
+        -webkit-linear-gradient(90deg, rgb(209, 195, 197) 1px, transparent 1px)
+        ;
+    background-size: 10px;
+    line-height: 10px;
+    font-size:25px;
+    letter-spacing: 5px;   
+    /* transform-origin: 50% 50% 0px; */
+    overflow: auto;
+    margin: 0px;
+    padding: 0px;
+}
