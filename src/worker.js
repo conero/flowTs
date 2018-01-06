@@ -123,7 +123,9 @@ class Worker{
     }
     // 移动处理
     drag(nd){
-        (function($nd){
+        // 不适用分割号时可能解析语句失败，报错
+        var config = this.config;
+        (function($nd, conf){
             var $c = $nd.c
             var cDragDt = {}
             $c.drag(
@@ -132,6 +134,13 @@ class Worker{
                     dx += cDragDt.x
                     dy += cDragDt.y
                     $nd.move(dx, dy)
+                    // 直线同步移动
+                    if(conf.line && conf.line == 'arrow'){
+                        $nd.ToSyncArrow(dx, dy)
+                    }
+                    else{
+                        $nd.ToSyncLine(dx, dy)
+                    }
                 },
                 // onstart
                 function(){
@@ -156,7 +165,7 @@ class Worker{
                 // onend
                 function(){}
             )
-        })(nd)
+        })(nd, config)
     }
     // 连线
     line(nd){
@@ -164,13 +173,20 @@ class Worker{
         if(step.prev){
             step.prev = step.prev.replace(/\s/g, '')
         }
-        if(step.prev){            
+        if(step.prev){
+            var config = this.config          
             var makerLine = (from, to) => {
                 var $lineInstance
                 var fromNd = this.getNodeByCode(from)
                 var toNd = this.getNodeByCode(to)
                 if(fromNd && toNd){
-                    $lineInstance = this.$flow.line(fromNd.getStlnP(), toNd.getEnlnP())
+                    if(config.line && 'arrow' == config.line){
+                        $lineInstance = this.$flow.arrow(fromNd.getStlnP(), toNd.getEnlnP(), 4)
+                        $lineInstance.c.attr('fill', 'rgb(14, 10, 10)')
+                    }
+                    else{
+                        $lineInstance = this.$flow.line(fromNd.getStlnP(), toNd.getEnlnP())
+                    }
                     fromNd.recordLine('from', $lineInstance)
                     // fromNd.recordLine('to', $lineInstance)
                     toNd.recordLine('to', $lineInstance)

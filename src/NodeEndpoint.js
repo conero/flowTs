@@ -54,6 +54,7 @@ class NodeEndpoint extends NodeBase{
         this.label.attr({
             x,y
         })
+        /*
         // 直线同步移动
         this.syncLineMove((lnC, type) => {
             if(type == 'from'){
@@ -73,32 +74,42 @@ class NodeEndpoint extends NodeBase{
                 ])
             }
         })
-
-        /*
-        // 直线同步移动
-        var fLines = this.fromLine        
-        var tLines = this.toLine
-        var dP = this.getDp(x, y)
-        // 起点列表处理
-        for(var i=0; i<fLines.length; i++){
-            var $fC = fLines[i].c
-            var $fPath = $fC.attr('path')
-            $fC.attr('path', [
-                ['M', dP.x, dP.y],
-                $fPath[1]
-            ])
-        }
-        // 终点列表处理
-        var bP = this.getBp(x, y)
-        for(var j=0; j<tLines.length; j++){
-            var $tC = fLines[i].c
-            var $tPath = $tC.attr('path')
-            $tC.attr('path', [
-                $tPath[0],
-                ['L', dP.x, dP.y]
-            ])
-        }
         */
+    }
+    // 直线同步移动
+    ToSyncLine(x, y){
+        this.syncLineMove((lnC, type) => {
+            if(type == 'from'){
+                var $fPath = lnC.attr('path')
+                var dP = this.getDp(x, y)
+                lnC.attr('path', [
+                    ['M', dP.x, dP.y],
+                    $fPath[1]
+                ])
+            }
+            else if(type == 'to'){
+                var bP = this.getBp(x, y)
+                var $tPath = lnC.attr('path')
+                lnC.attr('path', [
+                    $tPath[0],
+                    ['L', bP.x, bP.y]
+                ])
+            }
+        })
+    }
+    // 箭头同步移动
+    ToSyncArrow(x, y){
+        this.syncLineMove((lnC, type, $ln) => {
+            if(type == 'from'){
+                var $fPath = lnC.attr('path')                
+                var dP = this.getDp(x, y)
+                $ln.updatePath([dP.x, dP.y])
+            }
+            else if(type == 'to'){
+                var bP = this.getBp(x, y)
+                $ln.updatePath(null, [bP.x, bP.y])
+            }
+        })
     }
     // 获取连线的起点节点
     getStlnP(){

@@ -7,6 +7,7 @@ import NodeEndpoint from './NodeEndpoint'
 import NodeOperation from './NodeOperation'
 import NodeJudge from './NodeJudge'
 import NodeLine from './NodeLine'
+import NodeArrow from './NodeArrow'
 
 class Flow{
     /**
@@ -51,6 +52,17 @@ class Flow{
     line(p1, p2){
         var nd = new NodeLine(this.paper)
         nd.create(p1, p2)
+        return nd
+    }
+    /**
+     * p1 -> p2 的连线
+     * @param {*} p1 {x,y} 
+     * @param {*} p2 
+     * @param {number} r
+     */
+    arrow(p1, p2, r){
+        var nd = new NodeArrow(this.paper)
+        nd.create(p1, p2, r)
         return nd
     }
 }

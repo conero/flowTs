@@ -69,7 +69,29 @@ class NodeJudge extends NodeBase{
         ])
         // 文本移动
         this.label.attr(ctP)
-        // 直线同步移动
+        // // 直线同步移动
+        // this.syncLineMove((lnC, type) => {
+        //     if(type == 'from'){
+        //         var $fPath = lnC.attr('path')
+        //         lnC.attr('path', [
+        //             ['M', dP.x, dP.y],
+        //             $fPath[1]
+        //         ])
+        //     }
+        //     else if(type == 'to'){
+        //         var $tPath = lnC.attr('path')
+        //         lnC.attr('path', [
+        //             $tPath[0],
+        //             ['L', bP.x, bP.y]
+        //         ])
+        //     }
+        // })
+    }
+    // 直线同步移动
+    ToSyncLine(x, y){
+        var ctP = this.getCpByAp(x, y)
+        var bP = this.getBp(ctP.x, ctP.y)
+        var dP = this.getDp(ctP.x, ctP.y)
         this.syncLineMove((lnC, type) => {
             if(type == 'from'){
                 var $fPath = lnC.attr('path')
@@ -84,6 +106,21 @@ class NodeJudge extends NodeBase{
                     $tPath[0],
                     ['L', bP.x, bP.y]
                 ])
+            }
+        })
+    }
+    // 箭头同步器
+    ToSyncArrow(x, y){
+        var ctP = this.getCpByAp(x, y)
+        var bP = this.getBp(ctP.x, ctP.y)
+        var dP = this.getDp(ctP.x, ctP.y)
+        this.syncLineMove((lnC, type, $ln) => {
+            if(type == 'from'){
+                var $fPath = lnC.attr('path')                
+                $ln.updatePath([dP.x, dP.y])
+            }
+            else if(type == 'to'){
+                $ln.updatePath(null, [bP.x, bP.y])
             }
         })
     }

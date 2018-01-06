@@ -126,12 +126,12 @@ class NodeBase{
         for(var i=0; i<fLines.length; i++){
             var $fC = fLines[i].c
             var $fPath = $fC.attr('path')
-            callback($fC, 'from')
+            callback($fC, 'from', fLines[i])
         }
         // 终点列表处理
         for(var j=0; j<tLines.length; j++){
             var $tC = tLines[j].c
-            callback($tC, 'to')
+            callback($tC, 'to', tLines[j])
         }
     }
 }
@@ -144,7 +144,7 @@ class NodeBase{
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_worker__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__frp1000c_v1__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__frp1000c_v1__ = __webpack_require__(11);
 /**
  * 基本测试版本
  * 2018年1月4日 星期四
@@ -157,6 +157,7 @@ $(function(){
     var $worker = new __WEBPACK_IMPORTED_MODULE_0__src_worker__["a" /* default */]({
         dom: '#workflow',
         h: $(window).height() * 6
+        ,line: 'arrow'
     }, __WEBPACK_IMPORTED_MODULE_1__frp1000c_v1__["a" /* Cfg */])
 })
 
@@ -292,7 +293,9 @@ class Worker{
     }
     // 移动处理
     drag(nd){
-        (function($nd){
+        // 不适用分割号时可能解析语句失败，报错
+        var config = this.config;
+        (function($nd, conf){
             var $c = $nd.c
             var cDragDt = {}
             $c.drag(
@@ -301,6 +304,13 @@ class Worker{
                     dx += cDragDt.x
                     dy += cDragDt.y
                     $nd.move(dx, dy)
+                    // 直线同步移动
+                    if(conf.line && conf.line == 'arrow'){
+                        $nd.ToSyncArrow(dx, dy)
+                    }
+                    else{
+                        $nd.ToSyncLine(dx, dy)
+                    }
                 },
                 // onstart
                 function(){
@@ -325,7 +335,7 @@ class Worker{
                 // onend
                 function(){}
             )
-        })(nd)
+        })(nd, config)
     }
     // 连线
     line(nd){
@@ -333,13 +343,20 @@ class Worker{
         if(step.prev){
             step.prev = step.prev.replace(/\s/g, '')
         }
-        if(step.prev){            
+        if(step.prev){
+            var config = this.config          
             var makerLine = (from, to) => {
                 var $lineInstance
                 var fromNd = this.getNodeByCode(from)
                 var toNd = this.getNodeByCode(to)
                 if(fromNd && toNd){
-                    $lineInstance = this.$flow.line(fromNd.getStlnP(), toNd.getEnlnP())
+                    if(config.line && 'arrow' == config.line){
+                        $lineInstance = this.$flow.arrow(fromNd.getStlnP(), toNd.getEnlnP(), 4)
+                        $lineInstance.c.attr('fill', 'rgb(14, 10, 10)')
+                    }
+                    else{
+                        $lineInstance = this.$flow.line(fromNd.getStlnP(), toNd.getEnlnP())
+                    }
                     fromNd.recordLine('from', $lineInstance)
                     // fromNd.recordLine('to', $lineInstance)
                     toNd.recordLine('to', $lineInstance)
@@ -579,10 +596,12 @@ process.umask = function() { return 0; };
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__NodeOperation__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__NodeJudge__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeLine__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__NodeArrow__ = __webpack_require__(10);
 /**
  * 2018年1月4日 星期四
  * 工作流引擎, 基于 raphaelJs, 只用于绘制容器以及，拖动事件的相关算法
  */
+
 
 
 
@@ -632,6 +651,17 @@ class Flow{
     line(p1, p2){
         var nd = new __WEBPACK_IMPORTED_MODULE_4__NodeLine__["a" /* default */](this.paper)
         nd.create(p1, p2)
+        return nd
+    }
+    /**
+     * p1 -> p2 的连线
+     * @param {*} p1 {x,y} 
+     * @param {*} p2 
+     * @param {number} r
+     */
+    arrow(p1, p2, r){
+        var nd = new __WEBPACK_IMPORTED_MODULE_5__NodeArrow__["a" /* default */](this.paper)
+        nd.create(p1, p2, r)
         return nd
     }
 }
@@ -703,6 +733,7 @@ class NodeEndpoint extends __WEBPACK_IMPORTED_MODULE_1__NodeBase__["a" /* defaul
         this.label.attr({
             x,y
         })
+        /*
         // 直线同步移动
         this.syncLineMove((lnC, type) => {
             if(type == 'from'){
@@ -722,32 +753,42 @@ class NodeEndpoint extends __WEBPACK_IMPORTED_MODULE_1__NodeBase__["a" /* defaul
                 ])
             }
         })
-
-        /*
-        // 直线同步移动
-        var fLines = this.fromLine        
-        var tLines = this.toLine
-        var dP = this.getDp(x, y)
-        // 起点列表处理
-        for(var i=0; i<fLines.length; i++){
-            var $fC = fLines[i].c
-            var $fPath = $fC.attr('path')
-            $fC.attr('path', [
-                ['M', dP.x, dP.y],
-                $fPath[1]
-            ])
-        }
-        // 终点列表处理
-        var bP = this.getBp(x, y)
-        for(var j=0; j<tLines.length; j++){
-            var $tC = fLines[i].c
-            var $tPath = $tC.attr('path')
-            $tC.attr('path', [
-                $tPath[0],
-                ['L', dP.x, dP.y]
-            ])
-        }
         */
+    }
+    // 直线同步移动
+    ToSyncLine(x, y){
+        this.syncLineMove((lnC, type) => {
+            if(type == 'from'){
+                var $fPath = lnC.attr('path')
+                var dP = this.getDp(x, y)
+                lnC.attr('path', [
+                    ['M', dP.x, dP.y],
+                    $fPath[1]
+                ])
+            }
+            else if(type == 'to'){
+                var bP = this.getBp(x, y)
+                var $tPath = lnC.attr('path')
+                lnC.attr('path', [
+                    $tPath[0],
+                    ['L', bP.x, bP.y]
+                ])
+            }
+        })
+    }
+    // 箭头同步移动
+    ToSyncArrow(x, y){
+        this.syncLineMove((lnC, type, $ln) => {
+            if(type == 'from'){
+                var $fPath = lnC.attr('path')                
+                var dP = this.getDp(x, y)
+                $ln.updatePath([dP.x, dP.y])
+            }
+            else if(type == 'to'){
+                var bP = this.getBp(x, y)
+                $ln.updatePath(null, [bP.x, bP.y])
+            }
+        })
     }
     // 获取连线的起点节点
     getStlnP(){
@@ -851,6 +892,30 @@ class NodeOperation extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* defau
         })
         this.label.attr(ctP)
         // 连接线同步处理
+        // // 直线同步移动
+        // this.syncLineMove((lnC, type) => {
+        //     if(type == 'from'){
+        //         var $fPath = lnC.attr('path')
+        //         // var dP = this.getStlnP()
+        //         var bP = this.getBtp(ctP.x, ctP.y)
+        //         lnC.attr('path', [
+        //             ['M', bP.x, bP.y],
+        //             $fPath[1]
+        //         ])
+        //     }
+        //     else if(type == 'to'){
+        //         var dP = this.getTp(ctP.x, ctP.y)
+        //         var $tPath = lnC.attr('path')
+        //         lnC.attr('path', [
+        //             $tPath[0],
+        //             ['L', dP.x, dP.y]
+        //         ])
+        //     }
+        // })
+    }
+    // 直线同步移动
+    ToSyncLine(x, y){
+        var ctP = this.getCtpByAp(x, y)
         // 直线同步移动
         this.syncLineMove((lnC, type) => {
             if(type == 'from'){
@@ -869,6 +934,21 @@ class NodeOperation extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* defau
                     $tPath[0],
                     ['L', dP.x, dP.y]
                 ])
+            }
+        })
+    }
+    // 箭头同步移动
+    ToSyncArrow(x, y){
+        var ctP = this.getCtpByAp(x, y)
+        this.syncLineMove((lnC, type, $ln) => {
+            if(type == 'from'){
+                var $fPath = lnC.attr('path')       
+                var bP = this.getBtp(ctP.x, ctP.y)         
+                $ln.updatePath([bP.x, bP.y])
+            }
+            else if(type == 'to'){
+                var dP = this.getTp(ctP.x, ctP.y)
+                $ln.updatePath(null, [dP.x, dP.y])
             }
         })
     }
@@ -1032,7 +1112,29 @@ class NodeJudge extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* default *
         ])
         // 文本移动
         this.label.attr(ctP)
-        // 直线同步移动
+        // // 直线同步移动
+        // this.syncLineMove((lnC, type) => {
+        //     if(type == 'from'){
+        //         var $fPath = lnC.attr('path')
+        //         lnC.attr('path', [
+        //             ['M', dP.x, dP.y],
+        //             $fPath[1]
+        //         ])
+        //     }
+        //     else if(type == 'to'){
+        //         var $tPath = lnC.attr('path')
+        //         lnC.attr('path', [
+        //             $tPath[0],
+        //             ['L', bP.x, bP.y]
+        //         ])
+        //     }
+        // })
+    }
+    // 直线同步移动
+    ToSyncLine(x, y){
+        var ctP = this.getCpByAp(x, y)
+        var bP = this.getBp(ctP.x, ctP.y)
+        var dP = this.getDp(ctP.x, ctP.y)
         this.syncLineMove((lnC, type) => {
             if(type == 'from'){
                 var $fPath = lnC.attr('path')
@@ -1047,6 +1149,21 @@ class NodeJudge extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* default *
                     $tPath[0],
                     ['L', bP.x, bP.y]
                 ])
+            }
+        })
+    }
+    // 箭头同步器
+    ToSyncArrow(x, y){
+        var ctP = this.getCpByAp(x, y)
+        var bP = this.getBp(ctP.x, ctP.y)
+        var dP = this.getDp(ctP.x, ctP.y)
+        this.syncLineMove((lnC, type, $ln) => {
+            if(type == 'from'){
+                var $fPath = lnC.attr('path')                
+                $ln.updatePath([dP.x, dP.y])
+            }
+            else if(type == 'to'){
+                $ln.updatePath(null, [bP.x, bP.y])
             }
         })
     }
@@ -1135,6 +1252,101 @@ class NodeLine{
 
 /***/ }),
 /* 10 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/**
+ * 2018年1月6日 星期六
+ * 连接类型： 箭头
+ */
+
+class NodeArrow{
+    /**
+     * 
+     * @param {*} instance Raphael 实例
+     */
+    constructor(instance){
+        this.instance = instance
+        this.opt = {}       // 配置信息数据
+    }
+    /**
+     * 画箭头，p1 开始位置,p2 结束位置, r前头的边长
+     * @param {*} p1 [x,y]
+     * @param {*} p2 [x,y]
+     * @param {*} r  
+     */
+    create(p1, p2, r){
+        this.opt = {
+            p1, p2, r
+        }
+        var points = this.getPoints()
+        this.c = this.instance.path(
+            'M' + p1[0] + ',' + p1[1] + 
+            'L' + p2[0] + ',' + p2[1] + 
+            'L' + points.cP.x + ',' + points.cP.y + 
+            'L' + points.dP.x + ',' + points.dP.y + 
+            'L' + p2[0] + ',' + p2[1]
+        )
+    }
+    // 获取点序列
+    getPoints(p1, p2, r){
+        var opt = this.opt
+        if(!p1){
+            p1 = opt.p1
+        }
+        if(!p2){
+            p2 = opt.p2
+        }
+        if(!r){
+            r = opt.r
+        }
+        var atan = Math.atan2(p1[1] - p2[1], p2[0] - p1[0]) * (180 / Math.PI);
+
+        var centerX = p2[0] - r * Math.cos(atan * (Math.PI / 180));
+        var centerY = p2[1] + r * Math.sin(atan * (Math.PI / 180));
+
+        var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
+        var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
+
+        var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
+        var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
+        return {
+            cP: {x:x2, y:y2},
+            dP: {x:x3, y:y3}
+        }
+    }
+    /**
+     * 更细记录表
+     * @param {*} p1 
+     * @param {*} p2 
+     * @param {*} r 
+     */
+    updatePath(p1, p2, r){
+        var opt = this.opt
+        if(!p1){
+            p1 = opt.p1
+        }
+        if(!p2){
+            p2 = opt.p2
+        }
+        if(!r){
+            r = opt.r
+        }
+        var points = this.getPoints(p1, p2, r)
+        this.c.attr('path', [
+            ['M', p1[0], p1[1]],
+            ['L', p2[0], p2[1]],
+            ['L', points.cP.x, points.cP.y],
+            ['L', points.dP.x,  points.dP.y],
+            ['L', p2[0], p2[1]]
+        ])
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (NodeArrow);
+
+/***/ }),
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";

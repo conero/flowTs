@@ -52,6 +52,30 @@ class NodeOperation extends NodeBase{
         })
         this.label.attr(ctP)
         // 连接线同步处理
+        // // 直线同步移动
+        // this.syncLineMove((lnC, type) => {
+        //     if(type == 'from'){
+        //         var $fPath = lnC.attr('path')
+        //         // var dP = this.getStlnP()
+        //         var bP = this.getBtp(ctP.x, ctP.y)
+        //         lnC.attr('path', [
+        //             ['M', bP.x, bP.y],
+        //             $fPath[1]
+        //         ])
+        //     }
+        //     else if(type == 'to'){
+        //         var dP = this.getTp(ctP.x, ctP.y)
+        //         var $tPath = lnC.attr('path')
+        //         lnC.attr('path', [
+        //             $tPath[0],
+        //             ['L', dP.x, dP.y]
+        //         ])
+        //     }
+        // })
+    }
+    // 直线同步移动
+    ToSyncLine(x, y){
+        var ctP = this.getCtpByAp(x, y)
         // 直线同步移动
         this.syncLineMove((lnC, type) => {
             if(type == 'from'){
@@ -70,6 +94,21 @@ class NodeOperation extends NodeBase{
                     $tPath[0],
                     ['L', dP.x, dP.y]
                 ])
+            }
+        })
+    }
+    // 箭头同步移动
+    ToSyncArrow(x, y){
+        var ctP = this.getCtpByAp(x, y)
+        this.syncLineMove((lnC, type, $ln) => {
+            if(type == 'from'){
+                var $fPath = lnC.attr('path')       
+                var bP = this.getBtp(ctP.x, ctP.y)         
+                $ln.updatePath([bP.x, bP.y])
+            }
+            else if(type == 'to'){
+                var dP = this.getTp(ctP.x, ctP.y)
+                $ln.updatePath(null, [dP.x, dP.y])
             }
         })
     }

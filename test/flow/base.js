@@ -10,5 +10,6 @@ $(function(){
     var $worker = new worker({
         dom: '#workflow',
         h: $(window).height() * 6
+        ,line: 'arrow'
     }, Cfg)
 })

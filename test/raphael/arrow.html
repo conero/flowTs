@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>箭头</title>
+    <link href="../flow/flow.css" rel="stylesheet">
+    <script src="../jquery.min.js"></script>
+    <script src="../raphael.min.js"></script>
+    <style>
+        body{margin: 0px;}
+    </style>
+</head>
+<body>
+<div id="workflow" class="flow-body"></div>
+<script>
+$(function(){
+    var paper = Raphael('workflow', $(window).width(), $(window).height());
+
+    var arrowMaker = (p1, p2) => {
+        var arrowIstn = paper.path(
+            'M' + p1[0] + ',' + p1[1] + 
+            'L' + p2[0] + ',' + p2[1]
+        )
+        ;
+        var r = 2;
+        var arrowStart = paper.circle(p1[0], p1[1], r);
+            arrowStart.attr('fill', 'rgb(14, 10, 10)');
+        var arrowEnd = paper.circle(p2[0], p2[1], r);
+            arrowEnd.attr('fill', 'rgb(14, 10, 10)');
+
+        (function($nd){
+            var crDt = {};
+            $nd.drag(
+                function(dx, dy){},
+                function(){
+                    console.log(this)
+                }
+            )
+        })(arrowIstn);
+        
+    };
+    // 来源网络资源
+    // 画箭头，p1 开始位置,p2 结束位置, r前头的边长
+    var arrowNode = (p1, p2, r) =>{
+        var atan = Math.atan2(p1.y - p2.y, p2.x - p1.x) * (180 / Math.PI);
+
+        var centerX = p2.x - r * Math.cos(atan * (Math.PI / 180));
+        var centerY = p2.y + r * Math.sin(atan * (Math.PI / 180));
+
+        var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
+        var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
+
+        var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
+        var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
+        var $aNd = paper.path(
+            'M' + p1.x + ',' + p1.y + 
+            'L' + p2.x + ',' + p2.y + 
+            'L' + x2 + ',' + y2 + 
+            'L' + x3 + ',' + y3 + 
+            'L' + p2.x + ',' + p2.y
+        )
+        $aNd.attr('fill', 'rgb(14, 10, 10)')
+    }
+    // 箭头测试
+    arrowMaker([200, 400], [700, 500]);
+    // 箭头
+    arrowNode({x: 100, y:50}, {x: 265, y:112}, 5)
+    
+})
+
+</script>
+</body>
+</html>

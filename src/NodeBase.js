@@ -32,12 +32,12 @@ class NodeBase{
         for(var i=0; i<fLines.length; i++){
             var $fC = fLines[i].c
             var $fPath = $fC.attr('path')
-            callback($fC, 'from')
+            callback($fC, 'from', fLines[i])
         }
         // 终点列表处理
         for(var j=0; j<tLines.length; j++){
             var $tC = tLines[j].c
-            callback($tC, 'to')
+            callback($tC, 'to', tLines[j])
         }
     }
 }

@@ -143,8 +143,34 @@ var NodeBase = function () {
         value: function recordLine(type, $node) {
             if ('from' == type) {
                 this.fromLine.push($node);
-            } else if ('to' == $node) {
+            } else if ('to' == type) {
                 this.toLine.push($node);
+            }
+        }
+        /**
+         * 同步处理取现
+         * @param {function} callback 
+         */
+
+    }, {
+        key: 'syncLineMove',
+        value: function syncLineMove(callback) {
+            if ('function' !== typeof callback) {
+                callback = function callback(instance, type) {};
+            }
+            // 直线同步移动
+            var fLines = this.fromLine;
+            var tLines = this.toLine;
+            // 起点列表处理
+            for (var i = 0; i < fLines.length; i++) {
+                var $fC = fLines[i].c;
+                var $fPath = $fC.attr('path');
+                callback($fC, 'from', fLines[i]);
+            }
+            // 终点列表处理
+            for (var j = 0; j < tLines.length; j++) {
+                var $tC = tLines[j].c;
+                callback($tC, 'to', tLines[j]);
             }
         }
     }]);
@@ -328,7 +354,9 @@ var Worker = function () {
     }, {
         key: 'drag',
         value: function drag(nd) {
-            (function ($nd) {
+            // 不适用分割号时可能解析语句失败，报错
+            var config = this.config;
+            (function ($nd, conf) {
                 var $c = $nd.c;
                 var cDragDt = {};
                 $c.drag(
@@ -337,6 +365,12 @@ var Worker = function () {
                     dx += cDragDt.x;
                     dy += cDragDt.y;
                     $nd.move(dx, dy);
+                    // 直线同步移动
+                    if (conf.line && conf.line == 'arrow') {
+                        $nd.ToSyncArrow(dx, dy);
+                    } else {
+                        $nd.ToSyncLine(dx, dy);
+                    }
                 },
                 // onstart
                 function () {
@@ -358,7 +392,7 @@ var Worker = function () {
                 },
                 // onend
                 function () {});
-            })(nd);
+            })(nd, config);
         }
         // 连线
 
@@ -372,14 +406,21 @@ var Worker = function () {
                 step.prev = step.prev.replace(/\s/g, '');
             }
             if (step.prev) {
+                var config = this.config;
                 var makerLine = function makerLine(from, to) {
                     var $lineInstance;
                     var fromNd = _this.getNodeByCode(from);
                     var toNd = _this.getNodeByCode(to);
                     if (fromNd && toNd) {
-                        $lineInstance = _this.$flow.line(fromNd.getStlnP(), toNd.getEnlnP());
+                        if (config.line && 'arrow' == config.line) {
+                            $lineInstance = _this.$flow.arrow(fromNd.getStlnP(), toNd.getEnlnP(), 4);
+                            $lineInstance.c.attr('fill', 'rgb(14, 10, 10)');
+                        } else {
+                            $lineInstance = _this.$flow.line(fromNd.getStlnP(), toNd.getEnlnP());
+                        }
                         fromNd.recordLine('from', $lineInstance);
-                        fromNd.recordLine('to', $lineInstance);
+                        // fromNd.recordLine('to', $lineInstance)
+                        toNd.recordLine('to', $lineInstance);
                     }
                 };
                 var prev;
@@ -650,6 +691,10 @@ var _NodeLine = __webpack_require__(8);
 
 var _NodeLine2 = _interopRequireDefault(_NodeLine);
 
+var _NodeArrow = __webpack_require__(9);
+
+var _NodeArrow2 = _interopRequireDefault(_NodeArrow);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -712,6 +757,20 @@ var Flow = function () {
     value: function line(p1, p2) {
       var nd = new _NodeLine2.default(this.paper);
       nd.create(p1, p2);
+      return nd;
+    }
+    /**
+     * p1 -> p2 的连线
+     * @param {*} p1 {x,y} 
+     * @param {*} p2 
+     * @param {number} r
+     */
+
+  }, {
+    key: 'arrow',
+    value: function arrow(p1, p2, r) {
+      var nd = new _NodeArrow2.default(this.paper);
+      nd.create(p1, p2, r);
       return nd;
     }
   }]);
@@ -816,28 +875,71 @@ var NodeEndpoint = function (_NodeBase) {
             this.label.attr({
                 x: x, y: y
             });
+            /*
             // 直线同步移动
-            var fLines = this.fromLine;
-            var tLines = this.toLine;
-            var dP = this.getDp(x, y);
-            for (var i = 0; i < fLines.length; i++) {
-                var $fC = fLines[i].c;
-                var $fPath = $fC.attr('path');
-                $fC.attr('path', [['M', dP.x, dP.y], $fPath[1]]);
-            }
-            var bP = this.getBp(x, y);
-            for (var j = 0; j < tLines.length; j++) {
-                var $tC = fLines[i].c;
-                var $tPath = $tC.attr('path');
-                $tC.attr('path', [$tPath[0], ['L', dP.x, dP.y]]);
-            }
+            this.syncLineMove((lnC, type) => {
+                if(type == 'from'){
+                    var $fPath = lnC.attr('path')
+                    var dP = this.getDp(x, y)
+                    lnC.attr('path', [
+                        ['M', dP.x, dP.y],
+                        $fPath[1]
+                    ])
+                }
+                else if(type == 'to'){
+                    var bP = this.getBp(x, y)
+                    var $tPath = lnC.attr('path')
+                    lnC.attr('path', [
+                        $tPath[0],
+                        ['L', bP.x, bP.y]
+                    ])
+                }
+            })
+            */
+        }
+        // 直线同步移动
+
+    }, {
+        key: 'ToSyncLine',
+        value: function ToSyncLine(x, y) {
+            var _this2 = this;
+
+            this.syncLineMove(function (lnC, type) {
+                if (type == 'from') {
+                    var $fPath = lnC.attr('path');
+                    var dP = _this2.getDp(x, y);
+                    lnC.attr('path', [['M', dP.x, dP.y], $fPath[1]]);
+                } else if (type == 'to') {
+                    var bP = _this2.getBp(x, y);
+                    var $tPath = lnC.attr('path');
+                    lnC.attr('path', [$tPath[0], ['L', bP.x, bP.y]]);
+                }
+            });
+        }
+        // 箭头同步移动
+
+    }, {
+        key: 'ToSyncArrow',
+        value: function ToSyncArrow(x, y) {
+            var _this3 = this;
+
+            this.syncLineMove(function (lnC, type, $ln) {
+                if (type == 'from') {
+                    var $fPath = lnC.attr('path');
+                    var dP = _this3.getDp(x, y);
+                    $ln.updatePath([dP.x, dP.y]);
+                } else if (type == 'to') {
+                    var bP = _this3.getBp(x, y);
+                    $ln.updatePath(null, [bP.x, bP.y]);
+                }
+            });
         }
         // 获取连线的起点节点
 
     }, {
         key: 'getStlnP',
         value: function getStlnP() {
-            var p = this.getBp();
+            var p = this.getDp();
             return [p.x, p.y];
         }
         // 获取连线的终点节点
@@ -845,7 +947,7 @@ var NodeEndpoint = function (_NodeBase) {
     }, {
         key: 'getEnlnP',
         value: function getEnlnP() {
-            var p = this.getDp();
+            var p = this.getBp();
             return [p.x, p.y];
         }
     }, {
@@ -879,7 +981,8 @@ var NodeEndpoint = function (_NodeBase) {
         key: 'getDp',
         value: function getDp(x, y) {
             var opt = this.opt;
-            x += opt.r;
+            x = x ? x : opt.cx;
+            y = y ? y : opt.cy;
             y += opt.r;
             return { x: x, y: y };
         }
@@ -981,13 +1084,75 @@ var NodeOperation = function (_NodeBase) {
                 x: x, y: y
             });
             this.label.attr(ctP);
+            // 连接线同步处理
+            // // 直线同步移动
+            // this.syncLineMove((lnC, type) => {
+            //     if(type == 'from'){
+            //         var $fPath = lnC.attr('path')
+            //         // var dP = this.getStlnP()
+            //         var bP = this.getBtp(ctP.x, ctP.y)
+            //         lnC.attr('path', [
+            //             ['M', bP.x, bP.y],
+            //             $fPath[1]
+            //         ])
+            //     }
+            //     else if(type == 'to'){
+            //         var dP = this.getTp(ctP.x, ctP.y)
+            //         var $tPath = lnC.attr('path')
+            //         lnC.attr('path', [
+            //             $tPath[0],
+            //             ['L', dP.x, dP.y]
+            //         ])
+            //     }
+            // })
+        }
+        // 直线同步移动
+
+    }, {
+        key: 'ToSyncLine',
+        value: function ToSyncLine(x, y) {
+            var _this2 = this;
+
+            var ctP = this.getCtpByAp(x, y);
+            // 直线同步移动
+            this.syncLineMove(function (lnC, type) {
+                if (type == 'from') {
+                    var $fPath = lnC.attr('path');
+                    // var dP = this.getStlnP()
+                    var bP = _this2.getBtp(ctP.x, ctP.y);
+                    lnC.attr('path', [['M', bP.x, bP.y], $fPath[1]]);
+                } else if (type == 'to') {
+                    var dP = _this2.getTp(ctP.x, ctP.y);
+                    var $tPath = lnC.attr('path');
+                    lnC.attr('path', [$tPath[0], ['L', dP.x, dP.y]]);
+                }
+            });
+        }
+        // 箭头同步移动
+
+    }, {
+        key: 'ToSyncArrow',
+        value: function ToSyncArrow(x, y) {
+            var _this3 = this;
+
+            var ctP = this.getCtpByAp(x, y);
+            this.syncLineMove(function (lnC, type, $ln) {
+                if (type == 'from') {
+                    var $fPath = lnC.attr('path');
+                    var bP = _this3.getBtp(ctP.x, ctP.y);
+                    $ln.updatePath([bP.x, bP.y]);
+                } else if (type == 'to') {
+                    var dP = _this3.getTp(ctP.x, ctP.y);
+                    $ln.updatePath(null, [dP.x, dP.y]);
+                }
+            });
         }
         // 获取连线的起点节点
 
     }, {
         key: 'getStlnP',
         value: function getStlnP() {
-            var p = this.getTp();
+            var p = this.getBtp();
             return [p.x, p.y];
         }
         // 获取连线的终点节点
@@ -995,7 +1160,7 @@ var NodeOperation = function (_NodeBase) {
     }, {
         key: 'getEnlnP',
         value: function getEnlnP() {
-            var p = this.getBtp();
+            var p = this.getTp();
             return [p.x, p.y];
         }
         // 根据 A 点获取 中心点
@@ -1189,13 +1354,65 @@ var NodeJudge = function (_NodeBase) {
             this.c.attr('path', [['M', x, y], ['L', bP.x, bP.y], ['L', cP.x, cP.y], ['L', dP.x, dP.y], ['Z']]);
             // 文本移动
             this.label.attr(ctP);
+            // // 直线同步移动
+            // this.syncLineMove((lnC, type) => {
+            //     if(type == 'from'){
+            //         var $fPath = lnC.attr('path')
+            //         lnC.attr('path', [
+            //             ['M', dP.x, dP.y],
+            //             $fPath[1]
+            //         ])
+            //     }
+            //     else if(type == 'to'){
+            //         var $tPath = lnC.attr('path')
+            //         lnC.attr('path', [
+            //             $tPath[0],
+            //             ['L', bP.x, bP.y]
+            //         ])
+            //     }
+            // })
+        }
+        // 直线同步移动
+
+    }, {
+        key: 'ToSyncLine',
+        value: function ToSyncLine(x, y) {
+            var ctP = this.getCpByAp(x, y);
+            var bP = this.getBp(ctP.x, ctP.y);
+            var dP = this.getDp(ctP.x, ctP.y);
+            this.syncLineMove(function (lnC, type) {
+                if (type == 'from') {
+                    var $fPath = lnC.attr('path');
+                    lnC.attr('path', [['M', dP.x, dP.y], $fPath[1]]);
+                } else if (type == 'to') {
+                    var $tPath = lnC.attr('path');
+                    lnC.attr('path', [$tPath[0], ['L', bP.x, bP.y]]);
+                }
+            });
+        }
+        // 箭头同步器
+
+    }, {
+        key: 'ToSyncArrow',
+        value: function ToSyncArrow(x, y) {
+            var ctP = this.getCpByAp(x, y);
+            var bP = this.getBp(ctP.x, ctP.y);
+            var dP = this.getDp(ctP.x, ctP.y);
+            this.syncLineMove(function (lnC, type, $ln) {
+                if (type == 'from') {
+                    var $fPath = lnC.attr('path');
+                    $ln.updatePath([dP.x, dP.y]);
+                } else if (type == 'to') {
+                    $ln.updatePath(null, [bP.x, bP.y]);
+                }
+            });
         }
         // 获取连线的起点节点
 
     }, {
         key: 'getStlnP',
         value: function getStlnP() {
-            var p = this.getAp();
+            var p = this.getDp();
             return [p.x, p.y];
         }
         // 获取连线的终点节点
@@ -1203,7 +1420,7 @@ var NodeJudge = function (_NodeBase) {
     }, {
         key: 'getEnlnP',
         value: function getEnlnP() {
-            var p = this.getDp();
+            var p = this.getBp();
             return [p.x, p.y];
         }
         /**
@@ -1308,6 +1525,114 @@ var NodeLine = function () {
 }();
 
 exports.default = NodeLine;
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * 2018年1月6日 星期六
+ * 连接类型： 箭头
+ */
+
+var NodeArrow = function () {
+    /**
+     * 
+     * @param {*} instance Raphael 实例
+     */
+    function NodeArrow(instance) {
+        _classCallCheck(this, NodeArrow);
+
+        this.instance = instance;
+        this.opt = {}; // 配置信息数据
+    }
+    /**
+     * 画箭头，p1 开始位置,p2 结束位置, r前头的边长
+     * @param {*} p1 [x,y]
+     * @param {*} p2 [x,y]
+     * @param {*} r  
+     */
+
+
+    _createClass(NodeArrow, [{
+        key: 'create',
+        value: function create(p1, p2, r) {
+            this.opt = {
+                p1: p1, p2: p2, r: r
+            };
+            var points = this.getPoints();
+            this.c = this.instance.path('M' + p1[0] + ',' + p1[1] + 'L' + p2[0] + ',' + p2[1] + 'L' + points.cP.x + ',' + points.cP.y + 'L' + points.dP.x + ',' + points.dP.y + 'L' + p2[0] + ',' + p2[1]);
+        }
+        // 获取点序列
+
+    }, {
+        key: 'getPoints',
+        value: function getPoints(p1, p2, r) {
+            var opt = this.opt;
+            if (!p1) {
+                p1 = opt.p1;
+            }
+            if (!p2) {
+                p2 = opt.p2;
+            }
+            if (!r) {
+                r = opt.r;
+            }
+            var atan = Math.atan2(p1[1] - p2[1], p2[0] - p1[0]) * (180 / Math.PI);
+
+            var centerX = p2[0] - r * Math.cos(atan * (Math.PI / 180));
+            var centerY = p2[1] + r * Math.sin(atan * (Math.PI / 180));
+
+            var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
+            var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
+
+            var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
+            var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
+            return {
+                cP: { x: x2, y: y2 },
+                dP: { x: x3, y: y3 }
+            };
+        }
+        /**
+         * 更细记录表
+         * @param {*} p1 
+         * @param {*} p2 
+         * @param {*} r 
+         */
+
+    }, {
+        key: 'updatePath',
+        value: function updatePath(p1, p2, r) {
+            var opt = this.opt;
+            if (!p1) {
+                p1 = opt.p1;
+            }
+            if (!p2) {
+                p2 = opt.p2;
+            }
+            if (!r) {
+                r = opt.r;
+            }
+            var points = this.getPoints(p1, p2, r);
+            this.c.attr('path', [['M', p1[0], p1[1]], ['L', p2[0], p2[1]], ['L', points.cP.x, points.cP.y], ['L', points.dP.x, points.dP.y], ['L', p2[0], p2[1]]]);
+        }
+    }]);
+
+    return NodeArrow;
+}();
+
+exports.default = NodeArrow;
 
 /***/ })
 /******/ ]);
