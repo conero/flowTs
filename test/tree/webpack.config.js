@@ -4,9 +4,7 @@
 
 const {Config} = require('../webpack.setup')
 module.exports = new Config({
-        baseDir: 'flow/'
+        baseDir: 'tree/'
     })
     .js('base')
-    .js('line')
-    .js('dysteps')
     .getJsFileList()

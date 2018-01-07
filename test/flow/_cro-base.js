@@ -387,6 +387,7 @@ class Worker{
                         var x1 = x0 - w/2
                         var x1 = x0 + (dW + w)*(smClsD - diffCtt)
                         var y1 = getSameClsNodeY(code)
+                        console.log(sameClsNode)
                         if(y1){
                             x1 = x0 + (dW + w)*(smClsD - diffCtt)
                         }else{

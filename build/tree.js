@@ -240,8 +240,8 @@ Object.defineProperty(exports, "__esModule", {
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 2018年1月5日 星期五
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 工作流处理包
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 2018年1月7日 星期日
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 从 Worker.js 迁移过来的树形生成图；可用于生成家族树
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       */
 
 
@@ -343,13 +343,13 @@ var H = function () {
  */
 
 
-var Worker = function () {
+var Tree = function () {
     /**
      * @param {object} option  工作流配置对象
      * @param {object} config  dom 等相关配置 *
      */
-    function Worker(config, option) {
-        _classCallCheck(this, Worker);
+    function Tree(config, option) {
+        _classCallCheck(this, Tree);
 
         // 开发环境检测
         if (process.env.NODE_ENV !== 'production') {
@@ -373,7 +373,7 @@ var Worker = function () {
     // 绘制工作流图
 
 
-    _createClass(Worker, [{
+    _createClass(Tree, [{
         key: 'draw',
         value: function draw() {
             var _this = this;
@@ -700,10 +700,10 @@ var Worker = function () {
         }
     }]);
 
-    return Worker;
+    return Tree;
 }();
 
-exports.default = Worker;
+exports.default = Tree;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),

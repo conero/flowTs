@@ -21,12 +21,21 @@ $(function(){
             {code: 'D4', name: 'D4 并列', type: 2, prev: 'C'},
             {code: 'D5', type: 2, prev: 'C'},
             {code: 'D6', type: 2, prev: 'C'},
+            // {code: 'D7', type: 2, prev: 'C,F1'},         // 流程中退回的线条算法
             {code: 'D7', type: 2, prev: 'C'},
 
 
             {code: 'E1', type: 2, prev: 'D4'},
             {code: 'E2', type: 2, prev: 'D1'},
             {code: 'E3', type: 2, prev: 'D1'},
+            {code: 'E4', type: 2, prev: 'D6'},
+            
+            {code: 'F1', type: 3, prev: 'E1,E3'},
+
+            {code: 'G1', type: 3, prev: 'F1'},
+            {code: 'G2', type: 2, prev: 'F1'},
+            {code: 'O1', type: 9, prev: 'G1,G2,E4'},
+
 
         ]
     })

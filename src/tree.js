@@ -1,6 +1,6 @@
 /**
- * 2018年1月5日 星期五
- * 工作流处理包
+ * 2018年1月7日 星期日
+ * 从 Worker.js 迁移过来的树形生成图；可用于生成家族树
  */
 import flow from './flow'
 import {Util} from './util'
@@ -68,7 +68,7 @@ class H{
 /**
  * 工作流实例类
  */
-class Worker{
+class Tree{
     /**
      * @param {object} option  工作流配置对象
      * @param {object} config  dom 等相关配置 *
@@ -408,4 +408,4 @@ class Worker{
 }
 
 
-export default Worker
+export default Tree
