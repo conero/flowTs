@@ -1433,7 +1433,7 @@ var Cfg = {
             "code": "_end",
             "name": "流程结束",
             "type": 9,
-            "prev": "C5",
+            "prev": "C5,R8",
             "next": "",
             "attr": []
         }

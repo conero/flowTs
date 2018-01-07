@@ -107,6 +107,7 @@ class Config{
     }
     js(name){
         js(name)
+        return this
     }
 }
 
@@ -115,6 +116,8 @@ class Config{
 new Config()
     // .base('base', 'base')
     .js('base')
+    .js('line')
+    .js('dysteps')
 
 // console.log(JSON.stringify(buildData, null, 4))
 

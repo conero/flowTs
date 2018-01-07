@@ -71,7 +71,7 @@
 
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -85,25 +85,71 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * 工具库
  */
 var Util = function () {
-  function Util() {
-    _classCallCheck(this, Util);
-  }
-
-  _createClass(Util, null, [{
-    key: 'clone',
-
-    /**
-     * 对象复制
-     * @param {object} t1 
-     */
-    value: function clone(t1) {
-      t1 = 'object' == (typeof t1 === 'undefined' ? 'undefined' : _typeof(t1)) ? t1 : {};
-      var obj = {};
-      return $.extend(true, obj, t1);
+    function Util() {
+        _classCallCheck(this, Util);
     }
-  }]);
 
-  return Util;
+    _createClass(Util, null, [{
+        key: 'clone',
+
+        /**
+         * 对象复制
+         * @param {object} t1 
+         */
+        value: function clone(t1) {
+            t1 = 'object' == (typeof t1 === 'undefined' ? 'undefined' : _typeof(t1)) ? t1 : {};
+            var obj = {};
+            return $.extend(true, obj, t1);
+        }
+        /**
+         * 数据合并相同的元素
+         * @param {*} array 
+         */
+
+    }, {
+        key: 'ArrayMergeSameValue',
+        value: function ArrayMergeSameValue(array) {
+            if ('object' == (typeof array === 'undefined' ? 'undefined' : _typeof(array)) && array.length && array.length > 1) {
+                var valueMap = {};
+                var newArray = [];
+                for (var i = 0; i < array.length; i++) {
+                    if (valueMap[array[i]]) {
+                        continue;
+                    }
+                    newArray.push(array[i]);
+                    valueMap[array[i]] = true;
+                }
+                array = newArray;
+            }
+            return array;
+        }
+        /**
+         * @param {array|object} obj 
+         * @param {function} callback (k, v)
+         */
+
+    }, {
+        key: 'each',
+        value: function each(obj, callback) {
+            if ('object' == (typeof obj === 'undefined' ? 'undefined' : _typeof(obj))) {
+                if ($.isArray(obj)) {
+                    for (var i = 0; i < obj.length; i++) {
+                        if (false === callback(i, obj[i])) {
+                            break;
+                        }
+                    }
+                } else {
+                    for (var k in obj) {
+                        if (false === callback(k, obj[k])) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }]);
+
+    return Util;
 }();
 
 exports.Util = Util;
@@ -209,7 +255,12 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+// 实例索引序列
+var instanceIndex = 0;
+var instanceSource = {}; // 实列资源队列
+
 // 内部协助函数(私有)
+
 var H = function () {
     function H() {
         _classCallCheck(this, H);
@@ -250,6 +301,38 @@ var H = function () {
     }, {
         key: 'onEndEvt',
         value: function onEndEvt() {}
+        /**
+         * 内部索引序列
+         */
+
+    }, {
+        key: 'getIndex',
+        value: function getIndex() {
+            instanceIndex += 1;
+            return instanceIndex;
+        }
+        /**
+         * 内部资源处理
+         * @param {number} index 
+         * @param {string|null} key 
+         * @param {*} value 
+         */
+
+    }, {
+        key: 'src',
+        value: function src(index, key, value) {
+            if (!instanceSource[index]) {
+                instanceSource[index] = {};
+            }
+            var dd = instanceSource[index];
+            if ('undefined' == typeof key) {
+                return dd;
+            }
+            if ('undefined' == typeof value) {
+                return dd[key] || null;
+            }
+            dd[key] = value;
+        }
     }]);
 
     return H;
@@ -277,6 +360,7 @@ var Worker = function () {
                 console.warn('Raphael 依赖为安装，运行库将无法运行');
             }
         }
+        this.$index = H.getIndex();
         // 工作流实例
         this.Nodes = {};
         this.config = _util.Util.clone(config);
@@ -292,51 +376,123 @@ var Worker = function () {
     _createClass(Worker, [{
         key: 'draw',
         value: function draw() {
+            var _this = this;
+
             if (this.option) {
                 var steps = this.option.step;
+                // 生成代码索引
+                this.codeIndex(steps);
                 var config = this.config;
+                // 起点中心坐标点 (x, y)
                 var x = config.x || parseInt(config.w * 0.4);
                 var y = config.y || 10;
+                var cH = config.cH || 50; // 容器高度
+                var dH = config.dH || 30; // 间距高度
+                // 同级别节点字典
+                var sameClsNodeMap = {};
+                // 获取通节点指向的 Y 值
+                var getSameClsNodeY = function getSameClsNodeY(_c) {
+                    var _sameClsNode = _this.codeIndex(_c);
+                    var y = null;
+                    if (_sameClsNode && _sameClsNode.length > 0) {
+                        _util.Util.each(_sameClsNode, function (index, value) {
+                            if (sameClsNodeMap[value]) {
+                                y = sameClsNodeMap[value].y;
+                                return false;
+                            }
+                        });
+                    }
+                    return y;
+                };
+                /**
+                 * 获取同一级别节点差集对比数
+                 * @param {string} _c 
+                 */
+                var getSameClsDiffCount = function getSameClsDiffCount(_c) {
+                    var _sameClsNode = _this.codeIndex(_c);
+                    var _count = _sameClsNode.length;
+                    var hasEd = 0;
+                    _util.Util.each(_sameClsNode, function (index, value) {
+                        if (sameClsNodeMap[value]) {
+                            hasEd += 1;
+                        }
+                    });
+                    return _count - hasEd;
+                };
+
                 // console.log(x ,y)
                 for (var i = 0; i < steps.length; i++) {
                     var step = steps[i];
+                    var code = step.code;
+                    var name = step.name || code;
                     var nd;
                     // 开始
                     if (1 == step.type) {
-                        var r = 30;
-                        y += r;
-                        nd = this.$flow.endpoint(x, y, r, step.name);
+                        y += dH + cH / 2;
+                        nd = this.$flow.endpoint(x, y, cH / 2, name);
                         nd.c.attr('fill', 'rgb(181, 216, 126)');
                         nd.$step = step;
                         this.drag(nd);
+                        y += cH / 2;
                         // console.log(nd)
                     }
                     // 操作节点
                     else if (2 == step.type) {
-                            y += 100;
-                            var w = 100,
-                                h = 50;
-                            // console.log(x, y, w, h, step.name)
-                            nd = this.$flow.operation(x, y, w, h, step.name);
+                            var w = 100;
+                            var sameClsNode = this.codeIndex(step.code);
+                            var x0 = x;
+                            // 只有一个父类
+                            if (step.prev) {
+                                if (step.prev.indexOf(',') == -1) {
+                                    var parentNd = this.getNodeByCode(step.prev);
+                                    if (parentNd && parentNd.c) {
+                                        console.log(parentNd);
+                                        x0 = this.getStandX(parentNd);
+                                    }
+                                }
+                            }
+                            // 多个同级节点
+                            if (sameClsNode && sameClsNode.length > 1) {
+                                var diffCtt = getSameClsDiffCount(code);
+                                var dW = 25;
+                                // 中心偏移量算法
+                                var smClsD = Math.ceil(sameClsNode.length / 2);
+                                var x1 = x0 - w / 2;
+                                var x1 = x0 + (dW + w) * (smClsD - diffCtt);
+                                var y1 = getSameClsNodeY(code);
+                                if (y1) {
+                                    x1 = x0 + (dW + w) * (smClsD - diffCtt);
+                                } else {
+                                    y += dH + cH / 2;
+                                }
+                                y1 = y1 ? y1 : y;
+                                nd = this.$flow.operation(x1, y1, w, cH, name);
+                                sameClsNodeMap[code] = {
+                                    y: y
+                                };
+                            } else {
+                                y += dH + cH / 2;
+                                nd = this.$flow.operation(x0, y, w, cH, name);
+                            }
                             nd.$step = step;
                             this.drag(nd);
                             nd.c.attr('fill', 'rgb(224, 223, 226)');
+                            y += cH / 2;
                         }
                         // 判断节点
                         else if (3 == step.type) {
-                                y += 100;
-                                nd = this.$flow.judge(x, y, w + 60, h + 10, step.name);
+                                y += dH + cH / 2;
+                                nd = this.$flow.judge(x, y, w + 60, cH, name);
                                 nd.c.attr('fill', 'rgb(49, 174, 196)');
                                 nd.$step = step;
                                 this.drag(nd);
                                 // y += 80 + 20
-                                y += 60;
+                                y += cH / 2;
                             }
                             // 结束
                             else if (9 == step.type) {
-                                    var r = 30;
-                                    y += r + 60;
-                                    nd = this.$flow.endpoint(x, y, r, step.name);
+                                    y += dH + cH / 2;
+                                    nd = this.$flow.endpoint(x, y, cH / 2, name);
                                     nd.c.attr('fill', 'rgb(34, 185, 41)');
                                     nd.$step = step;
                                     this.drag(nd);
@@ -399,7 +555,7 @@ var Worker = function () {
     }, {
         key: 'line',
         value: function line(nd) {
-            var _this = this;
+            var _this2 = this;
 
             var step = _util.Util.clone(nd.$step);
             if (step.prev) {
@@ -409,14 +565,14 @@ var Worker = function () {
                 var config = this.config;
                 var makerLine = function makerLine(from, to) {
                     var $lineInstance;
-                    var fromNd = _this.getNodeByCode(from);
-                    var toNd = _this.getNodeByCode(to);
+                    var fromNd = _this2.getNodeByCode(from);
+                    var toNd = _this2.getNodeByCode(to);
                     if (fromNd && toNd) {
                         if (config.line && 'arrow' == config.line) {
-                            $lineInstance = _this.$flow.arrow(fromNd.getStlnP(), toNd.getEnlnP(), 4);
+                            $lineInstance = _this2.$flow.arrow(fromNd.getStlnP(), toNd.getEnlnP(), 4);
                             $lineInstance.c.attr('fill', 'rgb(14, 10, 10)');
                         } else {
-                            $lineInstance = _this.$flow.line(fromNd.getStlnP(), toNd.getEnlnP());
+                            $lineInstance = _this2.$flow.line(fromNd.getStlnP(), toNd.getEnlnP());
                         }
                         fromNd.recordLine('from', $lineInstance);
                         // fromNd.recordLine('to', $lineInstance)
@@ -446,6 +602,11 @@ var Worker = function () {
                 this.option = _util.Util.clone(option);
             }
         }
+        /**
+         * 根据code获取节点信息
+         * @param {string} code 
+         */
+
     }, {
         key: 'getNodeByCode',
         value: function getNodeByCode(code) {
@@ -454,6 +615,87 @@ var Worker = function () {
                 return this.Nodes[code];
             }
             return node;
+        }
+        /**
+         * 代码分级算法
+         * @param {object} steps 
+         */
+
+    }, {
+        key: 'codeIndex',
+        value: function codeIndex(steps) {
+            // 生成分级字典
+            if ('object' == (typeof steps === 'undefined' ? 'undefined' : _typeof(steps))) {
+                var clsMap = {};
+                for (var i = 0; i < steps.length; i++) {
+                    var step = steps[i];
+                    var code = step.code;
+                    // 第一级
+                    if (!step.prev) {
+                        clsMap[code] = 1;
+                    } else {
+                        var prev = step.prev.replace(/\s/g, '').split(',');
+                        for (var j = 0; j < prev.length; j++) {
+                            var prevCode = prev[j];
+                            var cls = clsMap[prevCode] ? clsMap[prevCode] : 0;
+                            console.log(cls);
+                            if ('object' == (typeof cls === 'undefined' ? 'undefined' : _typeof(cls)) && cls.length) {
+                                cls = cls.length == 1 ? cls[0] : cls;
+                            }
+                            cls += 1;
+                            if (!clsMap[code]) {
+                                clsMap[code] = cls;
+                            } else {
+                                if ('object' != _typeof(clsMap[code])) {
+                                    var cls2 = clsMap[code];
+                                    clsMap[code] = [cls2];
+                                }
+                                clsMap[code].push(cls);
+                                clsMap[code] = _util.Util.ArrayMergeSameValue(clsMap[code]);
+                            }
+                        }
+                    }
+                }
+                // console.log(clsMap)
+                H.src(this.$index, 'clsMap', clsMap);
+            } else if (steps) {
+                var clsMap = H.src(this.$index, 'clsMap');
+                if (clsMap) {
+                    var value = clsMap[steps] || null;
+                    var List = [steps];
+                    for (var k in clsMap) {
+                        if (value == clsMap[k] && $.inArray(k, List) == -1) {
+                            List.push(k);
+                        }
+                    }
+                    return List;
+                }
+            }
+        }
+        /**
+         * 节点表单x坐标
+         * @param {NodeBase} nd 
+         */
+
+    }, {
+        key: 'getStandX',
+        value: function getStandX(nd) {
+            var x = null;
+            if (nd && nd.c) {
+                var $c = nd.c;
+                switch ($c.type) {
+                    case 'circle':
+                        x = $c.attr('cx');
+                        break;
+                    case 'rect':
+                        x = $c.attr('x') + $c.attr('width') / 2;
+                        break;
+                    case 'path':
+                        x = nd.opt.cx;
+                        break;
+                }
+            }
+            return x;
         }
     }]);
 
@@ -1626,6 +1868,10 @@ var NodeArrow = function () {
             }
             var points = this.getPoints(p1, p2, r);
             this.c.attr('path', [['M', p1[0], p1[1]], ['L', p2[0], p2[1]], ['L', points.cP.x, points.cP.y], ['L', points.dP.x, points.dP.y], ['L', p2[0], p2[1]]]);
+            // 同步更新记录
+            this.opt = {
+                p1: p1, p2: p2, r: r
+            };
         }
     }]);
 

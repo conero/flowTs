@@ -186,8 +186,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_worker__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__frp1000c_v1__ = __webpack_require__(11);
 /**
- * 基本测试版本
- * 2018年1月4日 星期四
+ * 2018年1月7日 星期日
+ * 直线来连接式工作流
  */
 
 
@@ -197,7 +197,6 @@ $(function(){
     var $worker = new __WEBPACK_IMPORTED_MODULE_0__src_worker__["a" /* default */]({
         dom: '#workflow',
         h: $(window).height() * 6
-        ,line: 'arrow'
     }, __WEBPACK_IMPORTED_MODULE_1__frp1000c_v1__["a" /* Cfg */])
 })
 

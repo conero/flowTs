@@ -83,6 +83,10 @@ class NodeArrow{
             ['L', points.dP.x,  points.dP.y],
             ['L', p2[0], p2[1]]
         ])
+        // 同步更新记录
+        this.opt = {
+            p1, p2, r
+        }
     }
 }
 
