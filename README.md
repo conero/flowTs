@@ -32,10 +32,25 @@ var config = {
 
 
 ## 更新日志
-> ***V1.0.3/alpha-date*** alpha 类型模板
+> ***V1.0.4/alpha-date*** alpha 类型模板
 - ***V1.0.3/20180107***
     - todo
         - bug # NodeArrow.js 移动部件后在连接关联的部件，起点会回到最初点
+            - 已修复 
+    - src/util.js
+        - 添加 ***ArrayMergeSameValue*** 数据合并相同的元素
+        - 添加 ***each*** 数组/json 对象遍历函数
+    - src/NodeArrow.js
+        - 箭头更新后坐标移动同步实现
+    - src/worker.js
+        - 初步实现内部布局算法： 
+            - 接收可配置参数： dH(登高距离差), cH(容器高度)
+            - 级化排列算法
+            - 子级并排布局
+    - src/tree.js 
+        - 新增(家族)树库，用于生产标准的树形排列图
+    - test/webpack.setup.js
+        - 新增测试直接 ***webpack*** 打包工具处理，可用于不同的测试项目脚本打包
 
 - ***V1.0.2/180106***
     - 优化
