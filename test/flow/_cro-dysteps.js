@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -179,476 +179,6 @@ class NodeBase{
 
 /***/ }),
 /* 2 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_worker__ = __webpack_require__(3);
-/**
- * 2018年1月7日 星期日
- * 步骤动态配置
- */
-
-
-
-$(function(){
-    var $worker = new __WEBPACK_IMPORTED_MODULE_0__src_worker__["a" /* default */]({
-        dom: '#workflow',
-        h: $(window).height() * 6,
-        line: 'arrow'
-    }, {
-        step:[
-            {code: 'A', type: 1},
-            {code: 'B', type: 2, prev: 'A'},
-            {code: 'C', type: 2, prev: 'B'},
-            {code: 'D1', type: 2, prev: 'C'},
-            {code: 'D2', name: 'D2 并列', type: 2, prev: 'C'},
-            {code: 'D3', name: 'D3 并列', type: 2, prev: 'C'},
-            {code: 'D4', name: 'D4 并列', type: 2, prev: 'C'},
-            {code: 'D5', type: 2, prev: 'C'},
-            {code: 'D6', type: 2, prev: 'C'},
-            // {code: 'D7', type: 2, prev: 'C,F1'},         // 流程中退回的线条算法
-            {code: 'D7', type: 2, prev: 'C'},
-
-
-            {code: 'E1', type: 2, prev: 'D4'},
-            {code: 'E2', type: 2, prev: 'D1'},
-            {code: 'E3', type: 2, prev: 'D1'},
-            {code: 'E4', type: 2, prev: 'D6'},
-            
-            {code: 'F1', type: 3, prev: 'E1,E3'},
-
-            {code: 'G1', type: 3, prev: 'F1'},
-            {code: 'G2', type: 2, prev: 'F1'},
-            {code: 'O1', type: 9, prev: 'G1,G2,E4'},
-
-
-        ]
-    })
-})
-
-/***/ }),
-/* 3 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__flow__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__util__ = __webpack_require__(0);
-/**
- * 2018年1月5日 星期五
- * 工作流处理包
- */
-
-
-
-// 实例索引序列
-var instanceIndex = 0
-var instanceSource = {}     // 实列资源队列
-
-// 内部协助函数(私有)
-class H{
-    /**
-     * 内部函数生成实例
-     * @param {*} config 
-     */
-    static createInstance(config){
-        config = 'object' == typeof config? config:{}
-        if(!config.dom){
-            if(process.env.NODE_ENV !== 'production'){
-                console.warn('[Worker] 配置文件无效，缺少 config.dom')
-            }
-        }
-        // 生成 HTML
-        if('string' == typeof config.dom){
-            config.dom = $(config.dom)
-        }
-        if(!config.w){
-            config.w = parseInt($(window).width() * 1.1)
-        }
-        if(!config.h){
-            config.h = parseInt($(window).height() * 1.1)
-        }
-        return Raphael(config.dom.get(0), config.w, config.h)
-    }
-    static onMoveEvt(){}
-    static onStartEvt(){}
-    static onEndEvt(){}
-    /**
-     * 内部索引序列
-     */
-    static getIndex(){
-        instanceIndex += 1
-        return instanceIndex
-    }
-    /**
-     * 内部资源处理
-     * @param {number} index 
-     * @param {string|null} key 
-     * @param {*} value 
-     */
-    static src(index, key, value){
-        if(!instanceSource[index]){
-            instanceSource[index] = {}
-        }
-        var dd = instanceSource[index]
-        if('undefined' == typeof key){
-            return dd
-        }
-        if('undefined' == typeof value){
-            return dd[key] || null
-        }
-        dd[key] = value
-    }
-}
-
-/**
- * 工作流实例类
- */
-class Worker{
-    /**
-     * @param {object} option  工作流配置对象
-     * @param {object} config  dom 等相关配置 *
-     */
-    constructor(config, option){
-        // 开发环境检测
-        if (process.env.NODE_ENV !== 'production') {
-            if(!window.$){
-                console.warn('jQuery 依赖为安装，运行库将无法运行')
-            }
-            if(!window.Raphael){
-                console.warn('Raphael 依赖为安装，运行库将无法运行')
-            }
-        }
-        this.$index = H.getIndex()
-        // 工作流实例
-        this.Nodes = {}
-        this.config = __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].clone(config)
-        this.$raphael = H.createInstance(this.config)
-        this.$flow = new __WEBPACK_IMPORTED_MODULE_0__flow__["a" /* default */](this.$raphael)        
-        this.setOption(option)
-        this.draw()
-        // console.log(this.config)
-    }
-    // 绘制工作流图
-    draw(){
-        if(this.option){            
-            var steps = this.option.step
-            // 生成代码索引
-            this.codeIndex(steps)
-            var config = this.config
-            // 起点中心坐标点 (x, y)
-            var x = config.x || parseInt(config.w * 0.4)
-            var y = config.y || 10
-            var cH = config.cH || 50    // 容器高度
-            var dH = config.dH || 30    // 间距高度
-            // 同级别节点字典
-            var sameClsNodeMap = {}
-            // 获取通节点指向的 Y 值
-            var getSameClsNodeY = (_c) =>{
-                var _sameClsNode = this.codeIndex(_c)
-                var y = null
-                if(_sameClsNode && _sameClsNode.length > 0){
-                    __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].each(_sameClsNode, (index, value)=>{
-                        if(sameClsNodeMap[value]){
-                            y = sameClsNodeMap[value].y
-                            return false
-                        }
-                    })
-                }
-                return y
-            }
-            /**
-             * 获取同一级别节点差集对比数
-             * @param {string} _c 
-             */
-            var getSameClsDiffCount = (_c) =>{
-                var _sameClsNode = this.codeIndex(_c)
-                var _count = _sameClsNode.length
-                var hasEd = 0
-                __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].each(_sameClsNode, (index, value)=>{
-                    if(sameClsNodeMap[value]){
-                        hasEd += 1
-                    }
-                })
-                return (_count - hasEd)
-            }
-
-            // console.log(x ,y)
-            for(var i=0; i<steps.length; i++){
-                var step = steps[i]
-                var code = step.code
-                var name = step.name || code
-                var nd
-                // 开始
-                if(1 == step.type){      
-                    y += (dH + cH/2)
-                    nd = this.$flow.endpoint(x, y, cH/2, name)
-                    nd.c.attr('fill', 'rgb(181, 216, 126)')
-                    nd.$step = step
-                    this.drag(nd)
-                    y += cH/2
-                    // console.log(nd)
-                }
-                // 操作节点
-                else if(2 == step.type){     
-                    var w = 100
-                    var sameClsNode = this.codeIndex(step.code)
-                    var x0 = x
-                    // 只有一个父类
-                    if(step.prev){
-                        if(step.prev.indexOf(',') == -1){
-                            var parentNd = this.getNodeByCode(step.prev)
-                            if(parentNd && parentNd.c){
-                                console.log(parentNd)
-                                x0 = this.getStandX(parentNd)
-                            }
-                        }
-                    }
-                    // 多个同级节点
-                    if(sameClsNode && sameClsNode.length > 1){
-                        var diffCtt = getSameClsDiffCount(code)      
-                        var dW = 25                  
-                        // 中心偏移量算法
-                        var smClsD = Math.ceil(sameClsNode.length/2)
-                        var x1 = x0 - w/2
-                        var x1 = x0 + (dW + w)*(smClsD - diffCtt)
-                        var y1 = getSameClsNodeY(code)
-                        console.log(sameClsNode)
-                        if(y1){
-                            x1 = x0 + (dW + w)*(smClsD - diffCtt)
-                        }else{
-                            y += dH + cH/2
-                        }
-                        y1 = y1? y1: y
-                        nd = this.$flow.operation(x1, y1, w, cH, name)
-                        sameClsNodeMap[code] = {
-                            y
-                        }
-                    }else{                        
-                        y += dH + cH/2
-                        nd = this.$flow.operation(x0, y, w, cH, name)
-                    }         
-                    nd.$step = step
-                    this.drag(nd)  
-                    nd.c.attr('fill', 'rgb(224, 223, 226)')
-                    y += cH/2
-                }
-                // 判断节点
-                else if(3 == step.type){
-                    y += dH + cH/2
-                    nd = this.$flow.judge(x, y, w+60, cH, name)
-                    nd.c.attr('fill', 'rgb(49, 174, 196)')
-                    nd.$step = step
-                    this.drag(nd)
-                    // y += 80 + 20
-                    y += cH/2
-                    
-                }
-                // 结束
-                else if(9 == step.type){
-                    y += dH + cH/2
-                    nd = this.$flow.endpoint(x, y, cH/2, name)
-                    nd.c.attr('fill', 'rgb(34, 185, 41)')
-                    nd.$step = step
-                    this.drag(nd)
-                }
-
-                if(nd){
-                    this.Nodes[step.code] = nd
-                    this.line(nd)
-                }
-            }
-        }
-    }
-    // 移动处理
-    drag(nd){
-        // 不适用分割号时可能解析语句失败，报错
-        var config = this.config;
-        (function($nd, conf){
-            var $c = $nd.c
-            var cDragDt = {}
-            $c.drag(
-                // onmove
-                function(dx, dy){
-                    dx += cDragDt.x
-                    dy += cDragDt.y
-                    $nd.move(dx, dy)
-                    // 直线同步移动
-                    if(conf.line && conf.line == 'arrow'){
-                        $nd.ToSyncArrow(dx, dy)
-                    }
-                    else{
-                        $nd.ToSyncLine(dx, dy)
-                    }
-                },
-                // onstart
-                function(){
-                    var _x, _y
-                    if('circle' == this.type){
-                        _x = this.attr('cx')
-                        _y = this.attr('cy')
-                    }
-                    else if('rect' == this.type){
-                        _x = this.attr('x')
-                        _y = this.attr('y')
-                    }
-                    else if('path' == this.type){
-                        var _path = this.attr('path')
-                        var sP1 = _path[0]
-                        _x = sP1[1]
-                        _y = sP1[2]
-                    }
-                    cDragDt.x = _x
-                    cDragDt.y = _y
-                },
-                // onend
-                function(){}
-            )
-        })(nd, config)
-    }
-    // 连线
-    line(nd){
-        var step = __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].clone(nd.$step)
-        if(step.prev){
-            step.prev = step.prev.replace(/\s/g, '')
-        }
-        if(step.prev){
-            var config = this.config          
-            var makerLine = (from, to) => {
-                var $lineInstance
-                var fromNd = this.getNodeByCode(from)
-                var toNd = this.getNodeByCode(to)
-                if(fromNd && toNd){
-                    if(config.line && 'arrow' == config.line){
-                        $lineInstance = this.$flow.arrow(fromNd.getStlnP(), toNd.getEnlnP(), 4)
-                        $lineInstance.c.attr('fill', 'rgb(14, 10, 10)')
-                    }
-                    else{
-                        $lineInstance = this.$flow.line(fromNd.getStlnP(), toNd.getEnlnP())
-                    }
-                    fromNd.recordLine('from', $lineInstance)
-                    // fromNd.recordLine('to', $lineInstance)
-                    toNd.recordLine('to', $lineInstance)
-                }
-            }
-            var prev
-            if(step.prev.indexOf(',') > -1){
-                prev = step.prev.split(',')
-            }else{
-                prev = [step.prev]
-            }
-            for(var i=0; i<prev.length; i++){
-                makerLine(prev[i], step.code)
-            }
-        }
-
-    }
-    /**
-     * 设置配置文件信息
-     * @param {*} option 
-     */
-    setOption(option){
-        if('object' == typeof option){
-            this.option = __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].clone(option)
-        }
-    }
-    /**
-     * 根据code获取节点信息
-     * @param {string} code 
-     */
-    getNodeByCode(code){
-        var node = null
-        if(this.Nodes[code]){
-            return this.Nodes[code]
-        }
-        return node
-    }    
-    /**
-     * 代码分级算法
-     * @param {object} steps 
-     */
-    codeIndex(steps){
-        // 生成分级字典
-        if('object' == typeof steps){
-            var clsMap = {}
-            for(var i=0; i<steps.length; i++){
-                var step = steps[i]
-                var code = step.code
-                // 第一级
-                if(!step.prev){
-                    clsMap[code] = 1
-                }
-                else{
-                    var prev = step.prev.replace(/\s/g, '').split(',')
-                    for(var j=0; j<prev.length; j++){
-                        var prevCode = prev[j]
-                        var cls = clsMap[prevCode] ? clsMap[prevCode]: 0
-                        console.log(cls)
-                        if('object' == typeof cls && cls.length){
-                            cls = cls.length == 1? cls[0]: cls
-                        }
-                        cls += 1
-                        if(!clsMap[code]){
-                            clsMap[code] = cls
-                        }else{
-                            if('object' != typeof clsMap[code]){
-                                var cls2 = clsMap[code]
-                                clsMap[code] = [cls2]
-                            }
-                            clsMap[code].push(cls)
-                            clsMap[code] = __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].ArrayMergeSameValue(clsMap[code])
-                        }
-                    }
-                }
-            }
-            // console.log(clsMap)
-            H.src(this.$index, 'clsMap', clsMap)
-        }
-        else if(steps){
-            var clsMap = H.src(this.$index, 'clsMap')
-            if(clsMap){
-                var value = clsMap[steps] || null
-                var List = [steps]
-                for(var k in clsMap){
-                    if(value == clsMap[k] && $.inArray(k, List) == -1){
-                        List.push(k)
-                    }
-                }
-                return List
-            }
-            
-        }
-    }
-    /**
-     * 节点表单x坐标
-     * @param {NodeBase} nd 
-     */
-    getStandX(nd){
-        var x = null
-        if(nd && nd.c){
-            var $c = nd.c
-            switch($c.type){
-                case 'circle':
-                    x = $c.attr('cx')
-                    break
-                case 'rect':
-                    x = $c.attr('x') + $c.attr('width')/2
-                    break
-                case 'path':
-                    x = nd.opt.cx
-                    break
-            }
-        }
-        return x
-    }
-}
-
-
-/* harmony default export */ __webpack_exports__["a"] = (Worker);
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(4)))
-
-/***/ }),
-/* 4 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -838,16 +368,456 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
+/* 3 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_worker__ = __webpack_require__(4);
+/**
+ * 2018年1月7日 星期日
+ * 步骤动态配置
+ */
+
+
+
+$(function(){
+    var $worker = new __WEBPACK_IMPORTED_MODULE_0__src_worker__["a" /* default */]({
+        dom: '#workflow',
+        h: $(window).height() * 6,
+        line: 'arrow'
+    }, {
+        step:[
+            {code: 'A', type: 1},
+            {code: 'B', type: 2, prev: 'A'},
+            {code: 'C', type: 2, prev: 'B'},
+            {code: 'D1', type: 2, prev: 'C'},
+            {code: 'D2', name: 'D2 并列', type: 2, prev: 'C'},
+            {code: 'D3', name: 'D3 并列', type: 2, prev: 'C'},
+            {code: 'D4', name: 'D4 并列', type: 2, prev: 'C'},
+            {code: 'D5', type: 2, prev: 'C'},
+            {code: 'D6', type: 2, prev: 'C'},
+            // {code: 'D7', type: 2, prev: 'C,F1'},         // 流程中退回的线条算法
+            {code: 'D7', type: 2, prev: 'C'},
+
+
+            {code: 'E1', type: 2, prev: 'D4'},
+            {code: 'E2', type: 2, prev: 'D1'},
+            {code: 'E3', type: 2, prev: 'D1'},
+            {code: 'E4', type: 2, prev: 'D6'},
+            
+            {code: 'F1', type: 3, prev: 'E1,E3'},
+
+            {code: 'G1', type: 3, prev: 'F1'},
+            {code: 'G2', type: 2, prev: 'F1'},
+            {code: 'H1', type: 2, prev: 'G2'},
+            
+            {code: 'J1', type: 2, prev: 'H1'},
+            // 自连接测试 - BUG
+            // {code: 'J1', type: 2, prev: 'J1'},
+
+            {code: 'K1', type: 2, prev: 'J1'},
+            {code: 'O1', type: 9, prev: 'G1,K1,E4'},
+
+
+        ]
+    })
+})
+
+/***/ }),
+/* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__flow__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__util__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__helper__ = __webpack_require__(11);
+/**
+ * 2018年1月5日 星期五
+ * 工作流处理包
+ */
+
+
+
+
+/**
+ * 工作流实例类
+ */
+class Worker{
+    /**
+     * @param {object} option  工作流配置对象
+     * @param {object} config  dom 等相关配置 *
+     */
+    constructor(config, option){
+        // 开发环境检测
+        if (process.env.NODE_ENV !== 'production') {
+            if(!window.$){
+                console.warn('jQuery 依赖为安装，运行库将无法运行')
+            }
+            if(!window.Raphael){
+                console.warn('Raphael 依赖为安装，运行库将无法运行')
+            }
+        }
+        this.$index = __WEBPACK_IMPORTED_MODULE_2__helper__["a" /* default */].getIndex()
+        // 工作流实例
+        this.Nodes = {}
+        this.config = __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].clone(config)
+        this.$raphael = __WEBPACK_IMPORTED_MODULE_2__helper__["a" /* default */].createInstance(this.config)
+        this.$flow = new __WEBPACK_IMPORTED_MODULE_0__flow__["a" /* Flow */](this.$raphael)        
+        this.setOption(option)
+        this.draw()
+        // console.log(this.config)
+    }
+    // 绘制工作流图
+    draw(){
+        if(this.option){            
+            var steps = this.option.step
+            // 生成代码索引
+            this.codeIndex(steps)
+            var config = this.config
+            // 起点中心坐标点 (x, y)
+            var x = config.x || parseInt(config.w * 0.4)
+            var y = config.y || 10
+            var cH = config.cH || 50    // 容器高度
+            var dH = config.dH || 30    // 间距高度
+            // 同级别节点字典
+            var sameClsNodeMap = {}
+            // 获取通节点指向的 Y 值
+            var getSameClsNodeY = (_c) =>{
+                var _sameClsNode = this.codeIndex(_c)
+                var y = null
+                if(_sameClsNode && _sameClsNode.length > 0){
+                    __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].each(_sameClsNode, (index, value)=>{
+                        if(sameClsNodeMap[value]){
+                            y = sameClsNodeMap[value].y
+                            return false
+                        }
+                    })
+                }
+                return y
+            }
+            /**
+             * 获取同一级别节点差集对比数
+             * @param {string} _c 
+             */
+            var getSameClsDiffCount = (_c) =>{
+                var _sameClsNode = this.codeIndex(_c)
+                var _count = _sameClsNode.length
+                var hasEd = 0
+                __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].each(_sameClsNode, (index, value)=>{
+                    if(sameClsNodeMap[value]){
+                        hasEd += 1
+                    }
+                })
+                return (_count - hasEd)
+            }
+
+            // console.log(x ,y)
+            for(var i=0; i<steps.length; i++){
+                var step = steps[i]
+                var code = step.code
+                var name = step.name || code
+                var nd
+                // 开始
+                if(1 == step.type){      
+                    y += (dH + cH/2)
+                    nd = this.$flow.endpoint(x, y, cH/2, name)
+                    nd.c.attr('fill', 'rgb(181, 216, 126)')
+                    nd.$step = step
+                    this.drag(nd)
+                    y += cH/2
+                    // console.log(nd)
+                }
+                // 操作节点
+                else if(2 == step.type){     
+                    var w = 100
+                    var sameClsNode = this.codeIndex(step.code)
+                    var x0 = x
+                    // 只有一个父类
+                    if(step.prev){
+                        if(step.prev.indexOf(',') == -1){
+                            var parentNd = this.getNodeByCode(step.prev)
+                            if(parentNd && parentNd.c){
+                                // console.log(parentNd)
+                                x0 = this.getStandX(parentNd)
+                            }
+                        }
+                    }
+                    // 多个同级节点
+                    if(sameClsNode && sameClsNode.length > 1){
+                        var diffCtt = getSameClsDiffCount(code)      
+                        var dW = 25                  
+                        // 中心偏移量算法
+                        var smClsD = Math.ceil(sameClsNode.length/2)
+                        var x1 = x0 - w/2
+                        var x1 = x0 + (dW + w)*(smClsD - diffCtt)
+                        var y1 = getSameClsNodeY(code)
+                        // console.log(sameClsNode)
+                        if(y1){
+                            x1 = x0 + (dW + w)*(smClsD - diffCtt)
+                        }else{
+                            y += dH + cH/2
+                        }
+                        y1 = y1? y1: y
+                        nd = this.$flow.operation(x1, y1, w, cH, name)
+                        sameClsNodeMap[code] = {
+                            y
+                        }
+                    }else{                        
+                        y += dH + cH/2
+                        nd = this.$flow.operation(x0, y, w, cH, name)
+                    }         
+                    nd.$step = step
+                    this.drag(nd)  
+                    nd.c.attr('fill', 'rgb(224, 223, 226)')
+                    y += cH/2
+                }
+                // 判断节点
+                else if(3 == step.type){
+                    y += dH + cH/2
+                    nd = this.$flow.judge(x, y, w+60, cH, name)
+                    nd.c.attr('fill', 'rgb(49, 174, 196)')
+                    nd.$step = step
+                    this.drag(nd)
+                    // y += 80 + 20
+                    y += cH/2
+                    
+                }
+                // 结束
+                else if(9 == step.type){
+                    y += dH + cH/2
+                    nd = this.$flow.endpoint(x, y, cH/2, name)
+                    nd.c.attr('fill', 'rgb(34, 185, 41)')
+                    nd.$step = step
+                    this.drag(nd)
+                }
+
+                if(nd){
+                    this.Nodes[step.code] = nd
+                    this.line(nd)
+                }
+            }
+        }
+    }
+    // 移动处理
+    drag(nd){
+        // 不适用分割号时可能解析语句失败，报错
+        var config = this.config;
+        (function($nd, conf){
+            var $c = $nd.c
+            var cDragDt = {}
+            $c.drag(
+                // onmove
+                function(dx, dy){
+                    dx += cDragDt.x
+                    dy += cDragDt.y
+                    $nd.move(dx, dy)
+                    // 直线同步移动
+                    if(conf.line && conf.line == 'arrow'){
+                        $nd.ToSyncArrow(dx, dy)
+                    }
+                    else{
+                        $nd.ToSyncLine(dx, dy)
+                    }
+                },
+                // onstart
+                function(){
+                    var _x, _y
+                    if('circle' == this.type){
+                        _x = this.attr('cx')
+                        _y = this.attr('cy')
+                    }
+                    else if('rect' == this.type){
+                        _x = this.attr('x')
+                        _y = this.attr('y')
+                    }
+                    else if('path' == this.type){
+                        var _path = this.attr('path')
+                        var sP1 = _path[0]
+                        _x = sP1[1]
+                        _y = sP1[2]
+                    }
+                    cDragDt.x = _x
+                    cDragDt.y = _y
+                },
+                // onend
+                function(){}
+            )
+        })(nd, config)
+    }
+    // 连线
+    line(nd){
+        var step = __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].clone(nd.$step)
+        if(step.prev){
+            step.prev = step.prev.replace(/\s/g, '')
+        }
+        if(step.prev){
+            var config = this.config   
+            var rightAngle = 'undefined' == typeof config.rightAngle? true: config.rightAngle
+            var makerLine = (from, to) => {
+                var $lineInstance
+                var fromNd = this.getNodeByCode(from)
+                var toNd = this.getNodeByCode(to)
+                if(fromNd && toNd){
+                    if(config.line && 'arrow' == config.line){
+                        var $p1 = fromNd.getStlnP()
+                        var $p2 = toNd.getEnlnP()
+                        $lineInstance = this.$flow.arrow([$p1.x, $p1.y], [$p2.x, $p2.y], 
+                            (config.arrowLen? config.arrowLen: 4))
+                        $lineInstance.position = {from: $p1.position, to: $p2.position}
+                        $lineInstance.c.attr('fill', 'rgb(14, 10, 10)')
+                    }
+                    else{
+                        var $p1 = fromNd.getStlnP()
+                        var $p2 = toNd.getEnlnP()                        
+                        if(rightAngle){
+                            $lineInstance = this.$flow.rightAngleLine({
+                                p1: {x:$p1.x, y:$p1.y},
+                                p2: {x:$p2.x, y:$p2.y}
+                            })
+                        }
+                        else{
+                            $lineInstance = this.$flow.line([$p1.x, $p1.y], [$p2.x, $p2.y])
+                        }
+                        $lineInstance.position = {from: $p1.position, to: $p2.position}
+                    }
+                    fromNd.recordLine('from', $lineInstance)
+                    toNd.recordLine('to', $lineInstance)
+                }
+            }
+            var prev
+            if(step.prev.indexOf(',') > -1){
+                prev = step.prev.split(',')
+            }else{
+                prev = [step.prev]
+            }
+            for(var i=0; i<prev.length; i++){
+                makerLine(prev[i], step.code)
+            }
+        }
+
+    }
+    /**
+     * 设置配置文件信息
+     * @param {*} option 
+     */
+    setOption(option){
+        if('object' == typeof option){
+            this.option = __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].clone(option)
+        }
+    }
+    /**
+     * 根据code获取节点信息
+     * @param {string} code 
+     */
+    getNodeByCode(code){
+        var node = null
+        if(this.Nodes[code]){
+            return this.Nodes[code]
+        }
+        return node
+    }    
+    /**
+     * 代码分级算法
+     * @param {object} steps 
+     */
+    codeIndex(steps){
+        // 生成分级字典
+        if('object' == typeof steps){
+            var clsMap = {}
+            for(var i=0; i<steps.length; i++){
+                var step = steps[i]
+                var code = step.code
+                // 第一级
+                if(!step.prev){
+                    clsMap[code] = 1
+                }
+                else{
+                    var prev = step.prev.replace(/\s/g, '').split(',')
+                    for(var j=0; j<prev.length; j++){
+                        var prevCode = prev[j]
+                        var cls = clsMap[prevCode] ? clsMap[prevCode]: 0
+                        // console.log(cls)
+                        if('object' == typeof cls && cls.length){
+                            cls = cls.length == 1? cls[0]: cls
+                        }
+                        cls += 1
+                        if(!clsMap[code]){
+                            clsMap[code] = cls
+                        }else{
+                            if('object' != typeof clsMap[code]){
+                                var cls2 = clsMap[code]
+                                clsMap[code] = [cls2]
+                            }
+                            clsMap[code].push(cls)
+                            clsMap[code] = __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].ArrayMergeSameValue(clsMap[code])
+                        }
+                    }
+                }
+            }
+            // console.log(clsMap)
+            __WEBPACK_IMPORTED_MODULE_2__helper__["a" /* default */].src(this.$index, 'clsMap', clsMap)
+        }
+        else if(steps){
+            var clsMap = __WEBPACK_IMPORTED_MODULE_2__helper__["a" /* default */].src(this.$index, 'clsMap')
+            if(clsMap){
+                var value = clsMap[steps] || null
+                var List = [steps]
+                for(var k in clsMap){
+                    if(value == clsMap[k] && $.inArray(k, List) == -1){
+                        List.push(k)
+                    }
+                }
+                return List
+            }
+            
+        }
+    }
+    /**
+     * 节点表单x坐标
+     * @param {NodeBase} nd 
+     */
+    getStandX(nd){
+        var x = null
+        if(nd && nd.c){
+            var $c = nd.c
+            switch($c.type){
+                case 'circle':
+                    x = $c.attr('cx')
+                    break
+                case 'rect':
+                    x = $c.attr('x') + $c.attr('width')/2
+                    break
+                case 'path':
+                    x = nd.opt.cx
+                    break
+            }
+        }
+        return x
+    }
+}
+
+
+/* harmony default export */ __webpack_exports__["a"] = (Worker);
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(2)))
+
+/***/ }),
 /* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Flow; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeEndpoint__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__NodeOperation__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__NodeJudge__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeLine__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__NodeArrow__ = __webpack_require__(10);
+/* unused harmony reexport NodeLine */
+/* unused harmony reexport NodeArrow */
+/* unused harmony reexport NodeEndpoint */
+/* unused harmony reexport NodeOperation */
+/* unused harmony reexport NodeJudge */
 /**
  * 2018年1月4日 星期四
  * 工作流引擎, 基于 raphaelJs, 只用于绘制容器以及，拖动事件的相关算法
@@ -905,6 +875,15 @@ class Flow{
         return nd
     }
     /**
+     * p1 -> p2 直角转线算啊分
+     * @param {object} opt
+     */
+    rightAngleLine(opt){
+        var nd = new __WEBPACK_IMPORTED_MODULE_4__NodeLine__["a" /* default */](this.paper)
+        nd.RightAngle(opt)
+        return nd
+    }
+    /**
      * p1 -> p2 的连线
      * @param {*} p1 {x,y} 
      * @param {*} p2 
@@ -917,7 +896,12 @@ class Flow{
     }
 }
 
-/* harmony default export */ __webpack_exports__["a"] = (Flow);
+
+
+
+
+
+
 
 
 
@@ -1008,48 +992,53 @@ class NodeEndpoint extends __WEBPACK_IMPORTED_MODULE_1__NodeBase__["a" /* defaul
     }
     // 直线同步移动
     ToSyncLine(x, y){
-        this.syncLineMove((lnC, type) => {
+        this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position
+            var methodName      
             if(type == 'from'){
                 var $fPath = lnC.attr('path')
-                var dP = this.getDp(x, y)
-                lnC.attr('path', [
-                    ['M', dP.x, dP.y],
-                    $fPath[1]
-                ])
+                methodName = 'get'+position.from+'p'
+                var p1 = this[methodName](x, y)
+                $fPath[0] = ['M', p1.x, p1.y],
+                lnC.attr('path', $fPath)
             }
             else if(type == 'to'){
-                var bP = this.getBp(x, y)
                 var $tPath = lnC.attr('path')
-                lnC.attr('path', [
-                    $tPath[0],
-                    ['L', bP.x, bP.y]
-                ])
+                methodName = 'get'+position.from+'p'
+                var p2 = this[methodName](x, y)
+                $tPath[$tPath.length-1] = ['L', p2.x, p2.y];
+                lnC.attr('path', $tPath)
             }
         })
     }
     // 箭头同步移动
     ToSyncArrow(x, y){
         this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position
+            var methodName            
             if(type == 'from'){
-                var $fPath = lnC.attr('path')                
-                var dP = this.getDp(x, y)
-                $ln.updatePath([dP.x, dP.y])
+                methodName = 'get'+position.from+'p'
+                var p1 = this[methodName](x, y)
+                $ln.updatePath([p1.x, p1.y])
             }
             else if(type == 'to'){
-                var bP = this.getBp(x, y)
-                $ln.updatePath(null, [bP.x, bP.y])
+                methodName = 'get'+position.to+'p'
+                var p2 = this[methodName](x, y)
+                $ln.updatePath(null, [p2.x, p2.y])
             }
         })
     }
     // 获取连线的起点节点
     getStlnP(){
         var p = this.getDp()
-        return [p.x, p.y]
+        p.position = 'D'
+        return p
     }
     // 获取连线的终点节点
     getEnlnP(){
         var p = this.getBp()
-        return [p.x, p.y]
+        p.position = 'B'
+        return p
     }
     getAp(x, y){
         var opt = this.opt
@@ -1142,49 +1131,26 @@ class NodeOperation extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* defau
             x, y
         })
         this.label.attr(ctP)
-        // 连接线同步处理
-        // // 直线同步移动
-        // this.syncLineMove((lnC, type) => {
-        //     if(type == 'from'){
-        //         var $fPath = lnC.attr('path')
-        //         // var dP = this.getStlnP()
-        //         var bP = this.getBtp(ctP.x, ctP.y)
-        //         lnC.attr('path', [
-        //             ['M', bP.x, bP.y],
-        //             $fPath[1]
-        //         ])
-        //     }
-        //     else if(type == 'to'){
-        //         var dP = this.getTp(ctP.x, ctP.y)
-        //         var $tPath = lnC.attr('path')
-        //         lnC.attr('path', [
-        //             $tPath[0],
-        //             ['L', dP.x, dP.y]
-        //         ])
-        //     }
-        // })
     }
     // 直线同步移动
     ToSyncLine(x, y){
         var ctP = this.getCtpByAp(x, y)
         // 直线同步移动
-        this.syncLineMove((lnC, type) => {
+        this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position, methodName
             if(type == 'from'){
                 var $fPath = lnC.attr('path')
-                // var dP = this.getStlnP()
-                var bP = this.getBtp(ctP.x, ctP.y)
-                lnC.attr('path', [
-                    ['M', bP.x, bP.y],
-                    $fPath[1]
-                ])
+                methodName = 'get'+position.from+'p'
+                var p1 = this[methodName](ctP.x, ctP.y)
+                $fPath[0] = ['M', p1.x, p1.y]
+                lnC.attr('path', $fPath)
             }
             else if(type == 'to'){
-                var dP = this.getTp(ctP.x, ctP.y)
+                methodName = 'get'+position.to+'p'
+                var p2 = this[methodName](ctP.x, ctP.y)
                 var $tPath = lnC.attr('path')
-                lnC.attr('path', [
-                    $tPath[0],
-                    ['L', dP.x, dP.y]
-                ])
+                $tPath[$tPath.length -1] = ['L', p2.x, p2.y]
+                lnC.attr('path', $tPath)
             }
         })
     }
@@ -1192,13 +1158,15 @@ class NodeOperation extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* defau
     ToSyncArrow(x, y){
         var ctP = this.getCtpByAp(x, y)
         this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position, methodName
             if(type == 'from'){
-                var $fPath = lnC.attr('path')       
-                var bP = this.getBtp(ctP.x, ctP.y)         
+                methodName = 'get'+position.from+'p'
+                var bP = this[methodName](ctP.x, ctP.y)         
                 $ln.updatePath([bP.x, bP.y])
             }
             else if(type == 'to'){
-                var dP = this.getTp(ctP.x, ctP.y)
+                methodName = 'get'+position.to+'p'
+                var dP = this[methodName](ctP.x, ctP.y)
                 $ln.updatePath(null, [dP.x, dP.y])
             }
         })
@@ -1206,12 +1174,14 @@ class NodeOperation extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* defau
     // 获取连线的起点节点
     getStlnP(){
         var p = this.getBtp()
-        return [p.x, p.y]
+        p.position = 'Bt'
+        return p
     }
     // 获取连线的终点节点
     getEnlnP(){
         var p = this.getTp()
-        return [p.x, p.y]
+        p.position = 'T'
+        return p
     }
     // 根据 A 点获取 中心点
     getCtpByAp(x, y){
@@ -1363,70 +1333,64 @@ class NodeJudge extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* default *
         ])
         // 文本移动
         this.label.attr(ctP)
-        // // 直线同步移动
-        // this.syncLineMove((lnC, type) => {
-        //     if(type == 'from'){
-        //         var $fPath = lnC.attr('path')
-        //         lnC.attr('path', [
-        //             ['M', dP.x, dP.y],
-        //             $fPath[1]
-        //         ])
-        //     }
-        //     else if(type == 'to'){
-        //         var $tPath = lnC.attr('path')
-        //         lnC.attr('path', [
-        //             $tPath[0],
-        //             ['L', bP.x, bP.y]
-        //         ])
-        //     }
-        // })
     }
     // 直线同步移动
     ToSyncLine(x, y){
         var ctP = this.getCpByAp(x, y)
-        var bP = this.getBp(ctP.x, ctP.y)
-        var dP = this.getDp(ctP.x, ctP.y)
-        this.syncLineMove((lnC, type) => {
+        this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position
+            var methodName
             if(type == 'from'){
+                methodName = 'get' + position.from + 'p'
+                var p1 = this[methodName](ctP.x, ctP.y)
                 var $fPath = lnC.attr('path')
-                lnC.attr('path', [
-                    ['M', dP.x, dP.y],
-                    $fPath[1]
-                ])
+                $fPath[0] = ['M', p1.x, p1.y]
+                lnC.attr('path', $fPath)
             }
             else if(type == 'to'){
+                methodName = 'get' + position.to + 'p'
+                var p2 = this[methodName](ctP.x, ctP.y)
                 var $tPath = lnC.attr('path')
-                lnC.attr('path', [
-                    $tPath[0],
-                    ['L', bP.x, bP.y]
-                ])
+                $tPath[$tPath.length -1] = ['L', p2.x, p2.y]
+                lnC.attr('path', $tPath)
             }
         })
     }
     // 箭头同步器
     ToSyncArrow(x, y){
         var ctP = this.getCpByAp(x, y)
-        var bP = this.getBp(ctP.x, ctP.y)
-        var dP = this.getDp(ctP.x, ctP.y)
         this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position
+            var methodName
             if(type == 'from'){
-                var $fPath = lnC.attr('path')                
-                $ln.updatePath([dP.x, dP.y])
+                methodName = 'get' + position.from + 'p'
+                var p1 = this[methodName](ctP.x, ctP.y)
+                $ln.updatePath([p1.x, p1.y])
             }
             else if(type == 'to'){
-                $ln.updatePath(null, [bP.x, bP.y])
+                methodName = 'get' + position.to + 'p'
+                var p2 = this[methodName](ctP.x, ctP.y)
+                $ln.updatePath(null, [p2.x, p2.y])
             }
         })
     }
     // 获取连线的起点节点
     getStlnP(){
         var p = this.getDp()
-        return [p.x, p.y]
+        var position = 'D'
+        // 起点重合
+        if(this.isCoincidence(p, 'from')){
+            p = this.getCp()
+            position = 'C'
+        }
+        var nP = {x: p.x, y: p.y, position}
+        return nP
     }
     // 获取连线的终点节点
     getEnlnP(){
         var p = this.getBp()
-        return [p.x, p.y]
+        p.position = 'B'
+        return p
     }
     /**
      * 根据 A 点获取中心点
@@ -1465,6 +1429,47 @@ class NodeJudge extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* default *
         y += (opt.h/2)
         return {x, y}
     }
+    /**
+     * 是否为重合点
+     * @param {object} p {x,y}
+     * @param {string} type [from/to]
+     * @returns {boolean}
+     */
+    isCoincidence(p, type){
+        var successMK = false
+        if(p && 'object' == typeof p && 
+            'undefined' != typeof p.x && 'undefined' != typeof p.y){
+            // 起点
+            if('from' == type){
+                if(this.fromLine.length > 0){
+                    for(var i=0; i<this.fromLine.length; i++){
+                        var $line = this.fromLine[i]
+                        var path = $line.c.attr('path')
+                        var pathArr = path[0]
+                        if(pathArr[1] == p.x && pathArr[2] == p.y){
+                            successMK = true
+                            break
+                        }
+                    }
+                }
+            }
+            // 终点
+            else if('to' == type){
+                if(this.toLine.length > 0){
+                    for(var j=0; j<this.toLine.length; j++){
+                        var $line = this.toLine[j]
+                        var path = $line.c.attr('path')
+                        var pathArr = path[path.length - 1]
+                        if(pathArr[1] == p.x && pathArr[2] == p.y){
+                            successMK = true
+                            break
+                        }
+                    }
+                }
+            }
+        }
+        return successMK
+    }
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (NodeJudge);
@@ -1487,6 +1492,12 @@ class NodeLine{
     constructor(instance){
         this.instance = instance
         this.opt = {}       // 配置信息数据
+        this.position = {}      // 连接点        
+        /*
+            {from: A/B/C/D, to: A/B/C/D}
+        */
+
+        this.rightAngle = false // 直线直角连法
     }
     create(p1, p2){
         this.opt = {
@@ -1495,6 +1506,34 @@ class NodeLine{
         this.c = this.instance.path(
             'M' + p1[0] + ',' + p1[1] + 
             'L' + p2[0] + ',' + p2[1]
+        )
+    }
+    /**
+     * 直角连接法
+     * @param {object} opt {p1{x,y}, p2, d}
+     */
+    RightAngle(opt){
+        this.opt = opt
+        this.rightAngle = true
+        var p1 = opt.p1, 
+            p2 = opt.p2,
+            d0 = 20
+        if(opt.d){
+            d0 = opt.d
+        }
+        var middlePathStr = ''
+        if(p1.x != p2.x && p1.y != p2.y){
+            var d1 = p2.x - p1.x
+            middlePathStr = 
+                'L' + (p1.x+d1 + d0*(d1>0? 1:-1)) + ',' + p1.y + 
+                'L' + (p1.x+d1 + d0*(d1>0? 1:-1)) + ',' + p2.y + 
+                ''
+        }
+
+        this.c = this.instance.path(
+            'M' + p1.x + ',' + p1.y + 
+            middlePathStr + 
+            'L' + p2.x + ',' + p2.y
         )
     }
 }
@@ -1518,7 +1557,11 @@ class NodeArrow{
      */
     constructor(instance){
         this.instance = instance
-        this.opt = {}       // 配置信息数据
+        this.opt = {}           // 配置信息数据
+        this.position = {}      // 连接点
+        /*
+            {from: A/B/C/D, to: A/B/C/D}
+        */
     }
     /**
      * 画箭头，p1 开始位置,p2 结束位置, r前头的边长
@@ -1530,6 +1573,7 @@ class NodeArrow{
         this.opt = {
             p1, p2, r
         }
+        // 非同 x 线
         var points = this.getPoints()
         this.c = this.instance.path(
             'M' + p1[0] + ',' + p1[1] + 
@@ -1599,6 +1643,78 @@ class NodeArrow{
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (NodeArrow);
+
+/***/ }),
+/* 11 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {/**
+ * 2018年1月8日 星期一
+ * 内部处理类，从 worker.js/flow.js 内部分离
+ */
+// 实例索引序列
+var instanceIndex = 0
+var instanceSource = {}     // 实列资源队列
+
+// 内部协助函数(私有)
+class H{
+    /**
+     * 内部函数生成实例
+     * @param {*} config 
+     */
+    static createInstance(config){
+        config = 'object' == typeof config? config:{}
+        if(!config.dom){
+            if(process.env.NODE_ENV !== 'production'){
+                console.warn('[Worker] 配置文件无效，缺少 config.dom')
+            }
+        }
+        // 生成 HTML
+        if('string' == typeof config.dom){
+            config.dom = $(config.dom)
+        }
+        if(!config.w){
+            config.w = parseInt($(window).width() * 1.1)
+        }
+        if(!config.h){
+            config.h = parseInt($(window).height() * 1.1)
+        }
+        return Raphael(config.dom.get(0), config.w, config.h)
+    }
+    static onMoveEvt(){}
+    static onStartEvt(){}
+    static onEndEvt(){}
+    /**
+     * 内部索引序列
+     */
+    static getIndex(){
+        instanceIndex += 1
+        return instanceIndex
+    }
+    /**
+     * 内部资源处理
+     * @param {number} index 
+     * @param {string|null} key 
+     * @param {*} value 
+     */
+    static src(index, key, value){
+        if(!instanceSource[index]){
+            instanceSource[index] = {}
+        }
+        var dd = instanceSource[index]
+        if('undefined' == typeof key){
+            return dd
+        }
+        if('undefined' == typeof value){
+            return dd[key] || null
+        }
+        dd[key] = value
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (H);
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(2)))
 
 /***/ })
 /******/ ]);

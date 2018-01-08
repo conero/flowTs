@@ -56,4 +56,5 @@ class Queue{
 module.exports = new Queue()
     .js('worker')
     .js('tree')
+    .js('surong')   // index
 .getFiles()

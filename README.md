@@ -20,8 +20,18 @@ var config = {
     x: '起点坐标 +'
     y: '起点坐标 +'
     line: 'arrow'   // 箭头类型，默认为直线
+    arrowLen: 'Number 箭头侧长，默认 4 '
     dH: 'Number 间距高度'
     cH: '容器高度'
+    rightAngle: 'boolean 直角转算法 默认 true'
+}
+```
+
+tree
+```javascript
+var option = {
+    feature: {} // 特征
+    nodes:[{}]  // 节点信息
 }
 ```
 
@@ -33,6 +43,28 @@ var config = {
 
 ## 更新日志
 > ***V1.0.4/alpha-date*** alpha 类型模板
+- ***V1.0.4/20180108***
+    - 简述
+        - treeJs/workerJs 融合处理， 提取公共部分 ***H*** 静态类。两者通过文件引入
+        - treeJs 布局，以及程序结构优化
+        - workerJs 程序结构优化，flow中可到处节点控制器
+            - 节点布局与连线适应多点切换
+    - treeJs
+        - 与 workerJs 差异化加大，渐进独立于应用项目
+            - 节点只是用了 ***workerJs** 中的 “操作” 框图
+            - 布线算法也发生很大的差异
+            - 使用 ***src/TreeContainer*** 替代原 ***src/flow.js** 中的代码
+        - 后期将使用 ***族代法*** 排列节点，节点序列上在原来的基础上可通过子集自适应排序
+    - workerJs
+        - 直线生成算法，添加可配置的 ***直角转为线生成算法***， 默认为是
+    - 基础节点
+        - 直线/箭头： 新增 ***position*** 属性，用于实现关联部件之间的直线联动
+        - 直线联动算法： 只处理起点/终点；扩展原来的写法
+        - 直线直角连接线生成算法编写与初始(不稳定版)
+        - 内部 ***getStlnP*** / ***getEnlnP*** 方法的返回值有原来的 array 转变为 json
+    - 系统
+        - 添加 ***surongJs*** 使用实现，库所有图标生成器的索引
+
 - ***V1.0.3/20180107***
     - todo
         - bug # NodeArrow.js 移动部件后在连接关联的部件，起点会回到最初点

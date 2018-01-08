@@ -34,7 +34,14 @@ $(function(){
 
             {code: 'G1', type: 3, prev: 'F1'},
             {code: 'G2', type: 2, prev: 'F1'},
-            {code: 'O1', type: 9, prev: 'G1,G2,E4'},
+            {code: 'H1', type: 2, prev: 'G2'},
+            
+            {code: 'J1', type: 2, prev: 'H1'},
+            // 自连接测试 - BUG
+            // {code: 'J1', type: 2, prev: 'J1'},
+
+            {code: 'K1', type: 2, prev: 'J1'},
+            {code: 'O1', type: 9, prev: 'G1,K1,E4'},
 
 
         ]

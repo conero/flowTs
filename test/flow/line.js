@@ -9,6 +9,7 @@ import {Cfg} from './frp1000c-v1'
 $(function(){
     var $worker = new worker({
         dom: '#workflow',
+        // rightAngle: false,
         h: $(window).height() * 6
     }, Cfg)
 })

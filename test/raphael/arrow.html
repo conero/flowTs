@@ -63,10 +63,32 @@ $(function(){
         )
         $aNd.attr('fill', 'rgb(14, 10, 10)')
     }
+    // 直线转角走法
+    var lineRightAngle = (p1, p2) =>{
+        var middleLine = ''
+        if(p1.x != p2.x && p1.y != p2.y){
+            var d1 = p2.x - p1.x
+            var d0 = 20
+            middleLine = 
+                'L' + (p1.x+d1 + d0*(d1>0? 1:-1)) + ',' + p1.y + 
+                'L' + (p1.x+d1 + d0*(d1>0? 1:-1)) + ',' + p2.y + 
+                ''
+        }
+        var $line = paper.path(
+            'M' + p1.x + ',' + p1.y + 
+            middleLine +
+            'L' + p2.x + ',' + p2.y
+        )
+    }
+
     // 箭头测试
     arrowMaker([200, 400], [700, 500]);
     // 箭头
     arrowNode({x: 100, y:50}, {x: 265, y:112}, 5)
+    lineRightAngle({x: 410, y:230}, {x:630, y:380})
+    lineRightAngle({x: 430, y:130}, {x:210, y:380})
+    lineRightAngle({x: 110, y:130}, {x:110, y:380})
+    lineRightAngle({x: 50, y:380}, {x:90, y:380})
     
 })
 

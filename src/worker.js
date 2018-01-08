@@ -2,68 +2,9 @@
  * 2018年1月5日 星期五
  * 工作流处理包
  */
-import flow from './flow'
+import {Flow} from './flow'
 import {Util} from './util'
-
-// 实例索引序列
-var instanceIndex = 0
-var instanceSource = {}     // 实列资源队列
-
-// 内部协助函数(私有)
-class H{
-    /**
-     * 内部函数生成实例
-     * @param {*} config 
-     */
-    static createInstance(config){
-        config = 'object' == typeof config? config:{}
-        if(!config.dom){
-            if(process.env.NODE_ENV !== 'production'){
-                console.warn('[Worker] 配置文件无效，缺少 config.dom')
-            }
-        }
-        // 生成 HTML
-        if('string' == typeof config.dom){
-            config.dom = $(config.dom)
-        }
-        if(!config.w){
-            config.w = parseInt($(window).width() * 1.1)
-        }
-        if(!config.h){
-            config.h = parseInt($(window).height() * 1.1)
-        }
-        return Raphael(config.dom.get(0), config.w, config.h)
-    }
-    static onMoveEvt(){}
-    static onStartEvt(){}
-    static onEndEvt(){}
-    /**
-     * 内部索引序列
-     */
-    static getIndex(){
-        instanceIndex += 1
-        return instanceIndex
-    }
-    /**
-     * 内部资源处理
-     * @param {number} index 
-     * @param {string|null} key 
-     * @param {*} value 
-     */
-    static src(index, key, value){
-        if(!instanceSource[index]){
-            instanceSource[index] = {}
-        }
-        var dd = instanceSource[index]
-        if('undefined' == typeof key){
-            return dd
-        }
-        if('undefined' == typeof value){
-            return dd[key] || null
-        }
-        dd[key] = value
-    }
-}
+import H from './helper'
 
 /**
  * 工作流实例类
@@ -88,7 +29,7 @@ class Worker{
         this.Nodes = {}
         this.config = Util.clone(config)
         this.$raphael = H.createInstance(this.config)
-        this.$flow = new flow(this.$raphael)        
+        this.$flow = new Flow(this.$raphael)        
         this.setOption(option)
         this.draw()
         // console.log(this.config)
@@ -163,7 +104,7 @@ class Worker{
                         if(step.prev.indexOf(',') == -1){
                             var parentNd = this.getNodeByCode(step.prev)
                             if(parentNd && parentNd.c){
-                                console.log(parentNd)
+                                // console.log(parentNd)
                                 x0 = this.getStandX(parentNd)
                             }
                         }
@@ -177,7 +118,7 @@ class Worker{
                         var x1 = x0 - w/2
                         var x1 = x0 + (dW + w)*(smClsD - diffCtt)
                         var y1 = getSameClsNodeY(code)
-                        console.log(sameClsNode)
+                        // console.log(sameClsNode)
                         if(y1){
                             x1 = x0 + (dW + w)*(smClsD - diffCtt)
                         }else{
@@ -277,21 +218,36 @@ class Worker{
             step.prev = step.prev.replace(/\s/g, '')
         }
         if(step.prev){
-            var config = this.config          
+            var config = this.config   
+            var rightAngle = 'undefined' == typeof config.rightAngle? true: config.rightAngle
             var makerLine = (from, to) => {
                 var $lineInstance
                 var fromNd = this.getNodeByCode(from)
                 var toNd = this.getNodeByCode(to)
                 if(fromNd && toNd){
                     if(config.line && 'arrow' == config.line){
-                        $lineInstance = this.$flow.arrow(fromNd.getStlnP(), toNd.getEnlnP(), 4)
+                        var $p1 = fromNd.getStlnP()
+                        var $p2 = toNd.getEnlnP()
+                        $lineInstance = this.$flow.arrow([$p1.x, $p1.y], [$p2.x, $p2.y], 
+                            (config.arrowLen? config.arrowLen: 4))
+                        $lineInstance.position = {from: $p1.position, to: $p2.position}
                         $lineInstance.c.attr('fill', 'rgb(14, 10, 10)')
                     }
                     else{
-                        $lineInstance = this.$flow.line(fromNd.getStlnP(), toNd.getEnlnP())
+                        var $p1 = fromNd.getStlnP()
+                        var $p2 = toNd.getEnlnP()                        
+                        if(rightAngle){
+                            $lineInstance = this.$flow.rightAngleLine({
+                                p1: {x:$p1.x, y:$p1.y},
+                                p2: {x:$p2.x, y:$p2.y}
+                            })
+                        }
+                        else{
+                            $lineInstance = this.$flow.line([$p1.x, $p1.y], [$p2.x, $p2.y])
+                        }
+                        $lineInstance.position = {from: $p1.position, to: $p2.position}
                     }
                     fromNd.recordLine('from', $lineInstance)
-                    // fromNd.recordLine('to', $lineInstance)
                     toNd.recordLine('to', $lineInstance)
                 }
             }
@@ -347,7 +303,7 @@ class Worker{
                     for(var j=0; j<prev.length; j++){
                         var prevCode = prev[j]
                         var cls = clsMap[prevCode] ? clsMap[prevCode]: 0
-                        console.log(cls)
+                        // console.log(cls)
                         if('object' == typeof cls && cls.length){
                             cls = cls.length == 1? cls[0]: cls
                         }

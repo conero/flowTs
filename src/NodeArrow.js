@@ -10,7 +10,11 @@ class NodeArrow{
      */
     constructor(instance){
         this.instance = instance
-        this.opt = {}       // 配置信息数据
+        this.opt = {}           // 配置信息数据
+        this.position = {}      // 连接点
+        /*
+            {from: A/B/C/D, to: A/B/C/D}
+        */
     }
     /**
      * 画箭头，p1 开始位置,p2 结束位置, r前头的边长
@@ -22,6 +26,7 @@ class NodeArrow{
         this.opt = {
             p1, p2, r
         }
+        // 非同 x 线
         var points = this.getPoints()
         this.c = this.instance.path(
             'M' + p1[0] + ',' + p1[1] + 

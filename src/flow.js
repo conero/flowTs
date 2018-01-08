@@ -55,6 +55,15 @@ class Flow{
         return nd
     }
     /**
+     * p1 -> p2 直角转线算啊分
+     * @param {object} opt
+     */
+    rightAngleLine(opt){
+        var nd = new NodeLine(this.paper)
+        nd.RightAngle(opt)
+        return nd
+    }
+    /**
      * p1 -> p2 的连线
      * @param {*} p1 {x,y} 
      * @param {*} p2 
@@ -67,5 +76,10 @@ class Flow{
     }
 }
 
-export default Flow
+export {Flow}
+export {NodeLine}
+export {NodeArrow}
+export {NodeEndpoint}
+export {NodeOperation}
+export {NodeJudge}
 

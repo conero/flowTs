@@ -69,70 +69,64 @@ class NodeJudge extends NodeBase{
         ])
         // 文本移动
         this.label.attr(ctP)
-        // // 直线同步移动
-        // this.syncLineMove((lnC, type) => {
-        //     if(type == 'from'){
-        //         var $fPath = lnC.attr('path')
-        //         lnC.attr('path', [
-        //             ['M', dP.x, dP.y],
-        //             $fPath[1]
-        //         ])
-        //     }
-        //     else if(type == 'to'){
-        //         var $tPath = lnC.attr('path')
-        //         lnC.attr('path', [
-        //             $tPath[0],
-        //             ['L', bP.x, bP.y]
-        //         ])
-        //     }
-        // })
     }
     // 直线同步移动
     ToSyncLine(x, y){
         var ctP = this.getCpByAp(x, y)
-        var bP = this.getBp(ctP.x, ctP.y)
-        var dP = this.getDp(ctP.x, ctP.y)
-        this.syncLineMove((lnC, type) => {
+        this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position
+            var methodName
             if(type == 'from'){
+                methodName = 'get' + position.from + 'p'
+                var p1 = this[methodName](ctP.x, ctP.y)
                 var $fPath = lnC.attr('path')
-                lnC.attr('path', [
-                    ['M', dP.x, dP.y],
-                    $fPath[1]
-                ])
+                $fPath[0] = ['M', p1.x, p1.y]
+                lnC.attr('path', $fPath)
             }
             else if(type == 'to'){
+                methodName = 'get' + position.to + 'p'
+                var p2 = this[methodName](ctP.x, ctP.y)
                 var $tPath = lnC.attr('path')
-                lnC.attr('path', [
-                    $tPath[0],
-                    ['L', bP.x, bP.y]
-                ])
+                $tPath[$tPath.length -1] = ['L', p2.x, p2.y]
+                lnC.attr('path', $tPath)
             }
         })
     }
     // 箭头同步器
     ToSyncArrow(x, y){
         var ctP = this.getCpByAp(x, y)
-        var bP = this.getBp(ctP.x, ctP.y)
-        var dP = this.getDp(ctP.x, ctP.y)
         this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position
+            var methodName
             if(type == 'from'){
-                var $fPath = lnC.attr('path')                
-                $ln.updatePath([dP.x, dP.y])
+                methodName = 'get' + position.from + 'p'
+                var p1 = this[methodName](ctP.x, ctP.y)
+                $ln.updatePath([p1.x, p1.y])
             }
             else if(type == 'to'){
-                $ln.updatePath(null, [bP.x, bP.y])
+                methodName = 'get' + position.to + 'p'
+                var p2 = this[methodName](ctP.x, ctP.y)
+                $ln.updatePath(null, [p2.x, p2.y])
             }
         })
     }
     // 获取连线的起点节点
     getStlnP(){
         var p = this.getDp()
-        return [p.x, p.y]
+        var position = 'D'
+        // 起点重合
+        if(this.isCoincidence(p, 'from')){
+            p = this.getCp()
+            position = 'C'
+        }
+        var nP = {x: p.x, y: p.y, position}
+        return nP
     }
     // 获取连线的终点节点
     getEnlnP(){
         var p = this.getBp()
-        return [p.x, p.y]
+        p.position = 'B'
+        return p
     }
     /**
      * 根据 A 点获取中心点
@@ -170,6 +164,47 @@ class NodeJudge extends NodeBase{
         y = y? y: opt.cy
         y += (opt.h/2)
         return {x, y}
+    }
+    /**
+     * 是否为重合点
+     * @param {object} p {x,y}
+     * @param {string} type [from/to]
+     * @returns {boolean}
+     */
+    isCoincidence(p, type){
+        var successMK = false
+        if(p && 'object' == typeof p && 
+            'undefined' != typeof p.x && 'undefined' != typeof p.y){
+            // 起点
+            if('from' == type){
+                if(this.fromLine.length > 0){
+                    for(var i=0; i<this.fromLine.length; i++){
+                        var $line = this.fromLine[i]
+                        var path = $line.c.attr('path')
+                        var pathArr = path[0]
+                        if(pathArr[1] == p.x && pathArr[2] == p.y){
+                            successMK = true
+                            break
+                        }
+                    }
+                }
+            }
+            // 终点
+            else if('to' == type){
+                if(this.toLine.length > 0){
+                    for(var j=0; j<this.toLine.length; j++){
+                        var $line = this.toLine[j]
+                        var path = $line.c.attr('path')
+                        var pathArr = path[path.length - 1]
+                        if(pathArr[1] == p.x && pathArr[2] == p.y){
+                            successMK = true
+                            break
+                        }
+                    }
+                }
+            }
+        }
+        return successMK
     }
 }
 

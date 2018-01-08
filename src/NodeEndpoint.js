@@ -78,48 +78,53 @@ class NodeEndpoint extends NodeBase{
     }
     // 直线同步移动
     ToSyncLine(x, y){
-        this.syncLineMove((lnC, type) => {
+        this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position
+            var methodName      
             if(type == 'from'){
                 var $fPath = lnC.attr('path')
-                var dP = this.getDp(x, y)
-                lnC.attr('path', [
-                    ['M', dP.x, dP.y],
-                    $fPath[1]
-                ])
+                methodName = 'get'+position.from+'p'
+                var p1 = this[methodName](x, y)
+                $fPath[0] = ['M', p1.x, p1.y],
+                lnC.attr('path', $fPath)
             }
             else if(type == 'to'){
-                var bP = this.getBp(x, y)
                 var $tPath = lnC.attr('path')
-                lnC.attr('path', [
-                    $tPath[0],
-                    ['L', bP.x, bP.y]
-                ])
+                methodName = 'get'+position.from+'p'
+                var p2 = this[methodName](x, y)
+                $tPath[$tPath.length-1] = ['L', p2.x, p2.y];
+                lnC.attr('path', $tPath)
             }
         })
     }
     // 箭头同步移动
     ToSyncArrow(x, y){
         this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position
+            var methodName            
             if(type == 'from'){
-                var $fPath = lnC.attr('path')                
-                var dP = this.getDp(x, y)
-                $ln.updatePath([dP.x, dP.y])
+                methodName = 'get'+position.from+'p'
+                var p1 = this[methodName](x, y)
+                $ln.updatePath([p1.x, p1.y])
             }
             else if(type == 'to'){
-                var bP = this.getBp(x, y)
-                $ln.updatePath(null, [bP.x, bP.y])
+                methodName = 'get'+position.to+'p'
+                var p2 = this[methodName](x, y)
+                $ln.updatePath(null, [p2.x, p2.y])
             }
         })
     }
     // 获取连线的起点节点
     getStlnP(){
         var p = this.getDp()
-        return [p.x, p.y]
+        p.position = 'D'
+        return p
     }
     // 获取连线的终点节点
     getEnlnP(){
         var p = this.getBp()
-        return [p.x, p.y]
+        p.position = 'B'
+        return p
     }
     getAp(x, y){
         var opt = this.opt

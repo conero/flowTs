@@ -51,49 +51,26 @@ class NodeOperation extends NodeBase{
             x, y
         })
         this.label.attr(ctP)
-        // 连接线同步处理
-        // // 直线同步移动
-        // this.syncLineMove((lnC, type) => {
-        //     if(type == 'from'){
-        //         var $fPath = lnC.attr('path')
-        //         // var dP = this.getStlnP()
-        //         var bP = this.getBtp(ctP.x, ctP.y)
-        //         lnC.attr('path', [
-        //             ['M', bP.x, bP.y],
-        //             $fPath[1]
-        //         ])
-        //     }
-        //     else if(type == 'to'){
-        //         var dP = this.getTp(ctP.x, ctP.y)
-        //         var $tPath = lnC.attr('path')
-        //         lnC.attr('path', [
-        //             $tPath[0],
-        //             ['L', dP.x, dP.y]
-        //         ])
-        //     }
-        // })
     }
     // 直线同步移动
     ToSyncLine(x, y){
         var ctP = this.getCtpByAp(x, y)
         // 直线同步移动
-        this.syncLineMove((lnC, type) => {
+        this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position, methodName
             if(type == 'from'){
                 var $fPath = lnC.attr('path')
-                // var dP = this.getStlnP()
-                var bP = this.getBtp(ctP.x, ctP.y)
-                lnC.attr('path', [
-                    ['M', bP.x, bP.y],
-                    $fPath[1]
-                ])
+                methodName = 'get'+position.from+'p'
+                var p1 = this[methodName](ctP.x, ctP.y)
+                $fPath[0] = ['M', p1.x, p1.y]
+                lnC.attr('path', $fPath)
             }
             else if(type == 'to'){
-                var dP = this.getTp(ctP.x, ctP.y)
+                methodName = 'get'+position.to+'p'
+                var p2 = this[methodName](ctP.x, ctP.y)
                 var $tPath = lnC.attr('path')
-                lnC.attr('path', [
-                    $tPath[0],
-                    ['L', dP.x, dP.y]
-                ])
+                $tPath[$tPath.length -1] = ['L', p2.x, p2.y]
+                lnC.attr('path', $tPath)
             }
         })
     }
@@ -101,13 +78,15 @@ class NodeOperation extends NodeBase{
     ToSyncArrow(x, y){
         var ctP = this.getCtpByAp(x, y)
         this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position, methodName
             if(type == 'from'){
-                var $fPath = lnC.attr('path')       
-                var bP = this.getBtp(ctP.x, ctP.y)         
+                methodName = 'get'+position.from+'p'
+                var bP = this[methodName](ctP.x, ctP.y)         
                 $ln.updatePath([bP.x, bP.y])
             }
             else if(type == 'to'){
-                var dP = this.getTp(ctP.x, ctP.y)
+                methodName = 'get'+position.to+'p'
+                var dP = this[methodName](ctP.x, ctP.y)
                 $ln.updatePath(null, [dP.x, dP.y])
             }
         })
@@ -115,12 +94,14 @@ class NodeOperation extends NodeBase{
     // 获取连线的起点节点
     getStlnP(){
         var p = this.getBtp()
-        return [p.x, p.y]
+        p.position = 'Bt'
+        return p
     }
     // 获取连线的终点节点
     getEnlnP(){
         var p = this.getTp()
-        return [p.x, p.y]
+        p.position = 'T'
+        return p
     }
     // 根据 A 点获取 中心点
     getCtpByAp(x, y){

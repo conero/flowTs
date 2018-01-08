@@ -2,68 +2,9 @@
  * 2018年1月7日 星期日
  * 从 Worker.js 迁移过来的树形生成图；可用于生成家族树
  */
-import flow from './flow'
+import TreeContainer from './TreeContainer'
 import {Util} from './util'
-
-// 实例索引序列
-var instanceIndex = 0
-var instanceSource = {}     // 实列资源队列
-
-// 内部协助函数(私有)
-class H{
-    /**
-     * 内部函数生成实例
-     * @param {*} config 
-     */
-    static createInstance(config){
-        config = 'object' == typeof config? config:{}
-        if(!config.dom){
-            if(process.env.NODE_ENV !== 'production'){
-                console.warn('[Worker] 配置文件无效，缺少 config.dom')
-            }
-        }
-        // 生成 HTML
-        if('string' == typeof config.dom){
-            config.dom = $(config.dom)
-        }
-        if(!config.w){
-            config.w = parseInt($(window).width() * 1.1)
-        }
-        if(!config.h){
-            config.h = parseInt($(window).height() * 1.1)
-        }
-        return Raphael(config.dom.get(0), config.w, config.h)
-    }
-    static onMoveEvt(){}
-    static onStartEvt(){}
-    static onEndEvt(){}
-    /**
-     * 内部索引序列
-     */
-    static getIndex(){
-        instanceIndex += 1
-        return instanceIndex
-    }
-    /**
-     * 内部资源处理
-     * @param {number} index 
-     * @param {string|null} key 
-     * @param {*} value 
-     */
-    static src(index, key, value){
-        if(!instanceSource[index]){
-            instanceSource[index] = {}
-        }
-        var dd = instanceSource[index]
-        if('undefined' == typeof key){
-            return dd
-        }
-        if('undefined' == typeof value){
-            return dd[key] || null
-        }
-        dd[key] = value
-    }
-}
+import H from './helper'
 
 /**
  * 工作流实例类
@@ -88,7 +29,7 @@ class Tree{
         this.Nodes = {}
         this.config = Util.clone(config)
         this.$raphael = H.createInstance(this.config)
-        this.$flow = new flow(this.$raphael)        
+        this.$flow = new TreeContainer(this.$raphael)        
         this.setOption(option)
         this.draw()
         // console.log(this.config)
@@ -96,10 +37,13 @@ class Tree{
     // 绘制工作流图
     draw(){
         if(this.option){            
-            var steps = this.option.step
+            var steps = this.option.nodes
             // 生成代码索引
             this.codeIndex(steps)
             var config = this.config
+            var bkgdF = this.feature('background.female', 'rgb(190, 113, 82)')
+            var bkgdM = this.feature('background.male', 'rgb(224, 223, 226)')
+            this.createFeatureKey(bkgdF, bkgdM)
             // 起点中心坐标点 (x, y)
             var x = config.x || parseInt(config.w * 0.4)
             var y = config.y || 10
@@ -143,86 +87,71 @@ class Tree{
                 var code = step.code
                 var name = step.name || code
                 var nd
-                // 开始
-                if(1 == step.type){      
-                    y += (dH + cH/2)
-                    nd = this.$flow.endpoint(x, y, cH/2, name)
-                    nd.c.attr('fill', 'rgb(181, 216, 126)')
-                    nd.$step = step
-                    this.drag(nd)
-                    y += cH/2
-                    // console.log(nd)
-                }
-                // 操作节点
-                else if(2 == step.type){     
-                    var w = 100
-                    var sameClsNode = this.codeIndex(step.code)
-                    var x0 = x
-                    // 只有一个父类
-                    if(step.prev){
-                        if(step.prev.indexOf(',') == -1){
-                            var parentNd = this.getNodeByCode(step.prev)
-                            if(parentNd && parentNd.c){
-                                console.log(parentNd)
-                                x0 = this.getStandX(parentNd)
-                            }
+
+                var w = 100
+                var sameClsNode = this.codeIndex(step.code)
+                var x0 = x
+                // 只有一个父类
+                if(step.parent){
+                    if(step.parent.indexOf(',') == -1){
+                        var parentNd = this.getNodeByCode(step.parent)
+                        if(parentNd && parentNd.c){
+                            // console.log(parentNd)
+                            x0 = this.getStandX(parentNd)
                         }
                     }
-                    // 多个同级节点
-                    if(sameClsNode && sameClsNode.length > 1){
-                        var diffCtt = getSameClsDiffCount(code)      
-                        var dW = 25                  
-                        // 中心偏移量算法
-                        var smClsD = Math.ceil(sameClsNode.length/2)
-                        var x1 = x0 - w/2
-                        var x1 = x0 + (dW + w)*(smClsD - diffCtt)
-                        var y1 = getSameClsNodeY(code)
-                        console.log(sameClsNode)
-                        if(y1){
-                            x1 = x0 + (dW + w)*(smClsD - diffCtt)
-                        }else{
-                            y += dH + cH/2
-                        }
-                        y1 = y1? y1: y
-                        nd = this.$flow.operation(x1, y1, w, cH, name)
-                        sameClsNodeMap[code] = {
-                            y
-                        }
-                    }else{                        
-                        y += dH + cH/2
-                        nd = this.$flow.operation(x0, y, w, cH, name)
-                    }         
-                    nd.$step = step
-                    this.drag(nd)  
-                    nd.c.attr('fill', 'rgb(224, 223, 226)')
-                    y += cH/2
                 }
-                // 判断节点
-                else if(3 == step.type){
+                // 多个同级节点
+                if(sameClsNode && sameClsNode.length > 1){
+                    var diffCtt = getSameClsDiffCount(code)      
+                    var dW = 25                  
+                    // 中心偏移量算法
+                    var smClsD = Math.ceil(sameClsNode.length/2)
+                    var x1 = x0 - w/2
+                    var x1 = x0 + (dW + w)*(smClsD - diffCtt)
+                    var y1 = getSameClsNodeY(code)
+                    // console.log(sameClsNode)
+                    if(y1){
+                        x1 = x0 + (dW + w)*(smClsD - diffCtt)
+                    }else{
+                        y += dH + cH/2
+                    }
+                    y1 = y1? y1: y
+                    nd = this.$flow.operation(x1, y1, w, cH, name)
+                    sameClsNodeMap[code] = {
+                        y
+                    }
+                }else{                        
                     y += dH + cH/2
-                    nd = this.$flow.judge(x, y, w+60, cH, name)
-                    nd.c.attr('fill', 'rgb(49, 174, 196)')
-                    nd.$step = step
-                    this.drag(nd)
-                    // y += 80 + 20
-                    y += cH/2
+                    nd = this.$flow.operation(x0, y, w, cH, name)
+                }         
+                nd.$step = step
+                this.drag(nd)  
+                // 女
+                if(step.type == 'F'){
+                    nd.c.attr('fill',bkgdF)
                     
                 }
-                // 结束
-                else if(9 == step.type){
-                    y += dH + cH/2
-                    nd = this.$flow.endpoint(x, y, cH/2, name)
-                    nd.c.attr('fill', 'rgb(34, 185, 41)')
-                    nd.$step = step
-                    this.drag(nd)
+                // 男
+                else{
+                    nd.c.attr('fill',bkgdM)
                 }
-
+                y += cH/2
+                
                 if(nd){
                     this.Nodes[step.code] = nd
                     this.line(nd)
                 }
             }
         }
+    }
+    // 生成属性键值
+    createFeatureKey(mbkg, fbkg){
+        var x = 20, y = 20, w = 20, h=20
+        var fk1 = this.$flow.operation(x, y, w, h, '男')
+            fk1.c.attr('fill', fbkg)
+        var fk2 = this.$flow.operation(x, y+(20 + w), w, h, '女')
+            fk2.c.attr('fill', mbkg)
     }
     // 移动处理
     drag(nd){
@@ -273,10 +202,10 @@ class Tree{
     // 连线
     line(nd){
         var step = Util.clone(nd.$step)
-        if(step.prev){
-            step.prev = step.prev.replace(/\s/g, '')
+        if(step.parent){
+            step.parent = step.parent.replace(/\s/g, '')
         }
-        if(step.prev){
+        if(step.parent){
             var config = this.config          
             var makerLine = (from, to) => {
                 var $lineInstance
@@ -296,10 +225,10 @@ class Tree{
                 }
             }
             var prev
-            if(step.prev.indexOf(',') > -1){
-                prev = step.prev.split(',')
+            if(step.parent.indexOf(',') > -1){
+                prev = step.parent.split(',')
             }else{
-                prev = [step.prev]
+                prev = [step.parent]
             }
             for(var i=0; i<prev.length; i++){
                 makerLine(prev[i], step.code)
@@ -339,15 +268,15 @@ class Tree{
                 var step = steps[i]
                 var code = step.code
                 // 第一级
-                if(!step.prev){
+                if(!step.parent){
                     clsMap[code] = 1
                 }
                 else{
-                    var prev = step.prev.replace(/\s/g, '').split(',')
+                    var prev = step.parent.replace(/\s/g, '').split(',')
                     for(var j=0; j<prev.length; j++){
                         var prevCode = prev[j]
                         var cls = clsMap[prevCode] ? clsMap[prevCode]: 0
-                        console.log(cls)
+                        // console.log(cls)
                         if('object' == typeof cls && cls.length){
                             cls = cls.length == 1? cls[0]: cls
                         }
@@ -355,8 +284,13 @@ class Tree{
                         if(!clsMap[code]){
                             clsMap[code] = cls
                         }else{
+                            // 根据子级更新父级
                             if('object' != typeof clsMap[code]){
                                 var cls2 = clsMap[code]
+                                if(cls == 2 && clsMap[prevCode]){
+                                    clsMap[prevCode] = cls2 - 1
+                                    continue
+                                }
                                 clsMap[code] = [cls2]
                             }
                             clsMap[code].push(cls)
@@ -365,7 +299,7 @@ class Tree{
                     }
                 }
             }
-            // console.log(clsMap)
+            console.log(clsMap)
             H.src(this.$index, 'clsMap', clsMap)
         }
         else if(steps){
@@ -404,6 +338,31 @@ class Tree{
             }
         }
         return x
+    }
+    /**
+     * 获取特性
+     * @param {*} key 
+     * @param {*} def 
+     */
+    feature(key, def){
+        def = def || null
+        var feature = this.option.feature
+        if(key && 'object' == typeof feature){
+            key = key.replace(/\s/g,'').split('.')
+            var tempData = Util.clone(feature)
+            Util.each(key, (idx, value) => {
+                if(tempData && 'object' == typeof tempData){
+                    tempData = tempData[value] || def
+                }
+                // 为空时
+                else if(!tempData){
+                    tempData = def
+                    return false
+                }
+            })
+            def = tempData
+        }
+        return def
     }
 }
 
