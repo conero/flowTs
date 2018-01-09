@@ -2,7 +2,7 @@
  * 2018年1月5日 星期五
  * 连接类型： 连线
  */
-
+import {Util} from './util'
 class NodeLine{
     /**
      * 
@@ -54,6 +54,21 @@ class NodeLine{
             middlePathStr + 
             'L' + p2.x + ',' + p2.y
         )
+    }
+
+    /**
+     * 直接通过坐标点生成直线
+     * @param {object} point 
+     */
+    createByPoint(point){
+        this.opt = point
+        var pathStr = ''
+        Util.each(this.opt.points, (index, value) => {
+            if(value){
+                pathStr += (pathStr? 'L':'M') + value.x + ',' + value.y
+            }
+        })
+        this.c = this.instance.path(pathStr)
     }
 }
 

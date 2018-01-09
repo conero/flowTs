@@ -65,6 +65,70 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Util; });
+/**
+ * 2018年1月4日 星期四
+ * 工具库
+ */
+class Util{
+    /**
+     * 对象复制
+     * @param {object} t1 
+     */
+    static clone(t1){
+        t1 = 'object' == typeof t1? t1:{}
+        var obj = {}
+        return $.extend(true, obj, t1)
+    }
+    /**
+     * 数据合并相同的元素
+     * @param {*} array 
+     */
+    static ArrayMergeSameValue(array){
+        if('object' == typeof array && array.length && array.length > 1){
+            var valueMap = {}
+            var newArray = []
+            for(var i=0; i<array.length; i++){
+                if(valueMap[array[i]]){
+                    continue
+                }
+                newArray.push(array[i])
+                valueMap[array[i]] = true
+            }
+            array = newArray
+        }
+        return array
+    }
+    /**
+     * @param {array|object} obj 
+     * @param {function} callback (k, v)
+     */
+    static each(obj, callback){
+        if('object' == typeof obj){
+            if($.isArray(obj)){
+                for(var i=0; i<obj.length; i++){
+                    if(false === callback(i, obj[i])){
+                        break
+                    }
+                }
+            }else{
+                for(var k in obj){
+                    if(false === callback(k, obj[k])){
+                        break
+                    }
+                }
+            }
+        }        
+    }
+}
+
+
+
+/***/ }),
+/* 1 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -254,70 +318,6 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 1 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Util; });
-/**
- * 2018年1月4日 星期四
- * 工具库
- */
-class Util{
-    /**
-     * 对象复制
-     * @param {object} t1 
-     */
-    static clone(t1){
-        t1 = 'object' == typeof t1? t1:{}
-        var obj = {}
-        return $.extend(true, obj, t1)
-    }
-    /**
-     * 数据合并相同的元素
-     * @param {*} array 
-     */
-    static ArrayMergeSameValue(array){
-        if('object' == typeof array && array.length && array.length > 1){
-            var valueMap = {}
-            var newArray = []
-            for(var i=0; i<array.length; i++){
-                if(valueMap[array[i]]){
-                    continue
-                }
-                newArray.push(array[i])
-                valueMap[array[i]] = true
-            }
-            array = newArray
-        }
-        return array
-    }
-    /**
-     * @param {array|object} obj 
-     * @param {function} callback (k, v)
-     */
-    static each(obj, callback){
-        if('object' == typeof obj){
-            if($.isArray(obj)){
-                for(var i=0; i<obj.length; i++){
-                    if(false === callback(i, obj[i])){
-                        break
-                    }
-                }
-            }else{
-                for(var k in obj){
-                    if(false === callback(k, obj[k])){
-                        break
-                    }
-                }
-            }
-        }        
-    }
-}
-
-
-
-/***/ }),
 /* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -388,7 +388,7 @@ $(function(){
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(process) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__TreeContainer__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__util__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__util__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__helper__ = __webpack_require__(9);
 /**
  * 2018年1月7日 星期日
@@ -604,12 +604,15 @@ class Tree{
                 var fromNd = this.getNodeByCode(from)
                 var toNd = this.getNodeByCode(to)
                 if(fromNd && toNd){
+                    var p1 = fromNd.getStlnP(),
+                        p2 = toNd.getEnlnP()
+
                     if(config.line && 'arrow' == config.line){
-                        $lineInstance = this.$flow.arrow(fromNd.getStlnP(), toNd.getEnlnP(), 4)
+                        $lineInstance = this.$flow.arrow([p1.x, p1.y], [p2.x, p2.y], 4)
                         $lineInstance.c.attr('fill', 'rgb(14, 10, 10)')
                     }
                     else{
-                        $lineInstance = this.$flow.line(fromNd.getStlnP(), toNd.getEnlnP())
+                        $lineInstance = this.$flow.line([p1.x, p1.y], [p2.x, p2.y])
                     }
                     fromNd.recordLine('from', $lineInstance)
                     // fromNd.recordLine('to', $lineInstance)
@@ -760,14 +763,14 @@ class Tree{
 
 
 /* harmony default export */ __webpack_exports__["a"] = (Tree);
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(1)))
 
 /***/ }),
 /* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeOperation__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__NodeLine__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__NodeArrow__ = __webpack_require__(8);
@@ -844,6 +847,7 @@ class NodeOperation extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* defau
         super()
         this.instance = instance
         this.opt = {}       // 配置信息数据
+        this.bBox = null    // 边缘盒子数据示例
     }
     /**
      * @param {object} opt / [cx, cy, w, h, text]
@@ -1062,6 +1066,7 @@ class NodeBase{
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(0);
 /**
  * 2018年1月5日 星期五
  * 连接类型： 连线
@@ -1118,6 +1123,21 @@ class NodeLine{
             middlePathStr + 
             'L' + p2.x + ',' + p2.y
         )
+    }
+
+    /**
+     * 直接通过坐标点生成直线
+     * @param {object} point 
+     */
+    createByPoint(point){
+        this.opt = point
+        var pathStr = ''
+        __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].each(this.opt.points, (index, value) => {
+            if(value){
+                pathStr += (pathStr? 'L':'M') + value.x + ',' + value.y
+            }
+        })
+        this.c = this.instance.path(pathStr)
     }
 }
 
@@ -1297,7 +1317,7 @@ class H{
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (H);
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(1)))
 
 /***/ })
 /******/ ]);

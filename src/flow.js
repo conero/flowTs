@@ -74,6 +74,31 @@ class Flow{
         nd.create(p1, p2, r)
         return nd
     }
+    /**
+     * 获取空节点对象
+     * @param {NodeBase} type 
+     */
+    getEmptyNode(type){
+        var $node = null
+        switch(type){
+            case 'endpoint': 
+                $node = new NodeEndpoint(this.paper)
+                break
+            case 'judge': 
+                $node = new NodeJudge(this.paper)
+                break
+            case 'operation': 
+                $node = new NodeOperation(this.paper)
+                break
+            case 'line': 
+                $node = new NodeLine(this.paper)
+                break
+            case 'arrow': 
+                $node = new NodeArrow(this.paper)
+                break
+        }
+        return $node
+    }
 }
 
 export {Flow}

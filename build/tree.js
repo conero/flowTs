@@ -70,6 +70,97 @@
 "use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * 2018年1月4日 星期四
+ * 工具库
+ */
+var Util = function () {
+    function Util() {
+        _classCallCheck(this, Util);
+    }
+
+    _createClass(Util, null, [{
+        key: 'clone',
+
+        /**
+         * 对象复制
+         * @param {object} t1 
+         */
+        value: function clone(t1) {
+            t1 = 'object' == (typeof t1 === 'undefined' ? 'undefined' : _typeof(t1)) ? t1 : {};
+            var obj = {};
+            return $.extend(true, obj, t1);
+        }
+        /**
+         * 数据合并相同的元素
+         * @param {*} array 
+         */
+
+    }, {
+        key: 'ArrayMergeSameValue',
+        value: function ArrayMergeSameValue(array) {
+            if ('object' == (typeof array === 'undefined' ? 'undefined' : _typeof(array)) && array.length && array.length > 1) {
+                var valueMap = {};
+                var newArray = [];
+                for (var i = 0; i < array.length; i++) {
+                    if (valueMap[array[i]]) {
+                        continue;
+                    }
+                    newArray.push(array[i]);
+                    valueMap[array[i]] = true;
+                }
+                array = newArray;
+            }
+            return array;
+        }
+        /**
+         * @param {array|object} obj 
+         * @param {function} callback (k, v)
+         */
+
+    }, {
+        key: 'each',
+        value: function each(obj, callback) {
+            if ('object' == (typeof obj === 'undefined' ? 'undefined' : _typeof(obj))) {
+                if ($.isArray(obj)) {
+                    for (var i = 0; i < obj.length; i++) {
+                        if (false === callback(i, obj[i])) {
+                            break;
+                        }
+                    }
+                } else {
+                    for (var k in obj) {
+                        if (false === callback(k, obj[k])) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }]);
+
+    return Util;
+}();
+
+exports.Util = Util;
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -257,97 +348,6 @@ process.umask = function () {
 };
 
 /***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * 2018年1月4日 星期四
- * 工具库
- */
-var Util = function () {
-    function Util() {
-        _classCallCheck(this, Util);
-    }
-
-    _createClass(Util, null, [{
-        key: 'clone',
-
-        /**
-         * 对象复制
-         * @param {object} t1 
-         */
-        value: function clone(t1) {
-            t1 = 'object' == (typeof t1 === 'undefined' ? 'undefined' : _typeof(t1)) ? t1 : {};
-            var obj = {};
-            return $.extend(true, obj, t1);
-        }
-        /**
-         * 数据合并相同的元素
-         * @param {*} array 
-         */
-
-    }, {
-        key: 'ArrayMergeSameValue',
-        value: function ArrayMergeSameValue(array) {
-            if ('object' == (typeof array === 'undefined' ? 'undefined' : _typeof(array)) && array.length && array.length > 1) {
-                var valueMap = {};
-                var newArray = [];
-                for (var i = 0; i < array.length; i++) {
-                    if (valueMap[array[i]]) {
-                        continue;
-                    }
-                    newArray.push(array[i]);
-                    valueMap[array[i]] = true;
-                }
-                array = newArray;
-            }
-            return array;
-        }
-        /**
-         * @param {array|object} obj 
-         * @param {function} callback (k, v)
-         */
-
-    }, {
-        key: 'each',
-        value: function each(obj, callback) {
-            if ('object' == (typeof obj === 'undefined' ? 'undefined' : _typeof(obj))) {
-                if ($.isArray(obj)) {
-                    for (var i = 0; i < obj.length; i++) {
-                        if (false === callback(i, obj[i])) {
-                            break;
-                        }
-                    }
-                } else {
-                    for (var k in obj) {
-                        if (false === callback(k, obj[k])) {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }]);
-
-    return Util;
-}();
-
-exports.Util = Util;
-
-/***/ }),
 /* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -370,7 +370,7 @@ var _TreeContainer = __webpack_require__(3);
 
 var _TreeContainer2 = _interopRequireDefault(_TreeContainer);
 
-var _util = __webpack_require__(1);
+var _util = __webpack_require__(0);
 
 var _helper = __webpack_require__(8);
 
@@ -771,7 +771,7 @@ var Tree = function () {
 }();
 
 exports.default = Tree;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 3 */
@@ -789,7 +789,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * 树形容器生成器
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       */
 
-var _util = __webpack_require__(1);
+var _util = __webpack_require__(0);
 
 var _NodeOperation = __webpack_require__(4);
 
@@ -907,6 +907,7 @@ var NodeOperation = function (_NodeBase) {
 
         _this.instance = instance;
         _this.opt = {}; // 配置信息数据
+        _this.bBox = null; // 边缘盒子数据示例
         return _this;
     }
     /**
@@ -1198,14 +1199,15 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 2018年1月5日 星期五
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 连接类型： 连线
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+
+var _util = __webpack_require__(0);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * 2018年1月5日 星期五
- * 连接类型： 连线
- */
 
 var NodeLine = function () {
     /**
@@ -1256,6 +1258,24 @@ var NodeLine = function () {
             }
 
             this.c = this.instance.path('M' + p1.x + ',' + p1.y + middlePathStr + 'L' + p2.x + ',' + p2.y);
+        }
+
+        /**
+         * 直接通过坐标点生成直线
+         * @param {object} point 
+         */
+
+    }, {
+        key: 'createByPoint',
+        value: function createByPoint(point) {
+            this.opt = point;
+            var pathStr = '';
+            _util.Util.each(this.opt.points, function (index, value) {
+                if (value) {
+                    pathStr += (pathStr ? 'L' : 'M') + value.x + ',' + value.y;
+                }
+            });
+            this.c = this.instance.path(pathStr);
         }
     }]);
 
@@ -1485,7 +1505,7 @@ var H = function () {
 }();
 
 exports.default = H;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ })
 /******/ ]);

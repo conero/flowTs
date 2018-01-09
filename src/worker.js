@@ -25,8 +25,8 @@ class Worker{
             }
         }
         this.$index = H.getIndex()
+        
         // 工作流实例
-        this.Nodes = {}
         this.config = Util.clone(config)
         this.$raphael = H.createInstance(this.config)
         this.$flow = new Flow(this.$raphael)        
@@ -34,8 +34,31 @@ class Worker{
         this.draw()
         // console.log(this.config)
     }
+    /**
+     * 代码索引 code <-> Nodes 索引字典
+     * @param {*} key 
+     * @param {*} value 
+     */
+    cNodeMap(key, value){
+        var CodeNodeMaps = H.src(this.$index, 'CodeNodeMaps')
+        if(!CodeNodeMaps){
+            CodeNodeMaps = {}
+        }
+        if(key){
+            // 设置值
+            if(value){
+                CodeNodeMaps[key] = value
+                H.src(this.$index, 'CodeNodeMaps', CodeNodeMaps)
+                return this
+            }else{
+                return CodeNodeMaps[key] || false
+            }
+        }
+        return CodeNodeMaps
+    }
     // 绘制工作流图
-    draw(){
+    // 旧版流程布局算法
+    draw2(){
         if(this.option){            
             var steps = this.option.step
             // 生成代码索引
@@ -83,87 +106,276 @@ class Worker{
                 var step = steps[i]
                 var code = step.code
                 var name = step.name || code
-                var nd
-                // 开始
-                if(1 == step.type){      
-                    y += (dH + cH/2)
-                    nd = this.$flow.endpoint(x, y, cH/2, name)
-                    nd.c.attr('fill', 'rgb(181, 216, 126)')
-                    nd.$step = step
-                    this.drag(nd)
-                    y += cH/2
-                    // console.log(nd)
+                var nd = this.cNodeMap(code)
+                var hasNode = false
+                if(nd){
+                    hasNode = true
                 }
-                // 操作节点
-                else if(2 == step.type){     
-                    var w = 100
-                    var sameClsNode = this.codeIndex(step.code)
-                    var x0 = x
-                    // 只有一个父类
-                    if(step.prev){
-                        if(step.prev.indexOf(',') == -1){
-                            var parentNd = this.getNodeByCode(step.prev)
-                            if(parentNd && parentNd.c){
-                                // console.log(parentNd)
-                                x0 = this.getStandX(parentNd)
+                if(!hasNode){
+                    // 开始
+                    if(1 == step.type){      
+                        y += (dH + cH/2)
+                        nd = this.$flow.endpoint(x, y, cH/2, name)
+                        nd.c.attr('fill', 'rgb(181, 216, 126)')
+                        nd.$step = step
+                        this.drag(nd)
+                        y += cH/2
+                        // console.log(nd)
+                    }
+                    // 操作节点
+                    else if(2 == step.type){     
+                        var w = 100
+                        var sameClsNode = this.codeIndex(code)
+                        var x0 = x
+                        // 只有一个父类
+                        if(step.prev){
+                            if(step.prev.indexOf(',') == -1){
+                                var parentNd = this.getNodeByCode(step.prev)
+                                if(parentNd && parentNd.c){
+                                    // console.log(parentNd)
+                                    x0 = this.getStandX(parentNd)
+                                }
                             }
                         }
-                    }
-                    // 多个同级节点
-                    if(sameClsNode && sameClsNode.length > 1){
-                        var diffCtt = getSameClsDiffCount(code)      
-                        var dW = 25                  
-                        // 中心偏移量算法
-                        var smClsD = Math.ceil(sameClsNode.length/2)
-                        var x1 = x0 - w/2
-                        var x1 = x0 + (dW + w)*(smClsD - diffCtt)
-                        var y1 = getSameClsNodeY(code)
-                        // console.log(sameClsNode)
-                        if(y1){
-                            x1 = x0 + (dW + w)*(smClsD - diffCtt)
-                        }else{
+                        // 多个同级节点
+                        if(sameClsNode && sameClsNode.length > 1){
+                            var diffCtt = getSameClsDiffCount(code)      
+                            var dW = 25                  
+                            // 中心偏移量算法
+                            var smClsD = Math.ceil(sameClsNode.length/2)
+                            var x1 = x0 + (dW + w)*(smClsD - diffCtt)
+                            var y1 = getSameClsNodeY(code)
+                            // console.log(sameClsNode)
+                            if(y1){
+                                x1 = x0 + (dW + w)*(smClsD - diffCtt)
+                            }else{
+                                y += dH + cH/2
+                            }
+                            y1 = y1? y1: y
+                            nd = this.$flow.operation(x1, y1, w, cH, name)
+                            sameClsNodeMap[code] = {
+                                y
+                            }
+                        }else{                        
                             y += dH + cH/2
-                        }
-                        y1 = y1? y1: y
-                        nd = this.$flow.operation(x1, y1, w, cH, name)
-                        sameClsNodeMap[code] = {
-                            y
-                        }
-                    }else{                        
+                            nd = this.$flow.operation(x0, y, w, cH, name)
+                        }         
+                        nd.$step = step
+                        this.drag(nd)  
+                        nd.c.attr('fill', 'rgb(224, 223, 226)')
+                        y += cH/2
+                    }
+                    // 判断节点
+                    else if(3 == step.type){
                         y += dH + cH/2
-                        nd = this.$flow.operation(x0, y, w, cH, name)
-                    }         
-                    nd.$step = step
-                    this.drag(nd)  
-                    nd.c.attr('fill', 'rgb(224, 223, 226)')
-                    y += cH/2
+                        nd = this.$flow.judge(x, y, w+60, cH, name)
+                        nd.c.attr('fill', 'rgb(49, 174, 196)')
+                        nd.$step = step
+                        this.drag(nd)
+                        // y += 80 + 20
+                        y += cH/2
+                        
+                    }
+                    // 结束
+                    else if(9 == step.type){
+                        y += dH + cH/2
+                        nd = this.$flow.endpoint(x, y, cH/2, name)
+                        nd.c.attr('fill', 'rgb(34, 185, 41)')
+                        nd.$step = step
+                        this.drag(nd)
+                    }
                 }
-                // 判断节点
-                else if(3 == step.type){
-                    y += dH + cH/2
-                    nd = this.$flow.judge(x, y, w+60, cH, name)
-                    nd.c.attr('fill', 'rgb(49, 174, 196)')
-                    nd.$step = step
-                    this.drag(nd)
-                    // y += 80 + 20
-                    y += cH/2
-                    
-                }
-                // 结束
-                else if(9 == step.type){
-                    y += dH + cH/2
-                    nd = this.$flow.endpoint(x, y, cH/2, name)
-                    nd.c.attr('fill', 'rgb(34, 185, 41)')
-                    nd.$step = step
-                    this.drag(nd)
-                }
+                
 
                 if(nd){
-                    this.Nodes[step.code] = nd
-                    this.line(nd)
+                    if(!hasNode){
+                        this.cNodeMap(code, nd)
+                        this.line(nd)
+                        this._eventBind(nd)
+                    }else{
+                        this.line(nd, step)
+                    }
                 }
             }
         }
+    }
+    // 新的布局算法(优化)、20180109
+    draw(){
+        this.getNodeCls()
+        // clsCache
+        var cc = H.src(this.$index, '_nodeCls') 
+
+        var option = Util.clone(this.option)
+        var beta1 = 0.21        // 分栏系数
+
+        var 
+            cH = this.conf('cH', 50),   // 容器高度
+            dH = this.conf('dH', 30),   // 间距高度
+            cnH = this.conf('h')       // 总容器高度
+            , clsCount = cc.clsValue
+        
+        beta1 = (cH* (clsCount - 1))+dH*clsCount < cnH? 0.43:beta1
+        var
+            X = this.conf('x', parseInt(this.conf('w') * beta1)),
+            bX = X,
+            Y = this.conf('y', 10),
+            bY = Y
+            
+        var pkgOperCol = this.conf('pkgOperCol', 'rgb(224, 223, 226)'),
+            pkgJudgeCol = this.conf('pkgJudgeCol', 'rgb(49, 174, 196)')
+          
+        /**
+         * 是否为多级节点
+         * @param {string} _c 
+         */
+        cc.isMuti = (_c) =>{
+            var _idx = cc.map[_c]
+            var _cls = cc.mapDt[_idx]
+            return _cls.length > 1
+        }     
+        /**
+         * 获取多节点的 Y 坐标轴值
+         * @param {*} _c 
+         */
+        cc.getMutiY = (_c, def) =>{
+            var _y = 0
+            def = def? def: 0
+            var _idx = cc.map[_c]
+            var _cls = cc.mapDt[_idx]
+            if(_cls.length > 1){
+                Util.each(_cls, (k, v)=>{
+                    var _nd = this.getNodeByCode(v)
+                    if(_nd){
+                        _y = this.getStandY(_nd)
+                        return false
+                    }
+                })
+            }
+            _y = _y? _y:def
+            return _y
+        }
+        /**
+         * 获取单级多节点统计量
+         * @param {string} _c 
+         */
+        cc.getMutiCtt = (_c) =>{
+            var _idx = cc.map[_c]
+            var _cls = cc.mapDt[_idx]
+            var len = _cls.length
+            var hasEd = 0
+            if(len > 1){
+                Util.each(_cls, (k, v)=>{
+                    if(this.getNodeByCode(v)){
+                        hasEd += 1
+                    }
+                })
+            }
+            return {
+                len, hasEd
+            }
+        }
+
+        // console.log(clsCache)
+        // var clsCacheMap = {}
+        // 对象遍历            
+        Util.each(option.step, (idx, node) => {
+            var type = node.type
+                , $node
+                , code = node.code
+                , name = node.name || code
+                , x
+                , y
+            if((bY + 2* cH) > cnH){
+                bY = Y
+                bX += X
+            }
+            switch(type){
+                case 1: //  开始
+                    bY += dH
+                    $node = this.$flow.endpoint(bX, bY, cH/2, name)
+                    $node.c.attr('fill', this.conf('pkgStartCol', 'rgb(181, 216, 126)'))
+                    break
+                case 2: // 操作
+                    x = bX
+                    if(!cc.isMuti(code)){
+                        bY += 2*dH + cH/2
+                    }else{
+                        var y = cc.getMutiY(code, null)
+                        var cCdt = cc.getMutiCtt(code)
+                        if(cCdt.len == 2){
+                            if(cCdt.hasEd > 0){
+                                x += 50 + cH*1.5
+                            }
+                        }
+                        else if(cCdt.len > 2){
+                            var dW = 25                  
+                            // 中心偏移量算法
+                            var smClsD = Math.ceil(cCdt.len/2)
+                            x = x + (dW + cH*2)*(smClsD - (cCdt.len - cCdt.hasEd))
+                        }
+                        if(!y){
+                            bY += cc.getMutiY(code, 2*dH + cH/2)
+                        }else{
+                            bY = y
+                        }
+                        // bY += cc.getMutiY(code, 2*dH + cH/2)
+                    }     
+                    // console.log(x, bY)
+                    // bY += 2*dH + cH/2               
+                    // $node = this.$flow.operation(bX, bY, 100, cH, name)
+                    $node = this.$flow.operation(x, bY, 100, cH, name)
+                    $node.c.attr('fill', pkgOperCol)                    
+                    break
+                case 3: // 判断
+                    bY += 2*dH + cH/2
+                    $node = this.$flow.judge(bX, bY, 100, cH, name)
+                    $node.c.attr('fill', pkgJudgeCol)
+                    break
+                case 9: // 结束
+                    bY += dH*2 + cH/2
+                    $node = this.$flow.endpoint(bX, bY, cH/2, name)
+                    $node.c.attr('fill', this.conf('pkgEndCol', 'rgb(34, 185, 41)'))
+                    break
+            }
+            // 拖动
+            if($node){
+                $node.$step = node
+                $node.c.data('_code', code) // 保存代码为属性
+                this.cNodeMap(code, $node)
+                this.line($node)          
+                this._eventBind($node)      
+                this.drag($node)  
+            }
+        })
+    }
+    getNodeCls(){
+        var option = Util.clone(this.option)
+        var clsValue = 0
+        var map = {}
+        var mapDt = {}
+        Util.each(option.step, (idx, node) => {
+            // console.log(node)
+            var prev = node.prev,
+                code = node.code
+            if(prev){
+                if(map[prev]){
+                    clsValue = map[prev]
+                }
+            }
+            clsValue += 1
+            map[code] = clsValue
+            if(!mapDt[clsValue]){
+                mapDt[clsValue] = [code]
+            }else{
+                mapDt[clsValue].push(code)
+            }
+        })
+        // 数据缓存
+        H.src(this.$index, '_nodeCls', {
+            map,
+            mapDt,
+            clsValue
+        })
     }
     // 移动处理
     drag(nd){
@@ -211,8 +423,12 @@ class Worker{
             )
         })(nd, config)
     }
-    // 连线
-    line(nd){
+    /**
+     * 连线
+     * @param {NodeBase} nd 
+     * @param {*} prefStep 
+     */
+    line(nd, prefStep){
         var step = Util.clone(nd.$step)
         if(step.prev){
             step.prev = step.prev.replace(/\s/g, '')
@@ -224,6 +440,7 @@ class Worker{
                 var $lineInstance
                 var fromNd = this.getNodeByCode(from)
                 var toNd = this.getNodeByCode(to)
+                // console.log(from, to)
                 if(fromNd && toNd){
                     if(config.line && 'arrow' == config.line){
                         var $p1 = fromNd.getStlnP()
@@ -252,13 +469,14 @@ class Worker{
                 }
             }
             var prev
-            if(step.prev.indexOf(',') > -1){
-                prev = step.prev.split(',')
+            prefStep = prefStep? prefStep:step
+            if(prefStep.prev.indexOf(',') > -1){
+                prev = prefStep.prev.split(',')
             }else{
-                prev = [step.prev]
+                prev = [prefStep.prev]
             }
             for(var i=0; i<prev.length; i++){
-                makerLine(prev[i], step.code)
+                makerLine(prev[i], prefStep.code)
             }
         }
 
@@ -278,8 +496,9 @@ class Worker{
      */
     getNodeByCode(code){
         var node = null
-        if(this.Nodes[code]){
-            return this.Nodes[code]
+        var value = this.cNodeMap(code)
+        if(value){
+            node = value
         }
         return node
     }    
@@ -360,6 +579,71 @@ class Worker{
             }
         }
         return x
+    }
+    /**
+     * 节点表单Y坐标
+     * @param {NodeBase} nd 
+     */
+    getStandY(nd){
+        var y = null
+        if(nd && nd.c){
+            var $c = nd.c
+            switch($c.type){
+                case 'circle':
+                    y = $c.attr('cy')
+                    break
+                case 'rect':
+                    y = $c.attr('y') + $c.attr('height')/2
+                    break
+                case 'path':
+                    y = nd.opt.cy
+                    break
+            }
+        }
+        return y
+    }
+    /**
+     * 移除全部的边框
+     */
+    removeBBox(){
+        var maps = this.cNodeMap()
+        for(var k in maps){
+            var node = maps[k]
+            if(node.bBox){
+                node.bBox.remove()
+            }
+        }
+    }
+    /**
+     * 事件绑定处理方法
+     */
+    _eventBind(node){
+        var $this = this
+        // 点击处理
+        node.c.click(function(){
+            $this.removeBBox()
+            if(node.bBox){
+                node.bBox.remove()
+            }
+            var bt = this.getBBox()
+            var dt = 5
+            node.bBox = node.instance.rect(bt.x-dt, bt.y-dt, bt.width+dt*2, bt.height+dt*2)
+            node.bBox.attr({
+                'stroke': $this.conf('bkgNodeBox', 'rgb(15, 13, 105)')
+            })
+        })
+    }
+    /**
+     * 配置键获取
+     * @param {string} key 
+     * @param {*} def 
+     */
+    conf(key, def){
+        def = def || null
+        if('undefined' != typeof this.config[key]){
+            def = this.config[key]
+        }
+        return def
     }
 }
 

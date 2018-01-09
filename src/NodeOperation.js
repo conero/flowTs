@@ -13,6 +13,7 @@ class NodeOperation extends NodeBase{
         super()
         this.instance = instance
         this.opt = {}       // 配置信息数据
+        this.bBox = null    // 边缘盒子数据示例
     }
     /**
      * @param {object} opt / [cx, cy, w, h, text]

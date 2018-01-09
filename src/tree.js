@@ -212,12 +212,15 @@ class Tree{
                 var fromNd = this.getNodeByCode(from)
                 var toNd = this.getNodeByCode(to)
                 if(fromNd && toNd){
+                    var p1 = fromNd.getStlnP(),
+                        p2 = toNd.getEnlnP()
+
                     if(config.line && 'arrow' == config.line){
-                        $lineInstance = this.$flow.arrow(fromNd.getStlnP(), toNd.getEnlnP(), 4)
+                        $lineInstance = this.$flow.arrow([p1.x, p1.y], [p2.x, p2.y], 4)
                         $lineInstance.c.attr('fill', 'rgb(14, 10, 10)')
                     }
                     else{
-                        $lineInstance = this.$flow.line(fromNd.getStlnP(), toNd.getEnlnP())
+                        $lineInstance = this.$flow.line([p1.x, p1.y], [p2.x, p2.y])
                     }
                     fromNd.recordLine('from', $lineInstance)
                     // fromNd.recordLine('to', $lineInstance)

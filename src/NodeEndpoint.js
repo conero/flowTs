@@ -90,7 +90,7 @@ class NodeEndpoint extends NodeBase{
             }
             else if(type == 'to'){
                 var $tPath = lnC.attr('path')
-                methodName = 'get'+position.from+'p'
+                methodName = 'get'+position.to+'p'
                 var p2 = this[methodName](x, y)
                 $tPath[$tPath.length-1] = ['L', p2.x, p2.y];
                 lnC.attr('path', $tPath)

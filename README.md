@@ -23,9 +23,23 @@ var config = {
     arrowLen: 'Number 箭头侧长，默认 4 '
     dH: 'Number 间距高度'
     cH: '容器高度'
-    rightAngle: 'boolean 直角转算法 默认 true'
+    rightAngle: 'boolean 直角转算法 默认 true'    
+    bkgNodeBox: '编辑底色，bkg-node-box'
+    pkgStartCol: '起始节点'
+    pkgOperCol: '操作节点'
+    pkgJudgeCol: '判断节点'
+    pkgEndCol: '结束节点'
+    currentCode: '当前项目节点'
 }
 ```
+worker.js 内联数据对象
+```javascript
+{
+    CodeNodeMaps: {}    // 代码节点搜索字典
+    clsMap:{}           // 级别索引字典
+}
+```
+
 
 tree
 ```javascript
@@ -42,7 +56,16 @@ var option = {
 
 
 ## 更新日志
-> ***V1.0.4/alpha-date*** alpha 类型模板
+> ***V1.0.x/alpha-date*** alpha 类型模板
+- ***V1.0.5/20180109***
+    - workerJs
+        - 实现选择边缘边框显示,以及拖动是联动
+        - 添加新增的布局算法：动态根据svg控件的高度自动分配新列(3列内)，高度足够时将居中排列
+        - ***flow.js*** 新增 getEmptyNode 方法用于直接后去节点对象实例
+        - NodeEndpoint 端点直线移动同步字段写错修复
+    - treeJs 错误修复
+        - 适应上一版中 ***直线/箭头*** 数据格式更改
+
 - ***V1.0.4/20180108***
     - 简述
         - treeJs/workerJs 融合处理， 提取公共部分 ***H*** 静态类。两者通过文件引入
