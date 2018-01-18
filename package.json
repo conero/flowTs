@@ -1,7 +1,7 @@
 {
   "name": "zmapp-workflow",
-  "version": "1.0.5",
-  "release":"20180109",
+  "version": "1.0.6",
+  "release":"20180118",
   "description": "workflow chart",
   "main": "index.js",
   "scripts": {

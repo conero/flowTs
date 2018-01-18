@@ -1280,11 +1280,14 @@ var Tree = function () {
                     var fromNd = _this2.getNodeByCode(from);
                     var toNd = _this2.getNodeByCode(to);
                     if (fromNd && toNd) {
+                        var p1 = fromNd.getStlnP(),
+                            p2 = toNd.getEnlnP();
+
                         if (config.line && 'arrow' == config.line) {
-                            $lineInstance = _this2.$flow.arrow(fromNd.getStlnP(), toNd.getEnlnP(), 4);
+                            $lineInstance = _this2.$flow.arrow([p1.x, p1.y], [p2.x, p2.y], 4);
                             $lineInstance.c.attr('fill', 'rgb(14, 10, 10)');
                         } else {
-                            $lineInstance = _this2.$flow.line(fromNd.getStlnP(), toNd.getEnlnP());
+                            $lineInstance = _this2.$flow.line([p1.x, p1.y], [p2.x, p2.y]);
                         }
                         fromNd.recordLine('from', $lineInstance);
                         // fromNd.recordLine('to', $lineInstance)
@@ -1627,6 +1630,7 @@ var Worker = function () {
             return CodeNodeMaps;
         }
         // 绘制工作流图
+        // 旧版流程布局算法
 
     }, {
         key: 'draw2',
@@ -1771,6 +1775,19 @@ var Worker = function () {
                 }
             }
         }
+        // 自动检测高度，自适应
+
+    }, {
+        key: 'checkPaperHight',
+        value: function checkPaperHight(y) {
+            var svg = this.config.dom.find('svg');
+            var height = svg.height();
+            if (height < y + 50) {
+                svg.css({ 'height': height + 100 });
+            }
+        }
+        // 新的布局算法(优化)、20180109
+
     }, {
         key: 'draw',
         value: function draw() {
@@ -1789,16 +1806,21 @@ var Worker = function () {
                 // 间距高度
             cnH = this.conf('h') // 总容器高度
             ,
-                clsCount = cc.clsValue;
-
-            beta1 = cH * (clsCount - 1) + dH * clsCount < cnH ? 0.43 : beta1;
+                clsCount = cc.clsValue,
+                sColumnMk = this.conf('sColumnMk', true);
+            if (sColumnMk) {
+                beta1 = 0.43;
+            } else {
+                beta1 = cH * (clsCount - 1) + dH * clsCount < cnH ? 0.43 : beta1;
+            }
             var X = this.conf('x', parseInt(this.conf('w') * beta1)),
                 bX = X,
                 Y = this.conf('y', 10),
                 bY = Y;
 
-            var pkgOperCol = this.conf('pkgOperCol', 'rgb(224, 223, 226)'),
-                pkgJudgeCol = this.conf('pkgJudgeCol', 'rgb(49, 174, 196)');
+            var bkgOperCol = this.conf('bkgOperCol', 'rgb(224, 223, 226)'),
+                bkgJudgeCol = this.conf('bkgJudgeCol', 'rgb(49, 174, 196)'),
+                currentCode = this.conf('currentCode', false);
 
             /**
              * 是否为多级节点
@@ -1861,7 +1883,10 @@ var Worker = function () {
                     name = node.name || code,
                     x,
                     y;
-                if (bY + 2 * cH > cnH) {
+                // 单列自动增高                
+                if (sColumnMk) {
+                    _this2.checkPaperHight(bY);
+                } else if (bY + 2 * cH > cnH) {
                     bY = Y;
                     bX += X;
                 }
@@ -1901,19 +1926,19 @@ var Worker = function () {
                         // bY += 2*dH + cH/2               
                         // $node = this.$flow.operation(bX, bY, 100, cH, name)
                         $node = _this2.$flow.operation(x, bY, 100, cH, name);
-                        $node.c.attr('fill', pkgOperCol);
+                        $node.c.attr('fill', bkgOperCol);
                         break;
                     case 3:
                         // 判断
                         bY += 2 * dH + cH / 2;
                         $node = _this2.$flow.judge(bX, bY, 100, cH, name);
-                        $node.c.attr('fill', pkgJudgeCol);
+                        $node.c.attr('fill', bkgJudgeCol);
                         break;
                     case 9:
                         // 结束
                         bY += dH * 2 + cH / 2;
                         $node = _this2.$flow.endpoint(bX, bY, cH / 2, name);
-                        $node.c.attr('fill', _this2.conf('pkgEndCol', 'rgb(34, 185, 41)'));
+                        $node.c.attr('fill', _this2.conf('bkgEndCol', 'rgb(34, 185, 41)'));
                         break;
                 }
                 // 拖动
@@ -1927,6 +1952,8 @@ var Worker = function () {
                 }
             });
         }
+        // 节点级别
+
     }, {
         key: 'getNodeCls',
         value: function getNodeCls() {
@@ -1957,6 +1984,7 @@ var Worker = function () {
                 mapDt: mapDt,
                 clsValue: clsValue
             });
+            // console.log(H.src(this.$index, '_nodeCls'))
         }
         // 移动处理
 
@@ -2048,6 +2076,26 @@ var Worker = function () {
                         }
                         fromNd.recordLine('from', $lineInstance);
                         toNd.recordLine('to', $lineInstance);
+                    }
+                    var runIdx = _this3.nodeRunedMk(to);
+                    if (runIdx && $lineInstance) {
+                        var bkgRunedCol = _this3.conf('bkgRunedCol', 'rgb(255, 0, 0)');
+                        // 连线
+                        $lineInstance.c.attr({
+                            'fill': bkgRunedCol,
+                            'stroke': bkgRunedCol
+                        });
+                        // 目标节点
+                        toNd.c.attr({
+                            'stroke': bkgRunedCol
+                        });
+                        // 不重复填充颜色
+                        if (runIdx == 2) {
+                            // 来源节点
+                            fromNd.c.attr({
+                                'stroke': bkgRunedCol
+                            });
+                        }
                     }
                 };
                 var prev;
@@ -2246,6 +2294,25 @@ var Worker = function () {
                 def = this.config[key];
             }
             return def;
+        }
+        /**
+         * 是否为已经执行的节点
+         * @param {string} code 
+         * @returns {bool}
+         */
+
+    }, {
+        key: 'nodeRunedMk',
+        value: function nodeRunedMk(code) {
+            var currentCode = this.conf('currentCode', false);
+            if (currentCode) {
+                var cc = _helper2.default.src(this.$index, '_nodeCls');
+                var refIdx = cc.map[currentCode];
+                var idx = cc.map[code];
+                // console.log(refIdx, idx, code, idx <= refIdx)
+                currentCode = idx <= refIdx ? idx : false;
+            }
+            return currentCode;
         }
     }]);
 

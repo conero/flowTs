@@ -25,11 +25,13 @@ var config = {
     cH: '容器高度'
     rightAngle: 'boolean 直角转算法 默认 true'    
     bkgNodeBox: '编辑底色，bkg-node-box'
-    pkgStartCol: '起始节点'
-    pkgOperCol: '操作节点'
-    pkgJudgeCol: '判断节点'
-    pkgEndCol: '结束节点'
-    currentCode: '当前项目节点'
+    bkgStartCol: '起始节点'
+    bkgOperCol: '操作节点'
+    bkgJudgeCol: '判断节点'
+    bkgEndCol: '结束节点'
+    bkgRunedCol:'已经执行的节点底色'
+    currentCode: '当前项目节点',
+    sColumnMk: 'boolean true/false， false 根据高度，自动分列(最多3列)'
 }
 ```
 worker.js 内联数据对象
@@ -57,6 +59,11 @@ var option = {
 
 ## 更新日志
 > ***V1.0.x/alpha-date*** alpha 类型模板
+- ***V1.0.6/20180118***
+    - workerJs
+        - 自动撑高svg高度，以及兼容原“动态动态排版3列布局”
+        - 运行状态属性区分,支持当前运行的步骤代码
+
 - ***V1.0.5/20180109***
     - workerJs
         - 实现选择边缘边框显示,以及拖动是联动

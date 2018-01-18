@@ -603,11 +603,14 @@ var Tree = function () {
                     var fromNd = _this2.getNodeByCode(from);
                     var toNd = _this2.getNodeByCode(to);
                     if (fromNd && toNd) {
+                        var p1 = fromNd.getStlnP(),
+                            p2 = toNd.getEnlnP();
+
                         if (config.line && 'arrow' == config.line) {
-                            $lineInstance = _this2.$flow.arrow(fromNd.getStlnP(), toNd.getEnlnP(), 4);
+                            $lineInstance = _this2.$flow.arrow([p1.x, p1.y], [p2.x, p2.y], 4);
                             $lineInstance.c.attr('fill', 'rgb(14, 10, 10)');
                         } else {
-                            $lineInstance = _this2.$flow.line(fromNd.getStlnP(), toNd.getEnlnP());
+                            $lineInstance = _this2.$flow.line([p1.x, p1.y], [p2.x, p2.y]);
                         }
                         fromNd.recordLine('from', $lineInstance);
                         // fromNd.recordLine('to', $lineInstance)

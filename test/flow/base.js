@@ -10,7 +10,10 @@ $(function(){
     var $worker = new worker({
         dom: '#workflow',
         // h: $(window).height() * 6
+        // h: $(window).height() * 12
         h: $(window).height()
         ,line: 'arrow'
+        // ,sColumnMk: false
+        ,currentCode: 'A1'
     }, Cfg)
 })
