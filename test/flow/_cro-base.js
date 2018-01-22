@@ -436,6 +436,10 @@ class Worker{
         this.$raphael = __WEBPACK_IMPORTED_MODULE_2__helper__["a" /* default */].createInstance(this.config)
         this.$flow = new __WEBPACK_IMPORTED_MODULE_0__flow__["a" /* Flow */](this.$raphael)        
         this.setOption(option)
+
+        // 数据实例处理
+        this.leastLineQue = []  // 最后需要生成的连线，如用于这回的线段
+
         this.draw()
         // console.log(this.config)
     }
@@ -608,8 +612,9 @@ class Worker{
     checkPaperHight(y){
         var svg = this.config.dom.find('svg')
         var height = svg.height()
+        // if(height < (y + 50)){
         if(height < (y + 50)){
-            svg.css({'height': height + 100})
+            svg.css({'height': height + 150})
         }
     }
     // 新的布局算法(优化)、20180109
@@ -770,6 +775,7 @@ class Worker{
                 this.drag($node)  
             }            
         })
+        this.connectLeastLines()
     }
     // 节点级别
     getNodeCls(){
@@ -865,7 +871,15 @@ class Worker{
                 var $lineInstance
                 var fromNd = this.getNodeByCode(from)
                 var toNd = this.getNodeByCode(to)
+
                 // console.log(from, to)
+                // var t1 = false;
+                // if(from == 'G1' && to == 'B'){
+                //     console.log(fromNd, toNd)
+                //     t1 = true;
+                // }
+
+                // 节点已经生成时，否则保存起来，最后连接直线
                 if(fromNd && toNd){
                     if(config.line && 'arrow' == config.line){
                         var $p1 = fromNd.getStlnP()
@@ -891,7 +905,94 @@ class Worker{
                     }
                     fromNd.recordLine('from', $lineInstance)
                     toNd.recordLine('to', $lineInstance)
+
+                    var runIdx = this.nodeRunedMk(to)
+                    if(runIdx && $lineInstance){
+                        var bkgRunedCol = this.conf('bkgRunedCol', 'rgb(255, 0, 0)')
+                        // 连线
+                        $lineInstance.c.attr({
+                            'fill': bkgRunedCol,
+                            'stroke': bkgRunedCol,
+                        })
+                        // 目标节点
+                        toNd.c.attr({
+                            'stroke': bkgRunedCol,
+                        })
+                        // 不重复填充颜色
+                        if(runIdx == 2){
+                            // 来源节点
+                            fromNd.c.attr({
+                                'stroke': bkgRunedCol,
+                            })
+                        }
+                    }
                 }
+                else{
+                    this.leastLineQue.push({
+                        from,
+                        to
+                    })
+                }
+            }
+            var prev
+            prefStep = prefStep? prefStep:step
+            if(prefStep.prev.indexOf(',') > -1){
+                prev = prefStep.prev.split(',')
+            }else{
+                prev = [prefStep.prev]
+            }
+            for(var i=0; i<prev.length; i++){
+                makerLine(prev[i], prefStep.code)
+            }
+        }
+
+    }
+    /**
+     * 连接最后生成的线段
+     */
+    connectLeastLines(){
+        // console.log(this.leastLineQue)
+        var config = this.config   
+        var rightAngle = 'undefined' == typeof config.rightAngle? true: config.rightAngle
+        var makerLine = (from, to) => {
+            var $lineInstance
+            var fromNd = this.getNodeByCode(from)
+            var toNd = this.getNodeByCode(to)
+
+            // console.log(from, to)
+            // var t1 = false;
+            // if(from == 'G1' && to == 'B'){
+            //     console.log(fromNd, toNd)
+            //     t1 = true;
+            // }
+
+            // 节点已经生成时，否则保存起来，最后连接直线
+            if(fromNd && toNd){
+                if(config.line && 'arrow' == config.line){
+                    var $p1 = fromNd.getStlnP()
+                    var $p2 = toNd.getEnlnP()
+                    $lineInstance = this.$flow.arrow([$p1.x, $p1.y], [$p2.x, $p2.y], 
+                        (config.arrowLen? config.arrowLen: 4))
+                    $lineInstance.position = {from: $p1.position, to: $p2.position}
+                    $lineInstance.c.attr('fill', 'rgb(14, 10, 10)')
+                }
+                else{
+                    var $p1 = fromNd.getStlnP()
+                    var $p2 = toNd.getEnlnP()                        
+                    if(rightAngle){
+                        $lineInstance = this.$flow.rightAngleLine({
+                            p1: {x:$p1.x, y:$p1.y},
+                            p2: {x:$p2.x, y:$p2.y}
+                        })
+                    }
+                    else{
+                        $lineInstance = this.$flow.line([$p1.x, $p1.y], [$p2.x, $p2.y])
+                    }
+                    $lineInstance.position = {from: $p1.position, to: $p2.position}
+                }
+                fromNd.recordLine('from', $lineInstance)
+                toNd.recordLine('to', $lineInstance)
+
                 var runIdx = this.nodeRunedMk(to)
                 if(runIdx && $lineInstance){
                     var bkgRunedCol = this.conf('bkgRunedCol', 'rgb(255, 0, 0)')
@@ -913,18 +1014,18 @@ class Worker{
                     }
                 }
             }
-            var prev
-            prefStep = prefStep? prefStep:step
-            if(prefStep.prev.indexOf(',') > -1){
-                prev = prefStep.prev.split(',')
-            }else{
-                prev = [prefStep.prev]
-            }
-            for(var i=0; i<prev.length; i++){
-                makerLine(prev[i], prefStep.code)
-            }
+            // else{
+            //     this.leastLineQue.push({
+            //         from,
+            //         to
+            //     })
+            // }
         }
 
+        __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].each(this.leastLineQue, function(index, dd){
+            //console.log(dd)
+            makerLine(dd.from, dd.to)
+        })
     }
     /**
      * 设置配置文件信息

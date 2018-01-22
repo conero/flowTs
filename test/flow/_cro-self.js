@@ -375,53 +375,43 @@ process.umask = function() { return 0; };
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_worker__ = __webpack_require__(4);
 /**
- * 2018年1月7日 星期日
- * 步骤动态配置
+ * 2018年1月22日 星期一
+ * 工作流，部件自回线
  */
 
 
-
 $(function(){
-    var $worker = new __WEBPACK_IMPORTED_MODULE_0__src_worker__["a" /* default */]({
-        dom: '#workflow',
-        h: $(window).height() * 6,
-        line: 'arrow'
-    }, {
-        step:[
-            {code: 'A', type: 1},
-            {code: 'B', type: 2, prev: 'A'},
-            {code: 'C', type: 2, prev: 'B'},
-            {code: 'D1', type: 2, prev: 'C'},
-            {code: 'D2', name: 'D2 并列', type: 2, prev: 'C'},
-            {code: 'D3', name: 'D3 并列', type: 2, prev: 'C'},
-            {code: 'D4', name: 'D4 并列', type: 2, prev: 'C'},
-            {code: 'D5', type: 2, prev: 'C'},
-            {code: 'D6', type: 2, prev: 'C'},
-            // {code: 'D7', type: 2, prev: 'C,F1'},         // 流程中退回的线条算法
-            {code: 'D7', type: 2, prev: 'C'},
+    // 有回路线
+    function baseT1(){
+        var $worker = new __WEBPACK_IMPORTED_MODULE_0__src_worker__["a" /* default */]({
+            dom: '#workflow',
+            rightAngle: false,
+            line: 'arrow'
+            ,currentCode: 'H1'
+            // currentCode: 'H1'
+        }, {
+            step:[
+                {code: 'A', type: 1},
+                {code: 'B', type: 2, prev: 'A, G1'},
+                {code: 'C', type: 3, prev: 'B'},
 
+                {code: 'D1', type: 2, prev: 'C'},
 
-            {code: 'E1', type: 2, prev: 'D4'},
-            {code: 'E2', type: 2, prev: 'D1'},
-            {code: 'E3', type: 2, prev: 'D1'},
-            {code: 'E4', type: 2, prev: 'D6'},
-            
-            {code: 'F1', type: 3, prev: 'E1,E3'},
+                {code: 'D2', type: 2, prev: 'C'},
+                // {code: 'E2', type: 2, prev: 'D2'},
 
-            {code: 'G1', type: 3, prev: 'F1'},
-            {code: 'G2', type: 2, prev: 'F1'},
-            {code: 'H1', type: 2, prev: 'G2'},
-            
-            {code: 'J1', type: 2, prev: 'H1'},
-            // 自连接测试 - BUG
-            {code: 'J1', type: 2, prev: 'J1'},
+                {code: 'E1', type: 2, prev: 'D1'},
+                {code: 'F1', type: 2, prev: 'E1'},
+                {code: 'G1', type: 3, prev: 'F1'},
+                {code: 'H1', type: 2, prev: 'G1'},
+                {code: 'I1', type: 2, prev: 'H1'},
+                {code: 'J1', type: 2, prev: 'I1'},
 
-            {code: 'K1', type: 2, prev: 'J1'},
-            {code: 'O1', type: 9, prev: 'G1,K1,E4'},
-
-
-        ]
-    })
+                {code: 'O1', type: 9, prev: 'J1,D2'}
+            ]
+        })
+    }
+    baseT1()
 })
 
 /***/ }),

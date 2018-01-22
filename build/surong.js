@@ -1600,6 +1600,10 @@ var Worker = function () {
         this.$raphael = _helper2.default.createInstance(this.config);
         this.$flow = new _flow.Flow(this.$raphael);
         this.setOption(option);
+
+        // 数据实例处理
+        this.leastLineQue = []; // 最后需要生成的连线，如用于这回的线段
+
         this.draw();
         // console.log(this.config)
     }
@@ -1782,8 +1786,9 @@ var Worker = function () {
         value: function checkPaperHight(y) {
             var svg = this.config.dom.find('svg');
             var height = svg.height();
+            // if(height < (y + 50)){
             if (height < y + 50) {
-                svg.css({ 'height': height + 100 });
+                svg.css({ 'height': height + 150 });
             }
         }
         // 新的布局算法(优化)、20180109
@@ -1951,6 +1956,7 @@ var Worker = function () {
                     _this2.drag($node);
                 }
             });
+            this.connectLeastLines();
         }
         // 节点级别
 
@@ -2053,7 +2059,15 @@ var Worker = function () {
                     var $lineInstance;
                     var fromNd = _this3.getNodeByCode(from);
                     var toNd = _this3.getNodeByCode(to);
+
                     // console.log(from, to)
+                    // var t1 = false;
+                    // if(from == 'G1' && to == 'B'){
+                    //     console.log(fromNd, toNd)
+                    //     t1 = true;
+                    // }
+
+                    // 节点已经生成时，否则保存起来，最后连接直线
                     if (fromNd && toNd) {
                         if (config.line && 'arrow' == config.line) {
                             var $p1 = fromNd.getStlnP();
@@ -2076,10 +2090,97 @@ var Worker = function () {
                         }
                         fromNd.recordLine('from', $lineInstance);
                         toNd.recordLine('to', $lineInstance);
+
+                        var runIdx = _this3.nodeRunedMk(to);
+                        if (runIdx && $lineInstance) {
+                            var bkgRunedCol = _this3.conf('bkgRunedCol', 'rgb(255, 0, 0)');
+                            // 连线
+                            $lineInstance.c.attr({
+                                'fill': bkgRunedCol,
+                                'stroke': bkgRunedCol
+                            });
+                            // 目标节点
+                            toNd.c.attr({
+                                'stroke': bkgRunedCol
+                            });
+                            // 不重复填充颜色
+                            if (runIdx == 2) {
+                                // 来源节点
+                                fromNd.c.attr({
+                                    'stroke': bkgRunedCol
+                                });
+                            }
+                        }
+                    } else {
+                        _this3.leastLineQue.push({
+                            from: from,
+                            to: to
+                        });
                     }
-                    var runIdx = _this3.nodeRunedMk(to);
+                };
+                var prev;
+                prefStep = prefStep ? prefStep : step;
+                if (prefStep.prev.indexOf(',') > -1) {
+                    prev = prefStep.prev.split(',');
+                } else {
+                    prev = [prefStep.prev];
+                }
+                for (var i = 0; i < prev.length; i++) {
+                    makerLine(prev[i], prefStep.code);
+                }
+            }
+        }
+        /**
+         * 连接最后生成的线段
+         */
+
+    }, {
+        key: 'connectLeastLines',
+        value: function connectLeastLines() {
+            var _this4 = this;
+
+            // console.log(this.leastLineQue)
+            var config = this.config;
+            var rightAngle = 'undefined' == typeof config.rightAngle ? true : config.rightAngle;
+            var makerLine = function makerLine(from, to) {
+                var $lineInstance;
+                var fromNd = _this4.getNodeByCode(from);
+                var toNd = _this4.getNodeByCode(to);
+
+                // console.log(from, to)
+                // var t1 = false;
+                // if(from == 'G1' && to == 'B'){
+                //     console.log(fromNd, toNd)
+                //     t1 = true;
+                // }
+
+                // 节点已经生成时，否则保存起来，最后连接直线
+                if (fromNd && toNd) {
+                    if (config.line && 'arrow' == config.line) {
+                        var $p1 = fromNd.getStlnP();
+                        var $p2 = toNd.getEnlnP();
+                        $lineInstance = _this4.$flow.arrow([$p1.x, $p1.y], [$p2.x, $p2.y], config.arrowLen ? config.arrowLen : 4);
+                        $lineInstance.position = { from: $p1.position, to: $p2.position };
+                        $lineInstance.c.attr('fill', 'rgb(14, 10, 10)');
+                    } else {
+                        var $p1 = fromNd.getStlnP();
+                        var $p2 = toNd.getEnlnP();
+                        if (rightAngle) {
+                            $lineInstance = _this4.$flow.rightAngleLine({
+                                p1: { x: $p1.x, y: $p1.y },
+                                p2: { x: $p2.x, y: $p2.y }
+                            });
+                        } else {
+                            $lineInstance = _this4.$flow.line([$p1.x, $p1.y], [$p2.x, $p2.y]);
+                        }
+                        $lineInstance.position = { from: $p1.position, to: $p2.position };
+                    }
+                    fromNd.recordLine('from', $lineInstance);
+                    toNd.recordLine('to', $lineInstance);
+
+                    var runIdx = _this4.nodeRunedMk(to);
                     if (runIdx && $lineInstance) {
-                        var bkgRunedCol = _this3.conf('bkgRunedCol', 'rgb(255, 0, 0)');
+                        var bkgRunedCol = _this4.conf('bkgRunedCol', 'rgb(255, 0, 0)');
                         // 连线
                         $lineInstance.c.attr({
                             'fill': bkgRunedCol,
@@ -2097,18 +2198,19 @@ var Worker = function () {
                             });
                         }
                     }
-                };
-                var prev;
-                prefStep = prefStep ? prefStep : step;
-                if (prefStep.prev.indexOf(',') > -1) {
-                    prev = prefStep.prev.split(',');
-                } else {
-                    prev = [prefStep.prev];
                 }
-                for (var i = 0; i < prev.length; i++) {
-                    makerLine(prev[i], prefStep.code);
-                }
-            }
+                // else{
+                //     this.leastLineQue.push({
+                //         from,
+                //         to
+                //     })
+                // }
+            };
+
+            _util.Util.each(this.leastLineQue, function (index, dd) {
+                //console.log(dd)
+                makerLine(dd.from, dd.to);
+            });
         }
         /**
          * 设置配置文件信息

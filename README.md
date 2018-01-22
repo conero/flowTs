@@ -12,8 +12,9 @@
     - worker.js 实际工作流的相关控制，与业务紧密联系
     - util.js 内部项目使用的助手函数
 
-worker
+### worker
 ```javascript
+// 配置信息
 var config = {
     w: '宽度*'
     h: '高度*'
@@ -33,7 +34,21 @@ var config = {
     currentCode: '当前项目节点',
     sColumnMk: 'boolean true/false， false 根据高度，自动分列(最多3列)'
 }
+
+// 数据流程配置
+var option = {
+    step:[
+        // 步骤流
+        {
+            prev: ''        // 用于实现正向流
+            next: ''        // 用于实现逆向箭头
+        }
+    ]
+}
 ```
+
+
+
 worker.js 内联数据对象
 ```javascript
 {
@@ -43,13 +58,18 @@ worker.js 内联数据对象
 ```
 
 
-tree
+### tree
 ```javascript
 var option = {
     feature: {} // 特征
     nodes:[{}]  // 节点信息
 }
 ```
+
+### GoJs 节点转换处理器
+- 基于 Gojs 的转换器实现
+- test/gojs
+
 
 ## flow 节点类型
 > 所有节点都由： 容器(container/c), 标签组成(label)
@@ -59,6 +79,13 @@ var option = {
 
 ## 更新日志
 > ***V1.0.x/alpha-date*** alpha 类型模板
+- ***V1.0.7/20180122***
+    - workerJs
+        - 逆向流程线生成实现，容器还未存在时放到最后生成
+        - svg 适应性自动增高优化
+    - 系统
+        - 准备实现基于 gojs 的中间转化器流程代码
+
 - ***V1.0.6/20180118***
     - workerJs
         - 自动撑高svg高度，以及兼容原“动态动态排版3列布局”
