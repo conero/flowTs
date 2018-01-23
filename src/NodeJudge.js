@@ -32,6 +32,7 @@ class NodeJudge extends NodeBase{
             }
         }
         this.opt = opt
+        this.minWidth = opt.w
         // 容器        
         var ap = this.getAp()
         var bp = this.getBp()
@@ -52,6 +53,44 @@ class NodeJudge extends NodeBase{
             label = this.instance.text(opt.cx, opt.cy)
         }
         this.label = label
+        this.resizeByText()
+    }
+    /**
+     * 根据文本宽度自动适应文本的宽度
+     */
+    resizeByText(){
+        if(this.label){
+            var box = this.label.getBBox()
+            var width = Math.ceil(box.width)
+            var w = this.c.attr('w')
+            if(width < this.minWidth && w<this.minWidth){
+                return
+            }
+            // 保持最小宽度
+            if(width < this.minWidth){
+                width = this.minWidth
+            }else{
+                width += 25
+            }            
+            this.opt.w = width
+            this.resizeByOpt()
+        }     
+    }
+    /**
+     * 根据 opt 值的改变重调整容器形状大小
+     */
+    resizeByOpt(){
+        var ap = this.getAp()
+        var bp = this.getBp()
+        var cp = this.getCp()
+        var dp = this.getDp()
+        this.c.attr('path', [
+            ['M', ap.x, ap.y],
+            ['L', bp.x, bp.y],
+            ['L', cp.x, cp.y],
+            ['L', dp.x, dp.y],
+            ['Z']                   
+        ])
     }
     // 按照 A 点移动
     move(x, y){
@@ -111,9 +150,12 @@ class NodeJudge extends NodeBase{
         })
     }
     // 获取连线的起点节点
-    getStlnP(){
-        var p = this.getDp()
-        var position = 'D'
+    getStlnP(position){
+        // var position = 'D'
+        position = position? position:'D'
+        var methodName = 'get' + position + 'p';
+        // var p = this.getDp()
+        var p = this[methodName]()
         // 起点重合
         if(this.isCoincidence(p, 'from')){
             p = this.getCp()
@@ -123,9 +165,12 @@ class NodeJudge extends NodeBase{
         return nP
     }
     // 获取连线的终点节点
-    getEnlnP(){
-        var p = this.getBp()
-        p.position = 'B'
+    getEnlnP(position){
+        position = position? position:'B'
+        // var p = this.getBp()
+        var methodName = 'get' + position + 'p'
+        var p = this[methodName]()
+        p.position = position
         return p
     }
     /**

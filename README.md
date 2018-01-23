@@ -31,6 +31,7 @@ var config = {
     bkgJudgeCol: '判断节点'
     bkgEndCol: '结束节点'
     bkgRunedCol:'已经执行的节点底色'
+    bkgLineCol: '连线底色'
     currentCode: '当前项目节点',
     sColumnMk: 'boolean true/false， false 根据高度，自动分列(最多3列)'
 }
@@ -75,10 +76,23 @@ var option = {
 > 所有节点都由： 容器(container/c), 标签组成(label)
 - endpoint  端点
 
-
-
 ## 更新日志
 > ***V1.0.x/alpha-date*** alpha 类型模板
+- ***V1.0.8/20180123***
+    - workerJs
+        - (新增) src/NodeBow(弓形连线) 箭头连节点实例 - “用于新增箭头连线算法过渡，已替换 NodeArrow”
+            - 实例化与更新同函数处理
+            - 提供外边松散式的接口点列表
+        - NodeEndpoint 端点
+            - 底层支持形状有原来的“圆”更变为“椭圆”，后者根据扩展性
+        - NodeBase.js
+            - 继承的节点，连接点实现外部参数
+        - worker.js
+            - 实现非直线时，自动适应计算规则，获取到“弓形”连接线
+            - 实现回线时，规则路线话连接线
+            - 容器文本宽度自适应实现的
+            - 容器文本轻量级文本编辑器的实现
+        
 - ***V1.0.7/20180122***
     - workerJs
         - 逆向流程线生成实现，容器还未存在时放到最后生成

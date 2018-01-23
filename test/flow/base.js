@@ -15,5 +15,10 @@ $(function(){
         ,line: 'arrow'
         // ,sColumnMk: false
         ,currentCode: 'A1'
+        // ,texteditor:{   // 文本编辑器
+        //     id: 'worker-txteditor'
+        // }
+        , line: 'bow'
+        , texteditor: true
     }, Cfg)
 })

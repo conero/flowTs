@@ -10,7 +10,8 @@ $(function(){
         var $worker = new worker({
             dom: '#workflow',
             rightAngle: false,
-            line: 'arrow'
+            // line: 'arrow'
+            line: 'bow'
             ,currentCode: 'H1'
             // currentCode: 'H1'
         }, {

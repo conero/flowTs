@@ -3,6 +3,11 @@
 公共基础样式文件
 **/
 
+/* 
+    流程主体容器 
+    网格底色
+*/
+
 .flow-body > svg{
     /* width: 200px;
     height: 200px; */
@@ -20,4 +25,14 @@
     overflow: auto;
     margin: 0px;
     padding: 0px;
+}
+
+
+/* 文比编辑器 */
+.worker-txteditor-div #worker-txteditor{
+    position: absolute;
+}
+
+.worker-txteditor-div{
+    /* position: absolute; */
 }

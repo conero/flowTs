@@ -207,9 +207,8 @@ class Worker{
     checkPaperHight(y){
         var svg = this.config.dom.find('svg')
         var height = svg.height()
-        // if(height < (y + 50)){
-        if(height < (y + 50)){
-            svg.css({'height': height + 150})
+        if(height < y+180){
+            svg.css({'height': height + 80})
         }
     }
     // 新的布局算法(优化)、20180109
@@ -364,10 +363,11 @@ class Worker{
             if($node){
                 $node.$step = node
                 $node.c.data('_code', code) // 保存代码为属性
+                $node.c.data('_type', type)
                 this.cNodeMap(code, $node)
                 this.line($node)          
                 this._eventBind($node)      
-                this.drag($node)  
+                this.drag($node)
             }            
         })
         this.connectLeastLines()
@@ -417,9 +417,16 @@ class Worker{
                     dy += cDragDt.y
                     $nd.move(dx, dy)
                     // 直线同步移动
-                    if(conf.line && conf.line == 'arrow'){
+                    // if(conf.line && conf.line == 'arrow'){
+                    if(conf.line && (conf.line == 'arrow' || conf.line == 'bow')){
                         $nd.ToSyncArrow(dx, dy)
                     }
+                    /*
+                    // 箭体 2 , 暂时使用， arrow 的移动方法
+                    else if(conf.line && conf.line == 'bow'){
+                        $nd.ToSyncBow(dx, dy)
+                    }
+                    */
                     else{
                         $nd.ToSyncLine(dx, dy)
                     }
@@ -427,7 +434,7 @@ class Worker{
                 // onstart
                 function(){
                     var _x, _y
-                    if('circle' == this.type){
+                    if('ellipse' == this.type){
                         _x = this.attr('cx')
                         _y = this.attr('cy')
                     }
@@ -462,6 +469,8 @@ class Worker{
         if(step.prev){
             var config = this.config   
             var rightAngle = 'undefined' == typeof config.rightAngle? true: config.rightAngle
+            var bkgLineCol = this.conf('bkgLineCol', 'rgb(14, 10, 10)')
+
             var makerLine = (from, to) => {
                 var $lineInstance
                 var fromNd = this.getNodeByCode(from)
@@ -482,7 +491,23 @@ class Worker{
                         $lineInstance = this.$flow.arrow([$p1.x, $p1.y], [$p2.x, $p2.y], 
                             (config.arrowLen? config.arrowLen: 4))
                         $lineInstance.position = {from: $p1.position, to: $p2.position}
-                        $lineInstance.c.attr('fill', 'rgb(14, 10, 10)')
+                        $lineInstance.c.attr('fill', bkgLineCol)
+                    }
+                    else if(config.line && 'bow' == config.line){
+                        var $p1 = fromNd.getStlnP()
+                        var $p2 = toNd.getEnlnP()
+                        var bowOption = {
+                            queue: [
+                                {x: $p1.x, y:$p1.y},
+                                {x: $p2.x, y:$p2.y}
+                            ]
+                        }
+                        $lineInstance = this.$flow.bow(bowOption)
+                        $lineInstance.position = {from: $p1.position, to: $p2.position}
+                        $lineInstance.arrow.attr({
+                            'fill': bkgLineCol,
+                            'stroke': bkgLineCol
+                        })
                     }
                     else{
                         var $p1 = fromNd.getStlnP()
@@ -506,9 +531,16 @@ class Worker{
                         var bkgRunedCol = this.conf('bkgRunedCol', 'rgb(255, 0, 0)')
                         // 连线
                         $lineInstance.c.attr({
-                            'fill': bkgRunedCol,
+                            //'fill': bkgRunedCol,
                             'stroke': bkgRunedCol,
                         })
+                        // 箭头类型
+                        if($lineInstance.arrow){
+                            $lineInstance.arrow.attr({
+                                'fill': bkgRunedCol,
+                                'stroke': bkgRunedCol,
+                            })
+                        }
                         // 目标节点
                         toNd.c.attr({
                             'stroke': bkgRunedCol,
@@ -543,12 +575,16 @@ class Worker{
 
     }
     /**
-     * 连接最后生成的线段
+     * 连接最后生成的线段，通常用于回线/自折线
      */
     connectLeastLines(){
         // console.log(this.leastLineQue)
         var config = this.config   
         var rightAngle = 'undefined' == typeof config.rightAngle? true: config.rightAngle
+
+        var bkgRunedCol = this.conf('bkgRunedCol', 'rgb(255, 0, 0)')
+        var bkgLineCol = this.conf('bkgLineCol', 'rgb(14, 10, 10)')
+
         var makerLine = (from, to) => {
             var $lineInstance
             var fromNd = this.getNodeByCode(from)
@@ -569,7 +605,32 @@ class Worker{
                     $lineInstance = this.$flow.arrow([$p1.x, $p1.y], [$p2.x, $p2.y], 
                         (config.arrowLen? config.arrowLen: 4))
                     $lineInstance.position = {from: $p1.position, to: $p2.position}
-                    $lineInstance.c.attr('fill', 'rgb(14, 10, 10)')
+                    $lineInstance.c.attr('fill', bkgLineCol)
+                }
+                else if(config.line && 'bow' == config.line){
+                    var isJudge = 3 == fromNd.c.data('_type')
+                    var $p1 = fromNd.getStlnP(isJudge? 'A': null)
+                    var toPosi = false
+                    if(isJudge){
+                        toPosi = 2 == toNd.c.data('_type')? 'L':'A'
+                    }
+                    var $p2 = toNd.getEnlnP(toPosi)
+                    var bowOption = {
+                        queue: [
+                            {x: $p1.x, y:$p1.y},
+                            // 直接写死了， 需要用程序计算 2018年1月23日 星期二 @issue/JC
+                            {x: $p1.x - 50, y:$p1.y},
+                            {x: $p1.x - 50, y:$p2.y},
+
+                            {x: $p2.x, y:$p2.y}
+                        ]
+                    }
+                    $lineInstance = this.$flow.bow(bowOption)
+                    $lineInstance.position = {from: $p1.position, to: $p2.position}
+                    $lineInstance.arrow.attr({
+                        'fill': bkgLineCol,
+                        'stroke': bkgLineCol
+                    })
                 }
                 else{
                     var $p1 = fromNd.getStlnP()
@@ -589,13 +650,21 @@ class Worker{
                 toNd.recordLine('to', $lineInstance)
 
                 var runIdx = this.nodeRunedMk(to)
-                if(runIdx && $lineInstance){
-                    var bkgRunedCol = this.conf('bkgRunedCol', 'rgb(255, 0, 0)')
+                if(runIdx && $lineInstance){                    
                     // 连线
                     $lineInstance.c.attr({
-                        'fill': bkgRunedCol,
+                        // 'fill': bkgRunedCol,
                         'stroke': bkgRunedCol,
                     })
+
+                    // 箭头类型
+                    if($lineInstance.arrow){
+                        $lineInstance.arrow.attr({
+                            'fill': bkgRunedCol,
+                            'stroke': bkgRunedCol,
+                        })
+                    }
+
                     // 目标节点
                     toNd.c.attr({
                         'stroke': bkgRunedCol,
@@ -773,6 +842,49 @@ class Worker{
                 'stroke': $this.conf('bkgNodeBox', 'rgb(15, 13, 105)')
             })
         })
+
+        // 文本编辑器
+        var hasTexteditor = this.conf('texteditor', false)
+        var $label = node.label
+        if(hasTexteditor && $label){
+            // 双击事件
+            var txtEditor = this.conf('texteditor')
+            txtEditor = 'object' == typeof txtEditor? txtEditor: {}
+            txtEditor.id = txtEditor.id? txtEditor.id:'worker-txteditor'
+            txtEditor.class = txtEditor.class? txtEditor.class:'worker-txteditor-div'
+            $label.dblclick(function(){
+                var text = $label.attr('text')
+                var $input = $('#' + txtEditor.id)
+                if($input.length == 0){
+                    var texteditorHtml = '<div class="'+txtEditor.class+'">' +
+                        '<input type="text" id="'+txtEditor.id+'">' +
+                        '</div>'    
+                    $('body').append(texteditorHtml)
+                    $input = $('#' + txtEditor.id)
+                }
+                $input.show()
+                $input.val(text)
+                $input.css({
+                    'top': $label.attr('y'),
+                    'left': $label.attr('x')
+                })
+                $input.focus()
+                $input.off('blur').on('blur', function(){
+                // $input.off('change').on('change', function(){
+                    var dom = $(this)
+                    var txt = dom.val()
+                    if(txt){
+                        $label.attr('text', txt)
+                    }
+                    dom.hide()
+
+                    // 自动适应文本的宽度
+                    if('function' == typeof node.resizeByText){
+                        node.resizeByText()
+                    }
+                })
+            })
+        }
     }
     /**
      * 配置键获取

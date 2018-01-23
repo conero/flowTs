@@ -641,9 +641,8 @@ class Worker{
     checkPaperHight(y){
         var svg = this.config.dom.find('svg')
         var height = svg.height()
-        // if(height < (y + 50)){
-        if(height < (y + 50)){
-            svg.css({'height': height + 150})
+        if(height < y+180){
+            svg.css({'height': height + 80})
         }
     }
     // 新的布局算法(优化)、20180109
@@ -798,10 +797,11 @@ class Worker{
             if($node){
                 $node.$step = node
                 $node.c.data('_code', code) // 保存代码为属性
+                $node.c.data('_type', type)
                 this.cNodeMap(code, $node)
                 this.line($node)          
                 this._eventBind($node)      
-                this.drag($node)  
+                this.drag($node)
             }            
         })
         this.connectLeastLines()
@@ -851,9 +851,16 @@ class Worker{
                     dy += cDragDt.y
                     $nd.move(dx, dy)
                     // 直线同步移动
-                    if(conf.line && conf.line == 'arrow'){
+                    // if(conf.line && conf.line == 'arrow'){
+                    if(conf.line && (conf.line == 'arrow' || conf.line == 'bow')){
                         $nd.ToSyncArrow(dx, dy)
                     }
+                    /*
+                    // 箭体 2 , 暂时使用， arrow 的移动方法
+                    else if(conf.line && conf.line == 'bow'){
+                        $nd.ToSyncBow(dx, dy)
+                    }
+                    */
                     else{
                         $nd.ToSyncLine(dx, dy)
                     }
@@ -861,7 +868,7 @@ class Worker{
                 // onstart
                 function(){
                     var _x, _y
-                    if('circle' == this.type){
+                    if('ellipse' == this.type){
                         _x = this.attr('cx')
                         _y = this.attr('cy')
                     }
@@ -896,6 +903,8 @@ class Worker{
         if(step.prev){
             var config = this.config   
             var rightAngle = 'undefined' == typeof config.rightAngle? true: config.rightAngle
+            var bkgLineCol = this.conf('bkgLineCol', 'rgb(14, 10, 10)')
+
             var makerLine = (from, to) => {
                 var $lineInstance
                 var fromNd = this.getNodeByCode(from)
@@ -916,7 +925,23 @@ class Worker{
                         $lineInstance = this.$flow.arrow([$p1.x, $p1.y], [$p2.x, $p2.y], 
                             (config.arrowLen? config.arrowLen: 4))
                         $lineInstance.position = {from: $p1.position, to: $p2.position}
-                        $lineInstance.c.attr('fill', 'rgb(14, 10, 10)')
+                        $lineInstance.c.attr('fill', bkgLineCol)
+                    }
+                    else if(config.line && 'bow' == config.line){
+                        var $p1 = fromNd.getStlnP()
+                        var $p2 = toNd.getEnlnP()
+                        var bowOption = {
+                            queue: [
+                                {x: $p1.x, y:$p1.y},
+                                {x: $p2.x, y:$p2.y}
+                            ]
+                        }
+                        $lineInstance = this.$flow.bow(bowOption)
+                        $lineInstance.position = {from: $p1.position, to: $p2.position}
+                        $lineInstance.arrow.attr({
+                            'fill': bkgLineCol,
+                            'stroke': bkgLineCol
+                        })
                     }
                     else{
                         var $p1 = fromNd.getStlnP()
@@ -940,9 +965,16 @@ class Worker{
                         var bkgRunedCol = this.conf('bkgRunedCol', 'rgb(255, 0, 0)')
                         // 连线
                         $lineInstance.c.attr({
-                            'fill': bkgRunedCol,
+                            //'fill': bkgRunedCol,
                             'stroke': bkgRunedCol,
                         })
+                        // 箭头类型
+                        if($lineInstance.arrow){
+                            $lineInstance.arrow.attr({
+                                'fill': bkgRunedCol,
+                                'stroke': bkgRunedCol,
+                            })
+                        }
                         // 目标节点
                         toNd.c.attr({
                             'stroke': bkgRunedCol,
@@ -977,12 +1009,16 @@ class Worker{
 
     }
     /**
-     * 连接最后生成的线段
+     * 连接最后生成的线段，通常用于回线/自折线
      */
     connectLeastLines(){
         // console.log(this.leastLineQue)
         var config = this.config   
         var rightAngle = 'undefined' == typeof config.rightAngle? true: config.rightAngle
+
+        var bkgRunedCol = this.conf('bkgRunedCol', 'rgb(255, 0, 0)')
+        var bkgLineCol = this.conf('bkgLineCol', 'rgb(14, 10, 10)')
+
         var makerLine = (from, to) => {
             var $lineInstance
             var fromNd = this.getNodeByCode(from)
@@ -1003,7 +1039,32 @@ class Worker{
                     $lineInstance = this.$flow.arrow([$p1.x, $p1.y], [$p2.x, $p2.y], 
                         (config.arrowLen? config.arrowLen: 4))
                     $lineInstance.position = {from: $p1.position, to: $p2.position}
-                    $lineInstance.c.attr('fill', 'rgb(14, 10, 10)')
+                    $lineInstance.c.attr('fill', bkgLineCol)
+                }
+                else if(config.line && 'bow' == config.line){
+                    var isJudge = 3 == fromNd.c.data('_type')
+                    var $p1 = fromNd.getStlnP(isJudge? 'A': null)
+                    var toPosi = false
+                    if(isJudge){
+                        toPosi = 2 == toNd.c.data('_type')? 'L':'A'
+                    }
+                    var $p2 = toNd.getEnlnP(toPosi)
+                    var bowOption = {
+                        queue: [
+                            {x: $p1.x, y:$p1.y},
+                            // 直接写死了， 需要用程序计算 2018年1月23日 星期二 @issue/JC
+                            {x: $p1.x - 50, y:$p1.y},
+                            {x: $p1.x - 50, y:$p2.y},
+
+                            {x: $p2.x, y:$p2.y}
+                        ]
+                    }
+                    $lineInstance = this.$flow.bow(bowOption)
+                    $lineInstance.position = {from: $p1.position, to: $p2.position}
+                    $lineInstance.arrow.attr({
+                        'fill': bkgLineCol,
+                        'stroke': bkgLineCol
+                    })
                 }
                 else{
                     var $p1 = fromNd.getStlnP()
@@ -1023,13 +1084,21 @@ class Worker{
                 toNd.recordLine('to', $lineInstance)
 
                 var runIdx = this.nodeRunedMk(to)
-                if(runIdx && $lineInstance){
-                    var bkgRunedCol = this.conf('bkgRunedCol', 'rgb(255, 0, 0)')
+                if(runIdx && $lineInstance){                    
                     // 连线
                     $lineInstance.c.attr({
-                        'fill': bkgRunedCol,
+                        // 'fill': bkgRunedCol,
                         'stroke': bkgRunedCol,
                     })
+
+                    // 箭头类型
+                    if($lineInstance.arrow){
+                        $lineInstance.arrow.attr({
+                            'fill': bkgRunedCol,
+                            'stroke': bkgRunedCol,
+                        })
+                    }
+
                     // 目标节点
                     toNd.c.attr({
                         'stroke': bkgRunedCol,
@@ -1207,6 +1276,49 @@ class Worker{
                 'stroke': $this.conf('bkgNodeBox', 'rgb(15, 13, 105)')
             })
         })
+
+        // 文本编辑器
+        var hasTexteditor = this.conf('texteditor', false)
+        var $label = node.label
+        if(hasTexteditor && $label){
+            // 双击事件
+            var txtEditor = this.conf('texteditor')
+            txtEditor = 'object' == typeof txtEditor? txtEditor: {}
+            txtEditor.id = txtEditor.id? txtEditor.id:'worker-txteditor'
+            txtEditor.class = txtEditor.class? txtEditor.class:'worker-txteditor-div'
+            $label.dblclick(function(){
+                var text = $label.attr('text')
+                var $input = $('#' + txtEditor.id)
+                if($input.length == 0){
+                    var texteditorHtml = '<div class="'+txtEditor.class+'">' +
+                        '<input type="text" id="'+txtEditor.id+'">' +
+                        '</div>'    
+                    $('body').append(texteditorHtml)
+                    $input = $('#' + txtEditor.id)
+                }
+                $input.show()
+                $input.val(text)
+                $input.css({
+                    'top': $label.attr('y'),
+                    'left': $label.attr('x')
+                })
+                $input.focus()
+                $input.off('blur').on('blur', function(){
+                // $input.off('change').on('change', function(){
+                    var dom = $(this)
+                    var txt = dom.val()
+                    if(txt){
+                        $label.attr('text', txt)
+                    }
+                    dom.hide()
+
+                    // 自动适应文本的宽度
+                    if('function' == typeof node.resizeByText){
+                        node.resizeByText()
+                    }
+                })
+            })
+        }
     }
     /**
      * 配置键获取
@@ -1254,6 +1366,7 @@ class Worker{
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__NodeJudge__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeLine__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__NodeArrow__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__NodeBow__ = __webpack_require__(12);
 /* unused harmony reexport NodeLine */
 /* unused harmony reexport NodeArrow */
 /* unused harmony reexport NodeEndpoint */
@@ -1263,6 +1376,7 @@ class Worker{
  * 2018年1月4日 星期四
  * 工作流引擎, 基于 raphaelJs, 只用于绘制容器以及，拖动事件的相关算法
  */
+
 
 
 
@@ -1333,6 +1447,15 @@ class Flow{
     arrow(p1, p2, r){
         var nd = new __WEBPACK_IMPORTED_MODULE_5__NodeArrow__["a" /* default */](this.paper)
         nd.create(p1, p2, r)
+        return nd
+    }
+    /**
+     * 箭头
+     * @param {object} opt 
+     */
+    bow(opt){
+        var nd = new __WEBPACK_IMPORTED_MODULE_6__NodeBow__["a" /* default */](this.paper)
+        nd.create(opt)
         return nd
     }
     /**
@@ -1411,9 +1534,11 @@ class NodeEndpoint extends __WEBPACK_IMPORTED_MODULE_1__NodeBase__["a" /* defaul
                 opt.text = param[3]
             }
         }
+        opt.h = opt.h? opt.h:opt.r
+        this.minWidth = opt.r * 2
         this.opt = opt
         // 容器
-        this.c = this.instance.circle(opt.cx, opt.cy, opt.r)
+        this.c = this.instance.ellipse(opt.cx, opt.cy, opt.r, opt.h)     // 椭圆
         // 标签
         var label
         if(opt.text){
@@ -1422,6 +1547,40 @@ class NodeEndpoint extends __WEBPACK_IMPORTED_MODULE_1__NodeBase__["a" /* defaul
             label = this.instance.text(opt.cx, opt.cy)
         }
         this.label = label
+        this.resizeByText()
+    }
+    /**
+     * 根据文本宽度自动适应文本的宽度
+     */
+    resizeByText(){
+        if(this.label){
+            var box = this.label.getBBox()
+            var width = Math.ceil(box.width)
+            var w = this.c.attr('rx')
+            if(width < this.minWidth && w<this.minWidth){
+                return
+            }
+            // 保持最小宽度
+            if(width < this.minWidth){
+                width = this.minWidth
+            }else{
+                width += 2
+            }            
+            this.opt.r = width/2
+            this.resizeByOpt()
+        }     
+    }
+    /**
+     * 根据 opt 值的改变重调整容器形状大小
+     */
+    resizeByOpt(){
+        var opt = this.opt
+        this.c.attr({
+            cx: opt.cx,
+            cy: opt.cy,
+            rx: opt.r,
+            ry: opt.h
+        })
     }
     // 外部移动坐标处理， 
     move(x, y){
@@ -1495,15 +1654,19 @@ class NodeEndpoint extends __WEBPACK_IMPORTED_MODULE_1__NodeBase__["a" /* defaul
         })
     }
     // 获取连线的起点节点
-    getStlnP(){
-        var p = this.getDp()
-        p.position = 'D'
+    getStlnP(position){
+        position = position? position: 'D'
+        var methodName = 'get' + position + 'p'
+        var p = this[methodName]()
+        p.position = position
         return p
     }
     // 获取连线的终点节点
-    getEnlnP(){
-        var p = this.getBp()
-        p.position = 'B'
+    getEnlnP(position){
+        position = position? position: 'B'
+        var methodName = 'get' + position + 'p'
+        var p = this[methodName]()
+        p.position = position
         return p
     }
     getAp(x, y){
@@ -1579,6 +1742,7 @@ class NodeOperation extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* defau
             }
         }
         this.opt = opt
+        this.minWidth = opt.w       // 最小宽度
         // 容器        
         var ap = this.getAp()
         this.c = this.instance.rect(ap.x, ap.y, opt.w, opt.h)
@@ -1590,7 +1754,37 @@ class NodeOperation extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* defau
             label = this.instance.text(opt.cx, opt.cy)
         }
         this.label = label
+        // 自动调整文本宽度
+        this.resizeByText()
+    }
+    /**
+     * 根据文本宽度自动适应文本的宽度
+     */
+    resizeByText(){
+        if(this.label){
+            //console.log(this.label.getBBox())
+            var box = this.label.getBBox()
+            var width = Math.ceil(box.width)
+            var w = this.c.attr('w')
+            if(width < this.minWidth && w<this.minWidth){
+                return
+            }
+            // 保持最小宽度
+            if(width < this.minWidth){
+                width = this.minWidth
+            }else{
+                width += 10
+            }
+            this.opt.w = width
+            var ap = this.getAp()
+            this.c.attr({
+                width: width,
+                x: ap.x,
+                y: ap.y
+            })
+        }
     }    
+
     // 外部移动坐标处理
     move(x, y){
         var ctP = this.getCtpByAp(x, y)
@@ -1638,16 +1832,37 @@ class NodeOperation extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* defau
             }
         })
     }
+    // // 箭头v2 同步机制 移动
+    // ToSyncBow(x, y){
+    //     var ctP = this.getCtpByAp(x, y)
+    //     this.syncLineMove((lnC, type, $ln) => {
+    //         var position = $ln.position, methodName
+    //         if(type == 'from'){
+    //             methodName = 'get'+position.from+'p'
+    //             var bP = this[methodName](ctP.x, ctP.y)         
+    //             $ln.updatePath([bP.x, bP.y])
+    //         }
+    //         else if(type == 'to'){
+    //             methodName = 'get'+position.to+'p'
+    //             var dP = this[methodName](ctP.x, ctP.y)
+    //             $ln.updatePath(null, [dP.x, dP.y])
+    //         }
+    //     })
+    // }
     // 获取连线的起点节点
-    getStlnP(){
-        var p = this.getBtp()
-        p.position = 'Bt'
+    getStlnP(position){
+        position = position? position: 'Bt'
+        var methodName = 'get' + position + 'p'
+        var p = this[methodName]()
+        p.position = position
         return p
     }
     // 获取连线的终点节点
-    getEnlnP(){
-        var p = this.getTp()
-        p.position = 'T'
+    getEnlnP(position){
+        position = position? position: 'T'
+        var methodName = 'get' + position + 'p'
+        var p = this[methodName]()
+        p.position = position
         return p
     }
     // 根据 A 点获取 中心点
@@ -1715,7 +1930,6 @@ class NodeOperation extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* defau
         x = x? x: opt.cx
         y = y? y: opt.cy
         x -= opt.w/2
-        y += opt.h/2
         return {x, y}
     }
 }
@@ -1763,6 +1977,7 @@ class NodeJudge extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* default *
             }
         }
         this.opt = opt
+        this.minWidth = opt.w
         // 容器        
         var ap = this.getAp()
         var bp = this.getBp()
@@ -1783,6 +1998,44 @@ class NodeJudge extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* default *
             label = this.instance.text(opt.cx, opt.cy)
         }
         this.label = label
+        this.resizeByText()
+    }
+    /**
+     * 根据文本宽度自动适应文本的宽度
+     */
+    resizeByText(){
+        if(this.label){
+            var box = this.label.getBBox()
+            var width = Math.ceil(box.width)
+            var w = this.c.attr('w')
+            if(width < this.minWidth && w<this.minWidth){
+                return
+            }
+            // 保持最小宽度
+            if(width < this.minWidth){
+                width = this.minWidth
+            }else{
+                width += 25
+            }            
+            this.opt.w = width
+            this.resizeByOpt()
+        }     
+    }
+    /**
+     * 根据 opt 值的改变重调整容器形状大小
+     */
+    resizeByOpt(){
+        var ap = this.getAp()
+        var bp = this.getBp()
+        var cp = this.getCp()
+        var dp = this.getDp()
+        this.c.attr('path', [
+            ['M', ap.x, ap.y],
+            ['L', bp.x, bp.y],
+            ['L', cp.x, cp.y],
+            ['L', dp.x, dp.y],
+            ['Z']                   
+        ])
     }
     // 按照 A 点移动
     move(x, y){
@@ -1842,9 +2095,12 @@ class NodeJudge extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* default *
         })
     }
     // 获取连线的起点节点
-    getStlnP(){
-        var p = this.getDp()
-        var position = 'D'
+    getStlnP(position){
+        // var position = 'D'
+        position = position? position:'D'
+        var methodName = 'get' + position + 'p';
+        // var p = this.getDp()
+        var p = this[methodName]()
         // 起点重合
         if(this.isCoincidence(p, 'from')){
             p = this.getCp()
@@ -1854,9 +2110,12 @@ class NodeJudge extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* default *
         return nP
     }
     // 获取连线的终点节点
-    getEnlnP(){
-        var p = this.getBp()
-        p.position = 'B'
+    getEnlnP(position){
+        position = position? position:'B'
+        // var p = this.getBp()
+        var methodName = 'get' + position + 'p'
+        var p = this[methodName]()
+        p.position = position
         return p
     }
     /**
@@ -2198,6 +2457,167 @@ class H{
 
 /* harmony default export */ __webpack_exports__["a"] = (H);
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(2)))
+
+/***/ }),
+/* 12 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/**
+ * 2018年1月23日 星期二
+ * 弓形箭头
+ */
+/**
+ * 
+ * 
+ * @class NodeBow
+/**
+ * 
+ * 
+ * @class NodeBow
+ */
+class NodeBow{
+    /**
+     * 
+     * @param {*} instance Raphael 实例
+     */
+    constructor(instance){
+        this.instance = instance
+        this.opt = {}           // 配置信息数据
+        this.position = {}      // 连接点
+        /*
+            {from: A/B/C/D, to: A/B/C/D}
+            this.arrow = 箭头实例
+            this.body = 箭体实例
+        */
+    }
+    /**
+     * 弓形箭头创建
+     * @param {*} opt   {r: 直径, queue:[点队列]}
+     */
+    create(opt){
+        this.opt = opt
+        this.queueCheck()
+        this.bodySharp()
+        this.arrowSharp()
+    }
+    /**
+     * 箭头
+     */
+    arrowSharp(){
+        var opt = this.opt
+        var pointQue = opt.queue
+        var r = opt.r? opt.r: 5
+        var len = pointQue.length
+        var p2 = pointQue[len - 1]
+        var p1 = pointQue[len - 2]
+
+        // 系统
+        var atan = Math.atan2(p1.y - p2.y, p2.x - p1.x) * (180 / Math.PI);
+        var centerX = p2.x - r * Math.cos(atan * (Math.PI / 180));
+        var centerY = p2.y + r * Math.sin(atan * (Math.PI / 180));
+
+        var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
+        var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
+
+        var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
+        var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
+
+        if(!this.arrow){
+            this.arrow = this.instance.path(
+                'M' + p2.x + ',' + p2.y +
+                // 箭头体
+                'L' + x2 + ',' + y2 + 
+                'L' + x3 + ',' + y3 + 
+                'L' + p2.x + ',' + p2.y
+            )
+        }
+        else{
+            this.arrow.attr('path', [
+                ['M', p2.x, p2.y],
+                // 箭头体
+                ['L', x2, y2],
+                ['L', x3, y3],
+                ['L', p2.x, p2.y]
+            ])
+        }
+    }
+    /**
+     * 键体
+     */
+    bodySharp(){
+        var queue = this.opt.queue
+        var pathStr = ''
+        var pathArr = []
+        var hasInstance = false,
+            isM = true
+        hasInstance = this.c? true: false
+
+        for(var i=0; i<queue.length; i++){
+            var que = queue[i]
+            if(hasInstance){
+                if(isM){
+                    if(pathArr.length > 0){
+                        isM = false
+                    }
+                }
+                pathArr.push([isM? 'M':'L', que.x, que.y])
+            }else{
+                pathStr += (pathStr? 'L':'M') + ',' + que.x + ',' + que.y
+            }
+        }
+        if(hasInstance){
+            this.c.attr('path', pathArr)
+        }
+        else{            
+            this.c = this.instance.path(pathStr)
+        }
+    }
+    /**
+     * 点队列检测
+     */
+    queueCheck(){
+        var queue = this.opt.queue
+        // 双点检测  “ 7 形 ”
+        if(queue.length == 2){
+            var middlePoint = []
+            var p1 = queue[0],
+                p2 = queue[1]
+            if(p1.x < p2.x){
+                middlePoint.push({x:p2.x, y:p1.y})
+            }
+            else if(p1.x > p2.x){
+                // 20 @issue 需要可配置接口
+                middlePoint.push({x:p1.x, y:p2.y-20})
+                middlePoint.push({x:p2.x, y:p2.y-20})
+            }
+            this.opt.queue = [p1].concat(middlePoint, p2)
+        }
+    }
+    /**
+     * 更细记录表
+     * @param {*} p1 
+     * @param {*} p2 
+     * @param {*} r 
+     */
+    updatePath(p1, p2, r){
+        var opt = this.opt
+        if(p1){
+            opt.queue[0] = {x:p1[0], y:p1[1]}
+        }
+        if(p2){
+            var len = opt.queue.length - 1
+            opt.queue[len] = {x:p2[0], y:p2[1]}
+        }
+
+        // 自适应的星形状变化
+        this.queueCheck()
+        this.bodySharp()
+        this.arrowSharp()
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (NodeBow);
 
 /***/ })
 /******/ ]);

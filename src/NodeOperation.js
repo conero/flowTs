@@ -33,6 +33,7 @@ class NodeOperation extends NodeBase{
             }
         }
         this.opt = opt
+        this.minWidth = opt.w       // 最小宽度
         // 容器        
         var ap = this.getAp()
         this.c = this.instance.rect(ap.x, ap.y, opt.w, opt.h)
@@ -44,7 +45,37 @@ class NodeOperation extends NodeBase{
             label = this.instance.text(opt.cx, opt.cy)
         }
         this.label = label
+        // 自动调整文本宽度
+        this.resizeByText()
+    }
+    /**
+     * 根据文本宽度自动适应文本的宽度
+     */
+    resizeByText(){
+        if(this.label){
+            //console.log(this.label.getBBox())
+            var box = this.label.getBBox()
+            var width = Math.ceil(box.width)
+            var w = this.c.attr('w')
+            if(width < this.minWidth && w<this.minWidth){
+                return
+            }
+            // 保持最小宽度
+            if(width < this.minWidth){
+                width = this.minWidth
+            }else{
+                width += 10
+            }
+            this.opt.w = width
+            var ap = this.getAp()
+            this.c.attr({
+                width: width,
+                x: ap.x,
+                y: ap.y
+            })
+        }
     }    
+
     // 外部移动坐标处理
     move(x, y){
         var ctP = this.getCtpByAp(x, y)
@@ -92,16 +123,37 @@ class NodeOperation extends NodeBase{
             }
         })
     }
+    // // 箭头v2 同步机制 移动
+    // ToSyncBow(x, y){
+    //     var ctP = this.getCtpByAp(x, y)
+    //     this.syncLineMove((lnC, type, $ln) => {
+    //         var position = $ln.position, methodName
+    //         if(type == 'from'){
+    //             methodName = 'get'+position.from+'p'
+    //             var bP = this[methodName](ctP.x, ctP.y)         
+    //             $ln.updatePath([bP.x, bP.y])
+    //         }
+    //         else if(type == 'to'){
+    //             methodName = 'get'+position.to+'p'
+    //             var dP = this[methodName](ctP.x, ctP.y)
+    //             $ln.updatePath(null, [dP.x, dP.y])
+    //         }
+    //     })
+    // }
     // 获取连线的起点节点
-    getStlnP(){
-        var p = this.getBtp()
-        p.position = 'Bt'
+    getStlnP(position){
+        position = position? position: 'Bt'
+        var methodName = 'get' + position + 'p'
+        var p = this[methodName]()
+        p.position = position
         return p
     }
     // 获取连线的终点节点
-    getEnlnP(){
-        var p = this.getTp()
-        p.position = 'T'
+    getEnlnP(position){
+        position = position? position: 'T'
+        var methodName = 'get' + position + 'p'
+        var p = this[methodName]()
+        p.position = position
         return p
     }
     // 根据 A 点获取 中心点
@@ -169,7 +221,6 @@ class NodeOperation extends NodeBase{
         x = x? x: opt.cx
         y = y? y: opt.cy
         x -= opt.w/2
-        y += opt.h/2
         return {x, y}
     }
 }

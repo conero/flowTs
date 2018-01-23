@@ -8,6 +8,7 @@ import NodeOperation from './NodeOperation'
 import NodeJudge from './NodeJudge'
 import NodeLine from './NodeLine'
 import NodeArrow from './NodeArrow'
+import NodeBow from './NodeBow'
 
 class Flow{
     /**
@@ -72,6 +73,15 @@ class Flow{
     arrow(p1, p2, r){
         var nd = new NodeArrow(this.paper)
         nd.create(p1, p2, r)
+        return nd
+    }
+    /**
+     * 箭头
+     * @param {object} opt 
+     */
+    bow(opt){
+        var nd = new NodeBow(this.paper)
+        nd.create(opt)
         return nd
     }
     /**

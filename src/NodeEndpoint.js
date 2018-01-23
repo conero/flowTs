@@ -31,9 +31,11 @@ class NodeEndpoint extends NodeBase{
                 opt.text = param[3]
             }
         }
+        opt.h = opt.h? opt.h:opt.r
+        this.minWidth = opt.r * 2
         this.opt = opt
         // 容器
-        this.c = this.instance.circle(opt.cx, opt.cy, opt.r)
+        this.c = this.instance.ellipse(opt.cx, opt.cy, opt.r, opt.h)     // 椭圆
         // 标签
         var label
         if(opt.text){
@@ -42,6 +44,40 @@ class NodeEndpoint extends NodeBase{
             label = this.instance.text(opt.cx, opt.cy)
         }
         this.label = label
+        this.resizeByText()
+    }
+    /**
+     * 根据文本宽度自动适应文本的宽度
+     */
+    resizeByText(){
+        if(this.label){
+            var box = this.label.getBBox()
+            var width = Math.ceil(box.width)
+            var w = this.c.attr('rx')
+            if(width < this.minWidth && w<this.minWidth){
+                return
+            }
+            // 保持最小宽度
+            if(width < this.minWidth){
+                width = this.minWidth
+            }else{
+                width += 2
+            }            
+            this.opt.r = width/2
+            this.resizeByOpt()
+        }     
+    }
+    /**
+     * 根据 opt 值的改变重调整容器形状大小
+     */
+    resizeByOpt(){
+        var opt = this.opt
+        this.c.attr({
+            cx: opt.cx,
+            cy: opt.cy,
+            rx: opt.r,
+            ry: opt.h
+        })
     }
     // 外部移动坐标处理， 
     move(x, y){
@@ -115,15 +151,19 @@ class NodeEndpoint extends NodeBase{
         })
     }
     // 获取连线的起点节点
-    getStlnP(){
-        var p = this.getDp()
-        p.position = 'D'
+    getStlnP(position){
+        position = position? position: 'D'
+        var methodName = 'get' + position + 'p'
+        var p = this[methodName]()
+        p.position = position
         return p
     }
     // 获取连线的终点节点
-    getEnlnP(){
-        var p = this.getBp()
-        p.position = 'B'
+    getEnlnP(position){
+        position = position? position: 'B'
+        var methodName = 'get' + position + 'p'
+        var p = this[methodName]()
+        p.position = position
         return p
     }
     getAp(x, y){
