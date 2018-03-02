@@ -5,6 +5,7 @@
 import {Flow} from './flow'
 import {Util} from './util'
 import H from './helper'
+import Editor from './WorkerEditor'
 
 /**
  * 工作流实例类
@@ -914,7 +915,12 @@ class Worker{
         }
         return currentCode
     }
+    /**
+     * 页面编辑器
+     */
+    static editor(config){
+        return new Editor(config)
+    }
 }
-
 
 export default Worker

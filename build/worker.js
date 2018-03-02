@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -424,6 +424,633 @@ process.umask = function () {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.NodeJudge = exports.NodeOperation = exports.NodeEndpoint = exports.NodeArrow = exports.NodeLine = exports.Flow = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 2018年1月4日 星期四
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 工作流引擎, 基于 raphaelJs, 只用于绘制容器以及，拖动事件的相关算法
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+
+var _util = __webpack_require__(0);
+
+var _NodeEndpoint = __webpack_require__(7);
+
+var _NodeEndpoint2 = _interopRequireDefault(_NodeEndpoint);
+
+var _NodeOperation = __webpack_require__(8);
+
+var _NodeOperation2 = _interopRequireDefault(_NodeOperation);
+
+var _NodeJudge = __webpack_require__(4);
+
+var _NodeJudge2 = _interopRequireDefault(_NodeJudge);
+
+var _NodeLine = __webpack_require__(9);
+
+var _NodeLine2 = _interopRequireDefault(_NodeLine);
+
+var _NodeArrow = __webpack_require__(10);
+
+var _NodeArrow2 = _interopRequireDefault(_NodeArrow);
+
+var _NodeBow = __webpack_require__(11);
+
+var _NodeBow2 = _interopRequireDefault(_NodeBow);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Flow = function () {
+    /**
+     * @param {Raphael} paper 
+     */
+    function Flow(paper) {
+        _classCallCheck(this, Flow);
+
+        this.paper = paper;
+    }
+    /**
+     * 端点(圆别名) , 圆心 和 半径
+     * @param {number} cx 
+     * @param {number} cy 
+     * @param {number} r 
+     * @param {string|null} 文本框
+     */
+
+
+    _createClass(Flow, [{
+        key: 'endpoint',
+        value: function endpoint(cx, cy, r, text) {
+            var nd = new _NodeEndpoint2.default(this.paper);
+            nd.create(cx, cy, r, text);
+            return nd;
+        }
+        /**
+         * 判断节点
+         */
+
+    }, {
+        key: 'judge',
+        value: function judge(x, y, w, h, text) {
+            var nd = new _NodeJudge2.default(this.paper);
+            nd.create(x, y, w, h, text);
+            return nd;
+        }
+        /**
+         * 操作节点
+         */
+
+    }, {
+        key: 'operation',
+        value: function operation(x, y, w, h, text) {
+            var nd = new _NodeOperation2.default(this.paper);
+            nd.create(x, y, w, h, text);
+            return nd;
+        }
+        /**
+         * p1 -> p2 的连线
+         * @param {*} p1 {x,y} 
+         * @param {*} p2 
+         */
+
+    }, {
+        key: 'line',
+        value: function line(p1, p2) {
+            var nd = new _NodeLine2.default(this.paper);
+            nd.create(p1, p2);
+            return nd;
+        }
+        /**
+         * p1 -> p2 直角转线算啊分
+         * @param {object} opt
+         */
+
+    }, {
+        key: 'rightAngleLine',
+        value: function rightAngleLine(opt) {
+            var nd = new _NodeLine2.default(this.paper);
+            nd.RightAngle(opt);
+            return nd;
+        }
+        /**
+         * p1 -> p2 的连线
+         * @param {*} p1 {x,y} 
+         * @param {*} p2 
+         * @param {number} r
+         */
+
+    }, {
+        key: 'arrow',
+        value: function arrow(p1, p2, r) {
+            var nd = new _NodeArrow2.default(this.paper);
+            nd.create(p1, p2, r);
+            return nd;
+        }
+        /**
+         * 箭头
+         * @param {object} opt 
+         */
+
+    }, {
+        key: 'bow',
+        value: function bow(opt) {
+            var nd = new _NodeBow2.default(this.paper);
+            nd.create(opt);
+            return nd;
+        }
+        /**
+         * 获取空节点对象
+         * @param {NodeBase} type 
+         */
+
+    }, {
+        key: 'getEmptyNode',
+        value: function getEmptyNode(type) {
+            var $node = null;
+            switch (type) {
+                case 'endpoint':
+                    $node = new _NodeEndpoint2.default(this.paper);
+                    break;
+                case 'judge':
+                    $node = new _NodeJudge2.default(this.paper);
+                    break;
+                case 'operation':
+                    $node = new _NodeOperation2.default(this.paper);
+                    break;
+                case 'line':
+                    $node = new _NodeLine2.default(this.paper);
+                    break;
+                case 'arrow':
+                    $node = new _NodeArrow2.default(this.paper);
+                    break;
+            }
+            return $node;
+        }
+    }]);
+
+    return Flow;
+}();
+
+exports.Flow = Flow;
+exports.NodeLine = _NodeLine2.default;
+exports.NodeArrow = _NodeArrow2.default;
+exports.NodeEndpoint = _NodeEndpoint2.default;
+exports.NodeOperation = _NodeOperation2.default;
+exports.NodeJudge = _NodeJudge2.default;
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _NodeBase2 = __webpack_require__(1);
+
+var _NodeBase3 = _interopRequireDefault(_NodeBase2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * 2018年1月5日 星期五
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * 判断处理节点
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
+
+var NodeJudge = function (_NodeBase) {
+    _inherits(NodeJudge, _NodeBase);
+
+    /**
+     * 
+     * @param {*} instance Raphael 实例
+     */
+    function NodeJudge(instance) {
+        _classCallCheck(this, NodeJudge);
+
+        var _this = _possibleConstructorReturn(this, (NodeJudge.__proto__ || Object.getPrototypeOf(NodeJudge)).call(this));
+
+        _this.instance = instance;
+        _this.opt = {}; // 配置信息数据
+        return _this;
+    }
+    /**
+     * 仅仅生成容器并且返回对象
+     * @param {number} cx 
+     * @param {number} cy 
+     * @param {number} w 
+     * @param {number} h 
+     * @returns RaphaelElement
+     */
+
+
+    _createClass(NodeJudge, [{
+        key: 'onlyCell',
+        value: function onlyCell(cx, cy, w, h) {
+            this.opt = { cx: cx, cy: cy, w: w, h: h
+                // 容器        
+            };var ap = this.getAp();
+            var bp = this.getBp();
+            var cp = this.getCp();
+            var dp = this.getDp();
+            return this.instance.path('M' + ap.x + ',' + ap.y + 'L' + bp.x + ',' + bp.y + 'L' + cp.x + ',' + cp.y + 'L' + dp.x + ',' + dp.y + 'Z');
+        }
+        /**
+         * @param {object} opt / [cx, cy, w, h, text]
+         */
+
+    }, {
+        key: 'create',
+        value: function create(opt) {
+            // 解析类型
+            if ('object' != (typeof opt === 'undefined' ? 'undefined' : _typeof(opt))) {
+                var param = arguments;
+                opt = {
+                    cx: param[0],
+                    cy: param[1],
+                    w: param[2],
+                    h: param[3]
+                };
+                if (param[4]) {
+                    opt.text = param[4];
+                }
+            }
+            this.opt = opt;
+            this.minWidth = opt.w;
+            // 容器        
+            var ap = this.getAp();
+            var bp = this.getBp();
+            var cp = this.getCp();
+            var dp = this.getDp();
+            this.c = this.instance.path('M' + ap.x + ',' + ap.y + 'L' + bp.x + ',' + bp.y + 'L' + cp.x + ',' + cp.y + 'L' + dp.x + ',' + dp.y + 'Z');
+            // 标签
+            var label;
+            if (opt.text) {
+                label = this.instance.text(opt.cx, opt.cy, opt.text);
+            } else {
+                label = this.instance.text(opt.cx, opt.cy);
+            }
+            this.label = label;
+            this.resizeByText();
+        }
+        /**
+         * 根据文本宽度自动适应文本的宽度
+         */
+
+    }, {
+        key: 'resizeByText',
+        value: function resizeByText() {
+            if (this.label) {
+                var box = this.label.getBBox();
+                var width = Math.ceil(box.width);
+                var w = this.c.attr('w');
+                if (width < this.minWidth && w < this.minWidth) {
+                    return;
+                }
+                // 保持最小宽度
+                if (width < this.minWidth) {
+                    width = this.minWidth;
+                } else {
+                    width += 25;
+                }
+                this.opt.w = width;
+                this.resizeByOpt();
+            }
+        }
+        /**
+         * 根据 opt 值的改变重调整容器形状大小
+         */
+
+    }, {
+        key: 'resizeByOpt',
+        value: function resizeByOpt() {
+            var ap = this.getAp();
+            var bp = this.getBp();
+            var cp = this.getCp();
+            var dp = this.getDp();
+            this.c.attr('path', [['M', ap.x, ap.y], ['L', bp.x, bp.y], ['L', cp.x, cp.y], ['L', dp.x, dp.y], ['Z']]);
+        }
+        // 按照 A 点移动
+
+    }, {
+        key: 'move',
+        value: function move(x, y) {
+            var ctP = this.getCpByAp(x, y);
+            var bP = this.getBp(ctP.x, ctP.y);
+            var cP = this.getCp(ctP.x, ctP.y);
+            var dP = this.getDp(ctP.x, ctP.y);
+            // 容器移动
+            this.c.attr('path', [['M', x, y], ['L', bP.x, bP.y], ['L', cP.x, cP.y], ['L', dP.x, dP.y], ['Z']]);
+            // 文本移动
+            this.label.attr(ctP);
+        }
+        // 直线同步移动
+
+    }, {
+        key: 'ToSyncLine',
+        value: function ToSyncLine(x, y) {
+            var _this2 = this;
+
+            var ctP = this.getCpByAp(x, y);
+            this.syncLineMove(function (lnC, type, $ln) {
+                var position = $ln.position;
+                var methodName;
+                if (type == 'from') {
+                    methodName = 'get' + position.from + 'p';
+                    var p1 = _this2[methodName](ctP.x, ctP.y);
+                    var $fPath = lnC.attr('path');
+                    $fPath[0] = ['M', p1.x, p1.y];
+                    lnC.attr('path', $fPath);
+                } else if (type == 'to') {
+                    methodName = 'get' + position.to + 'p';
+                    var p2 = _this2[methodName](ctP.x, ctP.y);
+                    var $tPath = lnC.attr('path');
+                    $tPath[$tPath.length - 1] = ['L', p2.x, p2.y];
+                    lnC.attr('path', $tPath);
+                }
+            });
+        }
+        // 箭头同步器
+
+    }, {
+        key: 'ToSyncArrow',
+        value: function ToSyncArrow(x, y) {
+            var _this3 = this;
+
+            var ctP = this.getCpByAp(x, y);
+            this.syncLineMove(function (lnC, type, $ln) {
+                var position = $ln.position;
+                var methodName;
+                if (type == 'from') {
+                    methodName = 'get' + position.from + 'p';
+                    var p1 = _this3[methodName](ctP.x, ctP.y);
+                    $ln.updatePath([p1.x, p1.y]);
+                } else if (type == 'to') {
+                    methodName = 'get' + position.to + 'p';
+                    var p2 = _this3[methodName](ctP.x, ctP.y);
+                    $ln.updatePath(null, [p2.x, p2.y]);
+                }
+            });
+        }
+        // 获取连线的起点节点
+
+    }, {
+        key: 'getStlnP',
+        value: function getStlnP(position) {
+            // var position = 'D'
+            position = position ? position : 'D';
+            var methodName = 'get' + position + 'p';
+            // var p = this.getDp()
+            var p = this[methodName]();
+            // 起点重合
+            if (this.isCoincidence(p, 'from')) {
+                p = this.getCp();
+                position = 'C';
+            }
+            var nP = { x: p.x, y: p.y, position: position };
+            return nP;
+        }
+        // 获取连线的终点节点
+
+    }, {
+        key: 'getEnlnP',
+        value: function getEnlnP(position) {
+            position = position ? position : 'B';
+            // var p = this.getBp()
+            var methodName = 'get' + position + 'p';
+            var p = this[methodName]();
+            p.position = position;
+            return p;
+        }
+        /**
+         * 根据 A 点获取中心点
+         */
+
+    }, {
+        key: 'getCpByAp',
+        value: function getCpByAp(x, y) {
+            var opt = this.opt;
+            x += opt.w / 2;
+            return { x: x, y: y };
+        }
+        // A 点
+
+    }, {
+        key: 'getAp',
+        value: function getAp(x, y) {
+            var opt = this.opt;
+            x = x ? x : opt.cx;
+            y = y ? y : opt.cy;
+            x -= opt.w / 2;
+            return { x: x, y: y };
+        }
+    }, {
+        key: 'getBp',
+        value: function getBp(x, y) {
+            var opt = this.opt;
+            x = x ? x : opt.cx;
+            y = y ? y : opt.cy;
+            y -= opt.h / 2;
+            return { x: x, y: y };
+        }
+    }, {
+        key: 'getCp',
+        value: function getCp(x, y) {
+            var opt = this.opt;
+            x = x ? x : opt.cx;
+            y = y ? y : opt.cy;
+            x += opt.w / 2;
+            return { x: x, y: y };
+        }
+    }, {
+        key: 'getDp',
+        value: function getDp(x, y) {
+            var opt = this.opt;
+            x = x ? x : opt.cx;
+            y = y ? y : opt.cy;
+            y += opt.h / 2;
+            return { x: x, y: y };
+        }
+        /**
+         * 是否为重合点
+         * @param {object} p {x,y}
+         * @param {string} type [from/to]
+         * @returns {boolean}
+         */
+
+    }, {
+        key: 'isCoincidence',
+        value: function isCoincidence(p, type) {
+            var successMK = false;
+            if (p && 'object' == (typeof p === 'undefined' ? 'undefined' : _typeof(p)) && 'undefined' != typeof p.x && 'undefined' != typeof p.y) {
+                // 起点
+                if ('from' == type) {
+                    if (this.fromLine.length > 0) {
+                        for (var i = 0; i < this.fromLine.length; i++) {
+                            var $line = this.fromLine[i];
+                            var path = $line.c.attr('path');
+                            var pathArr = path[0];
+                            if (pathArr[1] == p.x && pathArr[2] == p.y) {
+                                successMK = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                // 终点
+                else if ('to' == type) {
+                        if (this.toLine.length > 0) {
+                            for (var j = 0; j < this.toLine.length; j++) {
+                                var $line = this.toLine[j];
+                                var path = $line.c.attr('path');
+                                var pathArr = path[path.length - 1];
+                                if (pathArr[1] == p.x && pathArr[2] == p.y) {
+                                    successMK = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+            }
+            return successMK;
+        }
+    }]);
+
+    return NodeJudge;
+}(_NodeBase3.default);
+
+exports.default = NodeJudge;
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * 2018年1月8日 星期一
+ * 内部处理类，从 worker.js/flow.js 内部分离
+ */
+// 实例索引序列
+var instanceIndex = 0;
+var instanceSource = {}; // 实列资源队列
+
+// 内部协助函数(私有)
+
+var H = function () {
+    function H() {
+        _classCallCheck(this, H);
+    }
+
+    _createClass(H, null, [{
+        key: 'createInstance',
+
+        /**
+         * 内部函数生成实例
+         * @param {*} config 
+         */
+        value: function createInstance(config) {
+            config = 'object' == (typeof config === 'undefined' ? 'undefined' : _typeof(config)) ? config : {};
+            if (!config.dom) {
+                if (process.env.NODE_ENV !== 'production') {
+                    console.warn('[Worker] 配置文件无效，缺少 config.dom');
+                }
+            }
+            // 生成 HTML
+            if ('string' == typeof config.dom) {
+                config.dom = $(config.dom);
+            }
+            if (!config.w) {
+                config.w = parseInt($(window).width() * 1.1);
+            }
+            if (!config.h) {
+                config.h = parseInt($(window).height() * 1.1);
+            }
+            return Raphael(config.dom.get(0), config.w, config.h);
+        }
+    }, {
+        key: 'onMoveEvt',
+        value: function onMoveEvt() {}
+    }, {
+        key: 'onStartEvt',
+        value: function onStartEvt() {}
+    }, {
+        key: 'onEndEvt',
+        value: function onEndEvt() {}
+        /**
+         * 内部索引序列
+         */
+
+    }, {
+        key: 'getIndex',
+        value: function getIndex() {
+            instanceIndex += 1;
+            return instanceIndex;
+        }
+        /**
+         * 内部资源处理
+         * @param {number} index 
+         * @param {string|null} key 
+         * @param {*} value 
+         */
+
+    }, {
+        key: 'src',
+        value: function src(index, key, value) {
+            if (!instanceSource[index]) {
+                instanceSource[index] = {};
+            }
+            var dd = instanceSource[index];
+            if ('undefined' == typeof key) {
+                return dd;
+            }
+            if ('undefined' == typeof value) {
+                return dd[key] || null;
+            }
+            dd[key] = value;
+        }
+    }]);
+
+    return H;
+}();
+
+exports.default = H;
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 /* WEBPACK VAR INJECTION */(function(process) {
 
 Object.defineProperty(exports, "__esModule", {
@@ -438,13 +1065,17 @@ var _createClass = function () { function defineProperties(target, props) { for 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       */
 
 
-var _flow = __webpack_require__(4);
+var _flow = __webpack_require__(3);
 
 var _util = __webpack_require__(0);
 
-var _helper = __webpack_require__(11);
+var _helper = __webpack_require__(5);
 
 var _helper2 = _interopRequireDefault(_helper);
+
+var _WorkerEditor = __webpack_require__(12);
+
+var _WorkerEditor2 = _interopRequireDefault(_WorkerEditor);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1394,6 +2025,15 @@ var Worker = function () {
             }
             return currentCode;
         }
+        /**
+         * 页面编辑器
+         */
+
+    }], [{
+        key: 'editor',
+        value: function editor(config) {
+            return new _WorkerEditor2.default(config);
+        }
     }]);
 
     return Worker;
@@ -1403,193 +2043,7 @@ exports.default = Worker;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.NodeJudge = exports.NodeOperation = exports.NodeEndpoint = exports.NodeArrow = exports.NodeLine = exports.Flow = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 2018年1月4日 星期四
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 工作流引擎, 基于 raphaelJs, 只用于绘制容器以及，拖动事件的相关算法
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
-
-
-var _util = __webpack_require__(0);
-
-var _NodeEndpoint = __webpack_require__(5);
-
-var _NodeEndpoint2 = _interopRequireDefault(_NodeEndpoint);
-
-var _NodeOperation = __webpack_require__(6);
-
-var _NodeOperation2 = _interopRequireDefault(_NodeOperation);
-
-var _NodeJudge = __webpack_require__(7);
-
-var _NodeJudge2 = _interopRequireDefault(_NodeJudge);
-
-var _NodeLine = __webpack_require__(8);
-
-var _NodeLine2 = _interopRequireDefault(_NodeLine);
-
-var _NodeArrow = __webpack_require__(9);
-
-var _NodeArrow2 = _interopRequireDefault(_NodeArrow);
-
-var _NodeBow = __webpack_require__(10);
-
-var _NodeBow2 = _interopRequireDefault(_NodeBow);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Flow = function () {
-    /**
-     * @param {Raphael} paper 
-     */
-    function Flow(paper) {
-        _classCallCheck(this, Flow);
-
-        this.paper = paper;
-    }
-    /**
-     * 端点(圆别名) , 圆心 和 半径
-     * @param {number} cx 
-     * @param {number} cy 
-     * @param {number} r 
-     * @param {string|null} 文本框
-     */
-
-
-    _createClass(Flow, [{
-        key: 'endpoint',
-        value: function endpoint(cx, cy, r, text) {
-            var nd = new _NodeEndpoint2.default(this.paper);
-            nd.create(cx, cy, r, text);
-            return nd;
-        }
-        /**
-         * 判断节点
-         */
-
-    }, {
-        key: 'judge',
-        value: function judge(x, y, w, h, text) {
-            var nd = new _NodeJudge2.default(this.paper);
-            nd.create(x, y, w, h, text);
-            return nd;
-        }
-        /**
-         * 操作节点
-         */
-
-    }, {
-        key: 'operation',
-        value: function operation(x, y, w, h, text) {
-            var nd = new _NodeOperation2.default(this.paper);
-            nd.create(x, y, w, h, text);
-            return nd;
-        }
-        /**
-         * p1 -> p2 的连线
-         * @param {*} p1 {x,y} 
-         * @param {*} p2 
-         */
-
-    }, {
-        key: 'line',
-        value: function line(p1, p2) {
-            var nd = new _NodeLine2.default(this.paper);
-            nd.create(p1, p2);
-            return nd;
-        }
-        /**
-         * p1 -> p2 直角转线算啊分
-         * @param {object} opt
-         */
-
-    }, {
-        key: 'rightAngleLine',
-        value: function rightAngleLine(opt) {
-            var nd = new _NodeLine2.default(this.paper);
-            nd.RightAngle(opt);
-            return nd;
-        }
-        /**
-         * p1 -> p2 的连线
-         * @param {*} p1 {x,y} 
-         * @param {*} p2 
-         * @param {number} r
-         */
-
-    }, {
-        key: 'arrow',
-        value: function arrow(p1, p2, r) {
-            var nd = new _NodeArrow2.default(this.paper);
-            nd.create(p1, p2, r);
-            return nd;
-        }
-        /**
-         * 箭头
-         * @param {object} opt 
-         */
-
-    }, {
-        key: 'bow',
-        value: function bow(opt) {
-            var nd = new _NodeBow2.default(this.paper);
-            nd.create(opt);
-            return nd;
-        }
-        /**
-         * 获取空节点对象
-         * @param {NodeBase} type 
-         */
-
-    }, {
-        key: 'getEmptyNode',
-        value: function getEmptyNode(type) {
-            var $node = null;
-            switch (type) {
-                case 'endpoint':
-                    $node = new _NodeEndpoint2.default(this.paper);
-                    break;
-                case 'judge':
-                    $node = new _NodeJudge2.default(this.paper);
-                    break;
-                case 'operation':
-                    $node = new _NodeOperation2.default(this.paper);
-                    break;
-                case 'line':
-                    $node = new _NodeLine2.default(this.paper);
-                    break;
-                case 'arrow':
-                    $node = new _NodeArrow2.default(this.paper);
-                    break;
-            }
-            return $node;
-        }
-    }]);
-
-    return Flow;
-}();
-
-exports.Flow = Flow;
-exports.NodeLine = _NodeLine2.default;
-exports.NodeArrow = _NodeArrow2.default;
-exports.NodeEndpoint = _NodeEndpoint2.default;
-exports.NodeOperation = _NodeOperation2.default;
-exports.NodeJudge = _NodeJudge2.default;
-
-/***/ }),
-/* 5 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1858,7 +2312,7 @@ var NodeEndpoint = function (_NodeBase) {
 exports.default = NodeEndpoint;
 
 /***/ }),
-/* 6 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2166,321 +2620,7 @@ var NodeOperation = function (_NodeBase) {
 exports.default = NodeOperation;
 
 /***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _NodeBase2 = __webpack_require__(1);
-
-var _NodeBase3 = _interopRequireDefault(_NodeBase2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * 2018年1月5日 星期五
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * 判断处理节点
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
-
-
-var NodeJudge = function (_NodeBase) {
-    _inherits(NodeJudge, _NodeBase);
-
-    /**
-     * 
-     * @param {*} instance Raphael 实例
-     */
-    function NodeJudge(instance) {
-        _classCallCheck(this, NodeJudge);
-
-        var _this = _possibleConstructorReturn(this, (NodeJudge.__proto__ || Object.getPrototypeOf(NodeJudge)).call(this));
-
-        _this.instance = instance;
-        _this.opt = {}; // 配置信息数据
-        return _this;
-    }
-    /**
-     * @param {object} opt / [cx, cy, w, h, text]
-     */
-
-
-    _createClass(NodeJudge, [{
-        key: 'create',
-        value: function create(opt) {
-            // 解析类型
-            if ('object' != (typeof opt === 'undefined' ? 'undefined' : _typeof(opt))) {
-                var param = arguments;
-                opt = {
-                    cx: param[0],
-                    cy: param[1],
-                    w: param[2],
-                    h: param[3]
-                };
-                if (param[4]) {
-                    opt.text = param[4];
-                }
-            }
-            this.opt = opt;
-            this.minWidth = opt.w;
-            // 容器        
-            var ap = this.getAp();
-            var bp = this.getBp();
-            var cp = this.getCp();
-            var dp = this.getDp();
-            this.c = this.instance.path('M' + ap.x + ',' + ap.y + 'L' + bp.x + ',' + bp.y + 'L' + cp.x + ',' + cp.y + 'L' + dp.x + ',' + dp.y + 'Z');
-            // 标签
-            var label;
-            if (opt.text) {
-                label = this.instance.text(opt.cx, opt.cy, opt.text);
-            } else {
-                label = this.instance.text(opt.cx, opt.cy);
-            }
-            this.label = label;
-            this.resizeByText();
-        }
-        /**
-         * 根据文本宽度自动适应文本的宽度
-         */
-
-    }, {
-        key: 'resizeByText',
-        value: function resizeByText() {
-            if (this.label) {
-                var box = this.label.getBBox();
-                var width = Math.ceil(box.width);
-                var w = this.c.attr('w');
-                if (width < this.minWidth && w < this.minWidth) {
-                    return;
-                }
-                // 保持最小宽度
-                if (width < this.minWidth) {
-                    width = this.minWidth;
-                } else {
-                    width += 25;
-                }
-                this.opt.w = width;
-                this.resizeByOpt();
-            }
-        }
-        /**
-         * 根据 opt 值的改变重调整容器形状大小
-         */
-
-    }, {
-        key: 'resizeByOpt',
-        value: function resizeByOpt() {
-            var ap = this.getAp();
-            var bp = this.getBp();
-            var cp = this.getCp();
-            var dp = this.getDp();
-            this.c.attr('path', [['M', ap.x, ap.y], ['L', bp.x, bp.y], ['L', cp.x, cp.y], ['L', dp.x, dp.y], ['Z']]);
-        }
-        // 按照 A 点移动
-
-    }, {
-        key: 'move',
-        value: function move(x, y) {
-            var ctP = this.getCpByAp(x, y);
-            var bP = this.getBp(ctP.x, ctP.y);
-            var cP = this.getCp(ctP.x, ctP.y);
-            var dP = this.getDp(ctP.x, ctP.y);
-            // 容器移动
-            this.c.attr('path', [['M', x, y], ['L', bP.x, bP.y], ['L', cP.x, cP.y], ['L', dP.x, dP.y], ['Z']]);
-            // 文本移动
-            this.label.attr(ctP);
-        }
-        // 直线同步移动
-
-    }, {
-        key: 'ToSyncLine',
-        value: function ToSyncLine(x, y) {
-            var _this2 = this;
-
-            var ctP = this.getCpByAp(x, y);
-            this.syncLineMove(function (lnC, type, $ln) {
-                var position = $ln.position;
-                var methodName;
-                if (type == 'from') {
-                    methodName = 'get' + position.from + 'p';
-                    var p1 = _this2[methodName](ctP.x, ctP.y);
-                    var $fPath = lnC.attr('path');
-                    $fPath[0] = ['M', p1.x, p1.y];
-                    lnC.attr('path', $fPath);
-                } else if (type == 'to') {
-                    methodName = 'get' + position.to + 'p';
-                    var p2 = _this2[methodName](ctP.x, ctP.y);
-                    var $tPath = lnC.attr('path');
-                    $tPath[$tPath.length - 1] = ['L', p2.x, p2.y];
-                    lnC.attr('path', $tPath);
-                }
-            });
-        }
-        // 箭头同步器
-
-    }, {
-        key: 'ToSyncArrow',
-        value: function ToSyncArrow(x, y) {
-            var _this3 = this;
-
-            var ctP = this.getCpByAp(x, y);
-            this.syncLineMove(function (lnC, type, $ln) {
-                var position = $ln.position;
-                var methodName;
-                if (type == 'from') {
-                    methodName = 'get' + position.from + 'p';
-                    var p1 = _this3[methodName](ctP.x, ctP.y);
-                    $ln.updatePath([p1.x, p1.y]);
-                } else if (type == 'to') {
-                    methodName = 'get' + position.to + 'p';
-                    var p2 = _this3[methodName](ctP.x, ctP.y);
-                    $ln.updatePath(null, [p2.x, p2.y]);
-                }
-            });
-        }
-        // 获取连线的起点节点
-
-    }, {
-        key: 'getStlnP',
-        value: function getStlnP(position) {
-            // var position = 'D'
-            position = position ? position : 'D';
-            var methodName = 'get' + position + 'p';
-            // var p = this.getDp()
-            var p = this[methodName]();
-            // 起点重合
-            if (this.isCoincidence(p, 'from')) {
-                p = this.getCp();
-                position = 'C';
-            }
-            var nP = { x: p.x, y: p.y, position: position };
-            return nP;
-        }
-        // 获取连线的终点节点
-
-    }, {
-        key: 'getEnlnP',
-        value: function getEnlnP(position) {
-            position = position ? position : 'B';
-            // var p = this.getBp()
-            var methodName = 'get' + position + 'p';
-            var p = this[methodName]();
-            p.position = position;
-            return p;
-        }
-        /**
-         * 根据 A 点获取中心点
-         */
-
-    }, {
-        key: 'getCpByAp',
-        value: function getCpByAp(x, y) {
-            var opt = this.opt;
-            x += opt.w / 2;
-            return { x: x, y: y };
-        }
-        // A 点
-
-    }, {
-        key: 'getAp',
-        value: function getAp(x, y) {
-            var opt = this.opt;
-            x = x ? x : opt.cx;
-            y = y ? y : opt.cy;
-            x -= opt.w / 2;
-            return { x: x, y: y };
-        }
-    }, {
-        key: 'getBp',
-        value: function getBp(x, y) {
-            var opt = this.opt;
-            x = x ? x : opt.cx;
-            y = y ? y : opt.cy;
-            y -= opt.h / 2;
-            return { x: x, y: y };
-        }
-    }, {
-        key: 'getCp',
-        value: function getCp(x, y) {
-            var opt = this.opt;
-            x = x ? x : opt.cx;
-            y = y ? y : opt.cy;
-            x += opt.w / 2;
-            return { x: x, y: y };
-        }
-    }, {
-        key: 'getDp',
-        value: function getDp(x, y) {
-            var opt = this.opt;
-            x = x ? x : opt.cx;
-            y = y ? y : opt.cy;
-            y += opt.h / 2;
-            return { x: x, y: y };
-        }
-        /**
-         * 是否为重合点
-         * @param {object} p {x,y}
-         * @param {string} type [from/to]
-         * @returns {boolean}
-         */
-
-    }, {
-        key: 'isCoincidence',
-        value: function isCoincidence(p, type) {
-            var successMK = false;
-            if (p && 'object' == (typeof p === 'undefined' ? 'undefined' : _typeof(p)) && 'undefined' != typeof p.x && 'undefined' != typeof p.y) {
-                // 起点
-                if ('from' == type) {
-                    if (this.fromLine.length > 0) {
-                        for (var i = 0; i < this.fromLine.length; i++) {
-                            var $line = this.fromLine[i];
-                            var path = $line.c.attr('path');
-                            var pathArr = path[0];
-                            if (pathArr[1] == p.x && pathArr[2] == p.y) {
-                                successMK = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                // 终点
-                else if ('to' == type) {
-                        if (this.toLine.length > 0) {
-                            for (var j = 0; j < this.toLine.length; j++) {
-                                var $line = this.toLine[j];
-                                var path = $line.c.attr('path');
-                                var pathArr = path[path.length - 1];
-                                if (pathArr[1] == p.x && pathArr[2] == p.y) {
-                                    successMK = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-            }
-            return successMK;
-        }
-    }]);
-
-    return NodeJudge;
-}(_NodeBase3.default);
-
-exports.default = NodeJudge;
-
-/***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2576,7 +2716,7 @@ var NodeLine = function () {
 exports.default = NodeLine;
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2692,7 +2832,7 @@ var NodeArrow = function () {
 exports.default = NodeArrow;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2873,11 +3013,11 @@ var NodeBow = function () {
 exports.default = NodeBow;
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
+
 
 Object.defineProperty(exports, "__esModule", {
     value: true
@@ -2885,99 +3025,392 @@ Object.defineProperty(exports, "__esModule", {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * 2018年3月1日 星期四
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * worker 工作流编辑器
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+// 助手方法
+
+
+var _helper = __webpack_require__(5);
+
+var _helper2 = _interopRequireDefault(_helper);
+
+var _NodeJudge = __webpack_require__(4);
+
+var _NodeJudge2 = _interopRequireDefault(_NodeJudge);
+
+var _flow = __webpack_require__(3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-/**
- * 2018年1月8日 星期一
- * 内部处理类，从 worker.js/flow.js 内部分离
- */
-// 实例索引序列
-var instanceIndex = 0;
-var instanceSource = {}; // 实列资源队列
-
-// 内部协助函数(私有)
-
-var H = function () {
-    function H() {
-        _classCallCheck(this, H);
+// 配置参数常量
+var Conf = {
+    start: {
+        type: 1,
+        text: '开始'
+    },
+    opera: {
+        type: 2,
+        text: '流程'
+    },
+    judge: {
+        type: 3,
+        text: '判断'
+    },
+    end: {
+        type: 9,
+        text: '结束'
     }
+    /**
+     * 工作流编辑器轻量级
+     */
+};
+var WorkerEditor = function () {
+    /**
+     * @param {object} config 数据配置项
+     */
+    function WorkerEditor(config) {
+        _classCallCheck(this, WorkerEditor);
 
-    _createClass(H, null, [{
-        key: 'createInstance',
+        this.config = config; // 系统配置参数
+        this.raphael = _helper2.default.createInstance(config); // Raphael 对象
+        // 配置参数处理
+        this._configMergeToDefule();
 
+        this.flow = new _flow.Flow(this.raphael); // 工作流程按钮
+        this.nodes = []; // 运行节点数
+        this._toolbar();
+    }
+    /**
+     * 配置参数与默认参数和合并处理
+     */
+
+
+    _createClass(WorkerEditor, [{
+        key: '_configMergeToDefule',
+        value: function _configMergeToDefule() {
+            // pkgClr 背景颜色
+            var pkgClr = this.config.pkgClr || {};
+            pkgClr.start = pkgClr.start || 'rgb(181, 216, 126)';
+            pkgClr.opera = pkgClr.opera || 'rgb(224, 223, 226)';
+            pkgClr.judge = pkgClr.judge || 'rgb(49, 174, 196)';
+            pkgClr.end = pkgClr.end || 'rgb(34, 185, 41)';
+            pkgClr.NodeBox = pkgClr.NodeBox || 'rgb(15, 13, 105)';
+            this.config.pkgClr = pkgClr;
+            this.config.listener = this.config.listener || {}; // 监听事件
+        }
         /**
-         * 内部函数生成实例
-         * @param {*} config 
+         * 工具集按钮栏
          */
-        value: function createInstance(config) {
-            config = 'object' == (typeof config === 'undefined' ? 'undefined' : _typeof(config)) ? config : {};
-            if (!config.dom) {
-                if (process.env.NODE_ENV !== 'production') {
-                    console.warn('[Worker] 配置文件无效，缺少 config.dom');
+
+    }, {
+        key: '_toolbar',
+        value: function _toolbar() {
+            // 工具栏参数信息
+            var $tool = {};
+            var raphael = this.raphael;
+            var ctX = 5,
+                ctY = 5,
+                ctW = 75,
+                ctH = 300,
+                x = ctX,
+                y = ctY,
+                // 当前坐在的位置坐标
+            config = this.config,
+                pkgClr = config.pkgClr;
+
+            // 拖动处理            
+            // var dragHandlerEvnt = function(){}
+
+            // 容器集
+            $tool.containerIst = raphael.rect(ctX, ctY, ctW, ctH);
+            $tool.containerIst.attr('fill', '#ffffff'); // 容器底色
+
+            // 开始
+            x += 20, y += 50;
+            $tool.startIst = raphael.ellipse(x, y, 8, 6);
+            $tool.startIst.attr('fill', pkgClr.start);
+            $tool.startTxtIst = raphael.text(x + 30, y, Conf.start.text);
+
+            // 流程
+            y += 20;
+            $tool.operaIst = raphael.rect(x - 8, y, 16, 12);
+            $tool.operaIst.attr('fill', pkgClr.opera);
+            $tool.operaTxtIst = raphael.text(x + 30, y + 4, Conf.opera.text);
+
+            // 判断
+            y += 30;
+            $tool.judgeIst = new _NodeJudge2.default(raphael).onlyCell(x, y, 16, 12);
+            $tool.judgeIst.attr('fill', pkgClr.judge);
+            $tool.judgeTxtIst = raphael.text(x + 30, y, Conf.judge.text);
+
+            // 结束
+            y += 30;
+            $tool.endIst = raphael.ellipse(x, y, 8, 6);
+            $tool.endIst.attr('fill', pkgClr.end);
+            $tool.endTxtIst = raphael.text(x + 30, y, Conf.end.text);
+
+            this.$tool = $tool;
+            this._toolbarDragEvt();
+        }
+        /**
+         * 工具栏拖动处理
+         */
+
+    }, {
+        key: '_toolbarDragEvt',
+        value: function _toolbarDragEvt() {
+            // console.log(this.$tool)
+            var $this = this;
+            // 拖动处理    
+            var dragHandlerEvnt = function dragHandlerEvnt(node, type) {
+                var cDragDt = {};
+                node.drag(function (dx, dy) {
+                    // moving
+                    // console.log(type)
+                    // console.log(dx, dy)
+                    cDragDt = { dx: dx, dy: dy };
+                }, function () {
+                    // start
+                    cDragDt = { dx: 0, dy: 0 };
+                    var _x, _y;
+                    cDragDt.x = _x;
+                    cDragDt.y = _y;
+                }, function () {
+                    // end
+                    if (cDragDt.dx < 75 || cDragDt.dy < 50) {
+                        return null;
+                    }
+                    $this._createNode(cDragDt, type);
+                });
+            };
+            // 开始
+            dragHandlerEvnt(this.$tool.startIst, Conf.start.type);
+            dragHandlerEvnt(this.$tool.startTxtIst, Conf.start.type);
+
+            // 流程
+            dragHandlerEvnt(this.$tool.operaIst, Conf.opera.type);
+            dragHandlerEvnt(this.$tool.operaTxtIst, Conf.opera.type);
+
+            // 判断
+            dragHandlerEvnt(this.$tool.judgeIst, Conf.judge.type);
+            dragHandlerEvnt(this.$tool.judgeTxtIst, Conf.judge.type);
+
+            // 结束
+            dragHandlerEvnt(this.$tool.endIst, Conf.end.type);
+            dragHandlerEvnt(this.$tool.endTxtIst, Conf.end.type);
+        }
+        /**
+         * 移除全部的边框
+         */
+
+    }, {
+        key: 'removeBBox',
+        value: function removeBBox() {
+            var nodes = this.nodes;
+            for (var i = 0; i < nodes.length; i++) {
+                var node = nodes[i];
+                if (node.bBox) {
+                    node.bBox.remove();
+                    node.bBox = null; // 清空 bBox 
                 }
             }
-            // 生成 HTML
-            if ('string' == typeof config.dom) {
-                config.dom = $(config.dom);
-            }
-            if (!config.w) {
-                config.w = parseInt($(window).width() * 1.1);
-            }
-            if (!config.h) {
-                config.h = parseInt($(window).height() * 1.1);
-            }
-            return Raphael(config.dom.get(0), config.w, config.h);
         }
-    }, {
-        key: 'onMoveEvt',
-        value: function onMoveEvt() {}
-    }, {
-        key: 'onStartEvt',
-        value: function onStartEvt() {}
-    }, {
-        key: 'onEndEvt',
-        value: function onEndEvt() {}
         /**
-         * 内部索引序列
+         * 删除节点, 为空是删除当前选中的节点
+         * @param {RaphaelElement|string|null} code 
          */
 
     }, {
-        key: 'getIndex',
-        value: function getIndex() {
-            instanceIndex += 1;
-            return instanceIndex;
+        key: 'removeNode',
+        value: function removeNode(code) {
+            if (!code) {
+                code = this.getSelected();
+            }
+            if (code) {
+                var node = 'object' == (typeof code === 'undefined' ? 'undefined' : _typeof(code)) ? code : this.raphael.getById(code);
+                if ('object' == (typeof node === 'undefined' ? 'undefined' : _typeof(node))) {
+                    // 删除实体数据
+                    var id = node.id; // id 数据
+                    if (node.bBox) {
+                        node.bBox.remove();
+                        node.bBox = null;
+                    }
+                    if (node.label) {
+                        node.label.remove();
+                        node.label = null;
+                    }
+                    node.c.remove();
+                    node = null; // 覆盖并或删除数据
+                    // 删除内部对象缓存的数据
+                    var nodes = this.nodes;
+                    var nodeStack = [];
+                    for (var i = 0; i < nodes.length; i++) {
+                        var $node = nodes[i];
+                        // 清除已经删除节点的缓存数据
+                        if (id == $node.c.id) {
+                            continue;
+                        }
+                        nodeStack.push($node);
+                    }
+                    return true;
+                }
+            }
+            return false;
         }
         /**
-         * 内部资源处理
-         * @param {number} index 
-         * @param {string|null} key 
-         * @param {*} value 
+         * 获取被选中的节点，只能一个
+         * @returns {NodeBase}
          */
 
     }, {
-        key: 'src',
-        value: function src(index, key, value) {
-            if (!instanceSource[index]) {
-                instanceSource[index] = {};
+        key: 'getSelected',
+        value: function getSelected() {
+            var nodes = this.nodes;
+            var selectedNode = null;
+            for (var i = 0; i < nodes.length; i++) {
+                var node = nodes[i];
+                if (node.bBox) {
+                    selectedNode = node;
+                    break;
+                }
             }
-            var dd = instanceSource[index];
-            if ('undefined' == typeof key) {
-                return dd;
+            return selectedNode;
+        }
+        /**
+         * 获取工作流步骤,用于保存工作流的数据结构
+         * @returns {array}
+         */
+
+    }, {
+        key: 'getFlowStep',
+        value: function getFlowStep() {
+            var step = [];
+            var nodes = this.nodes;
+            for (var i = 0; i < nodes.length; i++) {
+                var node = nodes[i];
+                var stepAttr = this.getFlowJson(node);
+                step.push(stepAttr);
             }
-            if ('undefined' == typeof value) {
-                return dd[key] || null;
+            return step;
+        }
+        /**
+         * 获取节点业务需求的数据结构
+         * @param {RaphaelElement|null} node 节点实例， 为空时为当前选中的节点
+         * @returns {object|null}
+         */
+
+    }, {
+        key: 'getFlowJson',
+        value: function getFlowJson(node) {
+            if (!node) {
+                node = this.getSelected();
             }
-            dd[key] = value;
+            var fjson = {};
+            if (node) {
+                var label = node.label || null;
+                var c = node.c;
+                fjson = {
+                    text: label ? label.attr('text') : '',
+                    code: c.id,
+                    type: c.data('type')
+                };
+            } else {
+                fjson = null;
+            }
+            return fjson;
+        }
+        /**
+         * 创建节点数
+         * @param {object} cDragDt 当前节点拖动的参数
+         * @param {number|string} type 节点类型
+         */
+
+    }, {
+        key: '_createNode',
+        value: function _createNode(tbDragDt, type) {
+            var $this = this,
+                nodeIst = null,
+                config = this.config,
+                pkgClr = config.pkgClr;
+            switch (type) {
+                case 1:
+                    nodeIst = this.flow.endpoint(tbDragDt.dx, tbDragDt.dy, 10, '开始');
+                    nodeIst.c.attr('fill', pkgClr.start);
+                    break;
+                case 2:
+                    nodeIst = this.flow.operation(tbDragDt.dx, tbDragDt.dy, 50, 40, '操作流程');
+                    nodeIst.c.attr('fill', pkgClr.opera);
+                    break;
+                case 3:
+                    nodeIst = this.flow.judge(tbDragDt.dx, tbDragDt.dy, 50, 40, '流程判断');
+                    nodeIst.c.attr('fill', pkgClr.judge);
+                    break;
+                case 9:
+                    nodeIst = this.flow.endpoint(tbDragDt.dx, tbDragDt.dy, 10, '结束');
+                    nodeIst.c.attr('fill', pkgClr.end);
+                    break;
+            }
+            if (nodeIst) {
+                // 保存节点实例
+                // 节点拖动
+                (function () {
+                    var cDragDt = {};
+                    nodeIst.c.drag(function (dx, dy) {
+                        dx += cDragDt.x;
+                        dy += cDragDt.y;
+                        nodeIst.move(dx, dy);
+                    }, function () {
+                        var _x, _y;
+                        if ('ellipse' == this.type) {
+                            _x = this.attr('cx');
+                            _y = this.attr('cy');
+                        } else if ('rect' == this.type) {
+                            _x = this.attr('x');
+                            _y = this.attr('y');
+                        } else if ('path' == this.type) {
+                            var _path = this.attr('path');
+                            var sP1 = _path[0];
+                            _x = sP1[1];
+                            _y = sP1[2];
+                        }
+
+                        cDragDt.x = _x;
+                        cDragDt.y = _y;
+                        // console.log(cDragDt)
+                    }, function () {
+                        cDragDt = { x: 0, y: 0 };
+                    });
+                    // console.log(nodeIst)
+                    // console.log(nodeIst.c)
+                })();
+
+                // 节点点击处理
+                nodeIst.c.click(function () {
+                    $this.removeBBox();
+                    // if(nodeIst.bBox){
+                    //     nodeIst.bBox.remove()
+                    // }
+                    var bt = this.getBBox();
+                    var dt = 5;
+                    nodeIst.bBox = nodeIst.instance.rect(bt.x - dt, bt.y - dt, bt.width + dt * 2, bt.height + dt * 2);
+                    nodeIst.bBox.attr({
+                        'stroke': pkgClr.NodeBox
+                    });
+                });
+                nodeIst.c.data('type', type);
+                this.nodes.push(nodeIst);
+            }
         }
     }]);
 
-    return H;
+    return WorkerEditor;
 }();
 
-exports.default = H;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+exports.default = WorkerEditor;
 
 /***/ })
 /******/ ]);

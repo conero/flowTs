@@ -10,6 +10,7 @@
 - 基本文件介绍
     - flow.js   工作流容器生成算法，可迁移至其他的项目中
     - worker.js 实际工作流的相关控制，与业务紧密联系
+        - WorkerEditor.js 轻量级工作流编辑器
     - util.js 内部项目使用的助手函数
 
 ### worker
@@ -58,6 +59,33 @@ worker.js 内联数据对象
 }
 ```
 
+#### WorkerEditor 工作流编辑器
+
+> 用于维护工作流的结构图形， 可新增、编辑流程图
+
+- WorkerEditor 实例化
+```javascript
+    // config json 配置项
+    worker.editor({
+        dom: 'string|jquery',
+        pkgClr: {   // 背景颜色
+            start: 'rgb(181, 216, 126)',
+            opera: 'rgb(224, 223, 226)',
+            judge: 'rgb(49, 174, 196)',
+            end: 'rgb(34, 185, 41)',
+            NodeBox: '节点外部边界, rgb(15, 13, 105)'
+        },
+        // 监听事件
+        listener: {}
+    })
+```
+- Api
+    - removeBBox 删除被选中节点的边框，去除选中
+    - removeNode(code)  删除工作中指定的项目节点或者当前选中节点，接收节点id/节点对象
+    - getSelected() 获取当前选中节点
+    - getFlowStep() 获取工作流中节点步骤数据，用于保存当前的工作流
+    - getFlowJson(code) 获取指定节点的json数据对象
+
 
 ### tree
 ```javascript
@@ -77,6 +105,19 @@ var option = {
 - endpoint  端点
 
 ## 更新日志
+> ***V1.1.x/alpha-date*** alpha 类型模板
+- ***V1.1.0/20180302***
+    - WorkerJs
+        - (新增) src/WorkerEditor.js 工作流编辑器
+            - 用于实现轻量级工作流编辑器，内部“私有”方法采用 “_"前缀 使之与接口化参数保持一致
+            - 设计工具栏，节点类型底色实现默认 + 接口配置，以及拖动移动的节点底色保持一致性
+            - 实现工具栏拖动新增工作流节点，且节点实现自由拖动，选中边框显示；节点点击自动切换
+            - 提供程序接口功能，实现当前选择节点获取，节点移除，业务节点数据获取以及单节点业务逻辑数据格式
+        - worker.js
+            - 新增接口化函数 static editor(config) 以移动编辑器
+    - test
+        - 新增 editor 测试界面
+
 > ***V1.0.x/alpha-date*** alpha 类型模板
 - ***V1.0.8/20180123***
     - workerJs

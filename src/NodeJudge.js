@@ -15,6 +15,29 @@ class NodeJudge extends NodeBase{
         this.opt = {}       // 配置信息数据
     }
     /**
+     * 仅仅生成容器并且返回对象
+     * @param {number} cx 
+     * @param {number} cy 
+     * @param {number} w 
+     * @param {number} h 
+     * @returns RaphaelElement
+     */
+    onlyCell(cx, cy, w, h){
+        this.opt = {cx, cy, w, h}
+        // 容器        
+        var ap = this.getAp()
+        var bp = this.getBp()
+        var cp = this.getCp()
+        var dp = this.getDp()
+        return this.instance.path(
+            'M' + ap.x + ',' + ap.y +
+            'L' + bp.x + ',' + bp.y +
+            'L' + cp.x + ',' + cp.y +
+            'L' + dp.x + ',' + dp.y +
+            'Z'
+        )
+    }
+    /**
      * @param {object} opt / [cx, cy, w, h, text]
      */
     create(opt){

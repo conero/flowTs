@@ -10,4 +10,5 @@ module.exports = new Config({
     .js('line')
     .js('dysteps')
     .js('self')
+    .js('editor')   // 编辑器
     .getJsFileList()
