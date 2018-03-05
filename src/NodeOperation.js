@@ -11,6 +11,7 @@ class NodeOperation extends NodeBase{
      */
     constructor(instance){
         super()
+        this.NodeType = 'opera'
         this.instance = instance
         this.opt = {}       // 配置信息数据
         this.bBox = null    // 边缘盒子数据示例

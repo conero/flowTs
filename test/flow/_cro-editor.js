@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -141,6 +141,7 @@ class NodeBase{
         // 连接线起点获取终点
         this.fromLine = []
         this.toLine = []
+        this.NodeType = null            // 节点类型
     }    
     // 记录连接线
     recordLine(type, $node){
@@ -372,8 +373,507 @@ process.umask = function() { return 0; };
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Flow; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeEndpoint__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__NodeOperation__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__NodeJudge__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeLine__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__NodeArrow__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__NodeBow__ = __webpack_require__(12);
+/* unused harmony reexport NodeLine */
+/* unused harmony reexport NodeArrow */
+/* unused harmony reexport NodeEndpoint */
+/* unused harmony reexport NodeOperation */
+/* unused harmony reexport NodeJudge */
+/**
+ * 2018年1月4日 星期四
+ * 工作流引擎, 基于 raphaelJs, 只用于绘制容器以及，拖动事件的相关算法
+ */
+
+
+
+
+
+
+
+
+class Flow{
+    /**
+     * @param {Raphael} paper 
+     */
+    constructor(paper){        
+        this.paper = paper
+    }
+    /**
+     * 端点(圆别名) , 圆心 和 半径
+     * @param {number} cx 
+     * @param {number} cy 
+     * @param {number} r 
+     * @param {string|null} 文本框
+     */
+    endpoint(cx, cy, r, text){
+        var nd = new __WEBPACK_IMPORTED_MODULE_1__NodeEndpoint__["a" /* default */](this.paper)
+        nd.create(cx, cy, r, text)
+        return nd
+    }
+    /**
+     * 判断节点
+     */
+    judge(x, y, w, h, text){
+        var nd = new __WEBPACK_IMPORTED_MODULE_3__NodeJudge__["a" /* default */](this.paper)
+        nd.create(x, y, w, h, text)
+        return nd
+    }
+    /**
+     * 操作节点
+     */
+    operation(x, y, w, h, text){
+        var nd = new __WEBPACK_IMPORTED_MODULE_2__NodeOperation__["a" /* default */](this.paper)
+        nd.create(x, y, w, h, text)
+        return nd
+    }
+    /**
+     * p1 -> p2 的连线
+     * @param {*} p1 {x,y} 
+     * @param {*} p2 
+     */
+    line(p1, p2){
+        var nd = new __WEBPACK_IMPORTED_MODULE_4__NodeLine__["a" /* default */](this.paper)
+        nd.create(p1, p2)
+        return nd
+    }
+    /**
+     * p1 -> p2 直角转线算啊分
+     * @param {object} opt
+     */
+    rightAngleLine(opt){
+        var nd = new __WEBPACK_IMPORTED_MODULE_4__NodeLine__["a" /* default */](this.paper)
+        nd.RightAngle(opt)
+        return nd
+    }
+    /**
+     * p1 -> p2 的连线
+     * @param {*} p1 [x,y]
+     * @param {*} p2 
+     * @param {number} r
+     */
+    arrow(p1, p2, r){
+        var nd = new __WEBPACK_IMPORTED_MODULE_5__NodeArrow__["a" /* default */](this.paper)
+        nd.create(p1, p2, r)
+        return nd
+    }
+    /**
+     * 箭头
+     * @param {object} opt 
+     */
+    bow(opt){
+        var nd = new __WEBPACK_IMPORTED_MODULE_6__NodeBow__["a" /* default */](this.paper)
+        nd.create(opt)
+        return nd
+    }
+    /**
+     * 获取空节点对象
+     * @param {NodeBase} type 
+     */
+    getEmptyNode(type){
+        var $node = null
+        switch(type){
+            case 'endpoint': 
+                $node = new __WEBPACK_IMPORTED_MODULE_1__NodeEndpoint__["a" /* default */](this.paper)
+                break
+            case 'judge': 
+                $node = new __WEBPACK_IMPORTED_MODULE_3__NodeJudge__["a" /* default */](this.paper)
+                break
+            case 'operation': 
+                $node = new __WEBPACK_IMPORTED_MODULE_2__NodeOperation__["a" /* default */](this.paper)
+                break
+            case 'line': 
+                $node = new __WEBPACK_IMPORTED_MODULE_4__NodeLine__["a" /* default */](this.paper)
+                break
+            case 'arrow': 
+                $node = new __WEBPACK_IMPORTED_MODULE_5__NodeArrow__["a" /* default */](this.paper)
+                break
+        }
+        return $node
+    }
+}
+
+
+
+
+
+
+
+
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeBase__ = __webpack_require__(1);
+/**
+ * 2018年1月5日 星期五
+ * 判断处理节点
+ */
+
+
+class NodeJudge extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* default */]{
+    /**
+     * 
+     * @param {*} instance Raphael 实例
+     */
+    constructor(instance){
+        super()
+        this.NodeType = 'judge'
+        this.instance = instance
+        this.opt = {}       // 配置信息数据
+    }
+    /**
+     * 仅仅生成容器并且返回对象
+     * @param {number} cx 
+     * @param {number} cy 
+     * @param {number} w 
+     * @param {number} h 
+     * @returns RaphaelElement
+     */
+    onlyCell(cx, cy, w, h){
+        this.opt = {cx, cy, w, h}
+        // 容器        
+        var ap = this.getAp()
+        var bp = this.getBp()
+        var cp = this.getCp()
+        var dp = this.getDp()
+        return this.instance.path(
+            'M' + ap.x + ',' + ap.y +
+            'L' + bp.x + ',' + bp.y +
+            'L' + cp.x + ',' + cp.y +
+            'L' + dp.x + ',' + dp.y +
+            'Z'
+        )
+    }
+    /**
+     * @param {object} opt / [cx, cy, w, h, text]
+     */
+    create(opt){
+        // 解析类型
+        if('object' != typeof opt){
+            var param = arguments
+            opt = {
+                cx: param[0],
+                cy: param[1],
+                w: param[2],
+                h: param[3],
+            }
+            if(param[4]){
+                opt.text = param[4]
+            }
+        }
+        this.opt = opt
+        this.minWidth = opt.w
+        // 容器        
+        var ap = this.getAp()
+        var bp = this.getBp()
+        var cp = this.getCp()
+        var dp = this.getDp()
+        this.c = this.instance.path(
+            'M' + ap.x + ',' + ap.y +
+            'L' + bp.x + ',' + bp.y +
+            'L' + cp.x + ',' + cp.y +
+            'L' + dp.x + ',' + dp.y +
+            'Z'
+        )
+        // 标签
+        var label
+        if(opt.text){
+            label = this.instance.text(opt.cx, opt.cy, opt.text)
+        }else{
+            label = this.instance.text(opt.cx, opt.cy)
+        }
+        this.label = label
+        this.resizeByText()
+    }
+    /**
+     * 根据文本宽度自动适应文本的宽度
+     */
+    resizeByText(){
+        if(this.label){
+            var box = this.label.getBBox()
+            var width = Math.ceil(box.width)
+            var w = this.c.attr('w')
+            if(width < this.minWidth && w<this.minWidth){
+                return
+            }
+            // 保持最小宽度
+            if(width < this.minWidth){
+                width = this.minWidth
+            }else{
+                width += 25
+            }            
+            this.opt.w = width
+            this.resizeByOpt()
+        }     
+    }
+    /**
+     * 根据 opt 值的改变重调整容器形状大小
+     */
+    resizeByOpt(){
+        var ap = this.getAp()
+        var bp = this.getBp()
+        var cp = this.getCp()
+        var dp = this.getDp()
+        this.c.attr('path', [
+            ['M', ap.x, ap.y],
+            ['L', bp.x, bp.y],
+            ['L', cp.x, cp.y],
+            ['L', dp.x, dp.y],
+            ['Z']                   
+        ])
+    }
+    // 按照 A 点移动
+    move(x, y){
+        var ctP = this.getCpByAp(x, y)
+        var bP = this.getBp(ctP.x, ctP.y)
+        var cP = this.getCp(ctP.x, ctP.y)
+        var dP = this.getDp(ctP.x, ctP.y)
+        // 容器移动
+        this.c.attr('path', [
+            ['M', x, y],
+            ['L', bP.x, bP.y],
+            ['L', cP.x, cP.y],
+            ['L', dP.x, dP.y],
+            ['Z']
+        ])
+        // 文本移动
+        this.label.attr(ctP)
+    }
+    // 直线同步移动
+    ToSyncLine(x, y){
+        var ctP = this.getCpByAp(x, y)
+        this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position
+            var methodName
+            if(type == 'from'){
+                methodName = 'get' + position.from + 'p'
+                var p1 = this[methodName](ctP.x, ctP.y)
+                var $fPath = lnC.attr('path')
+                $fPath[0] = ['M', p1.x, p1.y]
+                lnC.attr('path', $fPath)
+            }
+            else if(type == 'to'){
+                methodName = 'get' + position.to + 'p'
+                var p2 = this[methodName](ctP.x, ctP.y)
+                var $tPath = lnC.attr('path')
+                $tPath[$tPath.length -1] = ['L', p2.x, p2.y]
+                lnC.attr('path', $tPath)
+            }
+        })
+    }
+    // 箭头同步器
+    ToSyncArrow(x, y){
+        var ctP = this.getCpByAp(x, y)
+        this.syncLineMove((lnC, type, $ln) => {
+            var position = $ln.position
+            var methodName
+            if(type == 'from'){
+                methodName = 'get' + position.from + 'p'
+                var p1 = this[methodName](ctP.x, ctP.y)
+                $ln.updatePath([p1.x, p1.y])
+            }
+            else if(type == 'to'){
+                methodName = 'get' + position.to + 'p'
+                var p2 = this[methodName](ctP.x, ctP.y)
+                $ln.updatePath(null, [p2.x, p2.y])
+            }
+        })
+    }
+    // 获取连线的起点节点
+    getStlnP(position){
+        // var position = 'D'
+        position = position? position:'D'
+        var methodName = 'get' + position + 'p';
+        // var p = this.getDp()
+        var p = this[methodName]()
+        // 起点重合
+        if(this.isCoincidence(p, 'from')){
+            p = this.getCp()
+            position = 'C'
+        }
+        var nP = {x: p.x, y: p.y, position}
+        return nP
+    }
+    // 获取连线的终点节点
+    getEnlnP(position){
+        position = position? position:'B'
+        // var p = this.getBp()
+        var methodName = 'get' + position + 'p'
+        var p = this[methodName]()
+        p.position = position
+        return p
+    }
+    /**
+     * 根据 A 点获取中心点
+     */
+    getCpByAp(x, y){
+        var opt = this.opt
+        x += opt.w/2
+        return {x, y}
+    }
+    // A 点
+    getAp(x, y){
+        var opt = this.opt
+        x = x? x: opt.cx
+        y = y? y: opt.cy
+        x -= (opt.w/2)
+        return {x, y}
+    }
+    getBp(x, y){
+        var opt = this.opt
+        x = x? x: opt.cx
+        y = y? y: opt.cy
+        y -= (opt.h/2)
+        return {x, y}
+    }
+    getCp(x, y){
+        var opt = this.opt
+        x = x? x: opt.cx
+        y = y? y: opt.cy
+        x += (opt.w/2)
+        return {x, y}
+    }
+    getDp(x, y){
+        var opt = this.opt
+        x = x? x: opt.cx
+        y = y? y: opt.cy
+        y += (opt.h/2)
+        return {x, y}
+    }
+    /**
+     * 是否为重合点
+     * @param {object} p {x,y}
+     * @param {string} type [from/to]
+     * @returns {boolean}
+     */
+    isCoincidence(p, type){
+        var successMK = false
+        if(p && 'object' == typeof p && 
+            'undefined' != typeof p.x && 'undefined' != typeof p.y){
+            // 起点
+            if('from' == type){
+                if(this.fromLine.length > 0){
+                    for(var i=0; i<this.fromLine.length; i++){
+                        var $line = this.fromLine[i]
+                        var path = $line.c.attr('path')
+                        var pathArr = path[0]
+                        if(pathArr[1] == p.x && pathArr[2] == p.y){
+                            successMK = true
+                            break
+                        }
+                    }
+                }
+            }
+            // 终点
+            else if('to' == type){
+                if(this.toLine.length > 0){
+                    for(var j=0; j<this.toLine.length; j++){
+                        var $line = this.toLine[j]
+                        var path = $line.c.attr('path')
+                        var pathArr = path[path.length - 1]
+                        if(pathArr[1] == p.x && pathArr[2] == p.y){
+                            successMK = true
+                            break
+                        }
+                    }
+                }
+            }
+        }
+        return successMK
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (NodeJudge);
+
+/***/ }),
+/* 5 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {/**
+ * 2018年1月8日 星期一
+ * 内部处理类，从 worker.js/flow.js 内部分离
+ */
+// 实例索引序列
+var instanceIndex = 0
+var instanceSource = {}     // 实列资源队列
+
+// 内部协助函数(私有)
+class H{
+    /**
+     * 内部函数生成实例
+     * @param {*} config 
+     */
+    static createInstance(config){
+        config = 'object' == typeof config? config:{}
+        if(!config.dom){
+            if(process.env.NODE_ENV !== 'production'){
+                console.warn('[Worker] 配置文件无效，缺少 config.dom')
+            }
+        }
+        // 生成 HTML
+        if('string' == typeof config.dom){
+            config.dom = $(config.dom)
+        }
+        if(!config.w){
+            config.w = parseInt($(window).width() * 1.1)
+        }
+        if(!config.h){
+            config.h = parseInt($(window).height() * 1.1)
+        }
+        return Raphael(config.dom.get(0), config.w, config.h)
+    }
+    static onMoveEvt(){}
+    static onStartEvt(){}
+    static onEndEvt(){}
+    /**
+     * 内部索引序列
+     */
+    static getIndex(){
+        instanceIndex += 1
+        return instanceIndex
+    }
+    /**
+     * 内部资源处理
+     * @param {number} index 
+     * @param {string|null} key 
+     * @param {*} value 
+     */
+    static src(index, key, value){
+        if(!instanceSource[index]){
+            instanceSource[index] = {}
+        }
+        var dd = instanceSource[index]
+        if('undefined' == typeof key){
+            return dd
+        }
+        if('undefined' == typeof value){
+            return dd[key] || null
+        }
+        dd[key] = value
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (H);
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(2)))
+
+/***/ }),
+/* 6 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_worker__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_worker__ = __webpack_require__(7);
 /**
  * 工作流程编辑器
  */
@@ -388,13 +888,13 @@ $(function(){
 })
 
 /***/ }),
-/* 4 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(process) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__flow__ = __webpack_require__(5);
+/* WEBPACK VAR INJECTION */(function(process) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__flow__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__util__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__helper__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__helper__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__WorkerEditor__ = __webpack_require__(13);
 /**
  * 2018年1月5日 星期五
@@ -1325,147 +1825,7 @@ class Worker{
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(2)))
 
 /***/ }),
-/* 5 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Flow; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeEndpoint__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__NodeOperation__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__NodeJudge__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeLine__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__NodeArrow__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__NodeBow__ = __webpack_require__(11);
-/* unused harmony reexport NodeLine */
-/* unused harmony reexport NodeArrow */
-/* unused harmony reexport NodeEndpoint */
-/* unused harmony reexport NodeOperation */
-/* unused harmony reexport NodeJudge */
-/**
- * 2018年1月4日 星期四
- * 工作流引擎, 基于 raphaelJs, 只用于绘制容器以及，拖动事件的相关算法
- */
-
-
-
-
-
-
-
-
-class Flow{
-    /**
-     * @param {Raphael} paper 
-     */
-    constructor(paper){        
-        this.paper = paper
-    }
-    /**
-     * 端点(圆别名) , 圆心 和 半径
-     * @param {number} cx 
-     * @param {number} cy 
-     * @param {number} r 
-     * @param {string|null} 文本框
-     */
-    endpoint(cx, cy, r, text){
-        var nd = new __WEBPACK_IMPORTED_MODULE_1__NodeEndpoint__["a" /* default */](this.paper)
-        nd.create(cx, cy, r, text)
-        return nd
-    }
-    /**
-     * 判断节点
-     */
-    judge(x, y, w, h, text){
-        var nd = new __WEBPACK_IMPORTED_MODULE_3__NodeJudge__["a" /* default */](this.paper)
-        nd.create(x, y, w, h, text)
-        return nd
-    }
-    /**
-     * 操作节点
-     */
-    operation(x, y, w, h, text){
-        var nd = new __WEBPACK_IMPORTED_MODULE_2__NodeOperation__["a" /* default */](this.paper)
-        nd.create(x, y, w, h, text)
-        return nd
-    }
-    /**
-     * p1 -> p2 的连线
-     * @param {*} p1 {x,y} 
-     * @param {*} p2 
-     */
-    line(p1, p2){
-        var nd = new __WEBPACK_IMPORTED_MODULE_4__NodeLine__["a" /* default */](this.paper)
-        nd.create(p1, p2)
-        return nd
-    }
-    /**
-     * p1 -> p2 直角转线算啊分
-     * @param {object} opt
-     */
-    rightAngleLine(opt){
-        var nd = new __WEBPACK_IMPORTED_MODULE_4__NodeLine__["a" /* default */](this.paper)
-        nd.RightAngle(opt)
-        return nd
-    }
-    /**
-     * p1 -> p2 的连线
-     * @param {*} p1 {x,y} 
-     * @param {*} p2 
-     * @param {number} r
-     */
-    arrow(p1, p2, r){
-        var nd = new __WEBPACK_IMPORTED_MODULE_5__NodeArrow__["a" /* default */](this.paper)
-        nd.create(p1, p2, r)
-        return nd
-    }
-    /**
-     * 箭头
-     * @param {object} opt 
-     */
-    bow(opt){
-        var nd = new __WEBPACK_IMPORTED_MODULE_6__NodeBow__["a" /* default */](this.paper)
-        nd.create(opt)
-        return nd
-    }
-    /**
-     * 获取空节点对象
-     * @param {NodeBase} type 
-     */
-    getEmptyNode(type){
-        var $node = null
-        switch(type){
-            case 'endpoint': 
-                $node = new __WEBPACK_IMPORTED_MODULE_1__NodeEndpoint__["a" /* default */](this.paper)
-                break
-            case 'judge': 
-                $node = new __WEBPACK_IMPORTED_MODULE_3__NodeJudge__["a" /* default */](this.paper)
-                break
-            case 'operation': 
-                $node = new __WEBPACK_IMPORTED_MODULE_2__NodeOperation__["a" /* default */](this.paper)
-                break
-            case 'line': 
-                $node = new __WEBPACK_IMPORTED_MODULE_4__NodeLine__["a" /* default */](this.paper)
-                break
-            case 'arrow': 
-                $node = new __WEBPACK_IMPORTED_MODULE_5__NodeArrow__["a" /* default */](this.paper)
-                break
-        }
-        return $node
-    }
-}
-
-
-
-
-
-
-
-
-
-
-/***/ }),
-/* 6 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1485,6 +1845,7 @@ class NodeEndpoint extends __WEBPACK_IMPORTED_MODULE_1__NodeBase__["a" /* defaul
      */
     constructor(instance){
         super()
+        this.NodeType = 'endpnt'
         this.instance = instance
         this.opt = {}
     }
@@ -1672,7 +2033,7 @@ class NodeEndpoint extends __WEBPACK_IMPORTED_MODULE_1__NodeBase__["a" /* defaul
 /* harmony default export */ __webpack_exports__["a"] = (NodeEndpoint);
 
 /***/ }),
-/* 7 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1690,6 +2051,7 @@ class NodeOperation extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* defau
      */
     constructor(instance){
         super()
+        this.NodeType = 'opera'
         this.instance = instance
         this.opt = {}       // 配置信息数据
         this.bBox = null    // 边缘盒子数据示例
@@ -1908,293 +2270,7 @@ class NodeOperation extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* defau
 
 
 /***/ }),
-/* 8 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeBase__ = __webpack_require__(1);
-/**
- * 2018年1月5日 星期五
- * 判断处理节点
- */
-
-
-class NodeJudge extends __WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* default */]{
-    /**
-     * 
-     * @param {*} instance Raphael 实例
-     */
-    constructor(instance){
-        super()
-        this.instance = instance
-        this.opt = {}       // 配置信息数据
-    }
-    /**
-     * 仅仅生成容器并且返回对象
-     * @param {number} cx 
-     * @param {number} cy 
-     * @param {number} w 
-     * @param {number} h 
-     * @returns RaphaelElement
-     */
-    onlyCell(cx, cy, w, h){
-        this.opt = {cx, cy, w, h}
-        // 容器        
-        var ap = this.getAp()
-        var bp = this.getBp()
-        var cp = this.getCp()
-        var dp = this.getDp()
-        return this.instance.path(
-            'M' + ap.x + ',' + ap.y +
-            'L' + bp.x + ',' + bp.y +
-            'L' + cp.x + ',' + cp.y +
-            'L' + dp.x + ',' + dp.y +
-            'Z'
-        )
-    }
-    /**
-     * @param {object} opt / [cx, cy, w, h, text]
-     */
-    create(opt){
-        // 解析类型
-        if('object' != typeof opt){
-            var param = arguments
-            opt = {
-                cx: param[0],
-                cy: param[1],
-                w: param[2],
-                h: param[3],
-            }
-            if(param[4]){
-                opt.text = param[4]
-            }
-        }
-        this.opt = opt
-        this.minWidth = opt.w
-        // 容器        
-        var ap = this.getAp()
-        var bp = this.getBp()
-        var cp = this.getCp()
-        var dp = this.getDp()
-        this.c = this.instance.path(
-            'M' + ap.x + ',' + ap.y +
-            'L' + bp.x + ',' + bp.y +
-            'L' + cp.x + ',' + cp.y +
-            'L' + dp.x + ',' + dp.y +
-            'Z'
-        )
-        // 标签
-        var label
-        if(opt.text){
-            label = this.instance.text(opt.cx, opt.cy, opt.text)
-        }else{
-            label = this.instance.text(opt.cx, opt.cy)
-        }
-        this.label = label
-        this.resizeByText()
-    }
-    /**
-     * 根据文本宽度自动适应文本的宽度
-     */
-    resizeByText(){
-        if(this.label){
-            var box = this.label.getBBox()
-            var width = Math.ceil(box.width)
-            var w = this.c.attr('w')
-            if(width < this.minWidth && w<this.minWidth){
-                return
-            }
-            // 保持最小宽度
-            if(width < this.minWidth){
-                width = this.minWidth
-            }else{
-                width += 25
-            }            
-            this.opt.w = width
-            this.resizeByOpt()
-        }     
-    }
-    /**
-     * 根据 opt 值的改变重调整容器形状大小
-     */
-    resizeByOpt(){
-        var ap = this.getAp()
-        var bp = this.getBp()
-        var cp = this.getCp()
-        var dp = this.getDp()
-        this.c.attr('path', [
-            ['M', ap.x, ap.y],
-            ['L', bp.x, bp.y],
-            ['L', cp.x, cp.y],
-            ['L', dp.x, dp.y],
-            ['Z']                   
-        ])
-    }
-    // 按照 A 点移动
-    move(x, y){
-        var ctP = this.getCpByAp(x, y)
-        var bP = this.getBp(ctP.x, ctP.y)
-        var cP = this.getCp(ctP.x, ctP.y)
-        var dP = this.getDp(ctP.x, ctP.y)
-        // 容器移动
-        this.c.attr('path', [
-            ['M', x, y],
-            ['L', bP.x, bP.y],
-            ['L', cP.x, cP.y],
-            ['L', dP.x, dP.y],
-            ['Z']
-        ])
-        // 文本移动
-        this.label.attr(ctP)
-    }
-    // 直线同步移动
-    ToSyncLine(x, y){
-        var ctP = this.getCpByAp(x, y)
-        this.syncLineMove((lnC, type, $ln) => {
-            var position = $ln.position
-            var methodName
-            if(type == 'from'){
-                methodName = 'get' + position.from + 'p'
-                var p1 = this[methodName](ctP.x, ctP.y)
-                var $fPath = lnC.attr('path')
-                $fPath[0] = ['M', p1.x, p1.y]
-                lnC.attr('path', $fPath)
-            }
-            else if(type == 'to'){
-                methodName = 'get' + position.to + 'p'
-                var p2 = this[methodName](ctP.x, ctP.y)
-                var $tPath = lnC.attr('path')
-                $tPath[$tPath.length -1] = ['L', p2.x, p2.y]
-                lnC.attr('path', $tPath)
-            }
-        })
-    }
-    // 箭头同步器
-    ToSyncArrow(x, y){
-        var ctP = this.getCpByAp(x, y)
-        this.syncLineMove((lnC, type, $ln) => {
-            var position = $ln.position
-            var methodName
-            if(type == 'from'){
-                methodName = 'get' + position.from + 'p'
-                var p1 = this[methodName](ctP.x, ctP.y)
-                $ln.updatePath([p1.x, p1.y])
-            }
-            else if(type == 'to'){
-                methodName = 'get' + position.to + 'p'
-                var p2 = this[methodName](ctP.x, ctP.y)
-                $ln.updatePath(null, [p2.x, p2.y])
-            }
-        })
-    }
-    // 获取连线的起点节点
-    getStlnP(position){
-        // var position = 'D'
-        position = position? position:'D'
-        var methodName = 'get' + position + 'p';
-        // var p = this.getDp()
-        var p = this[methodName]()
-        // 起点重合
-        if(this.isCoincidence(p, 'from')){
-            p = this.getCp()
-            position = 'C'
-        }
-        var nP = {x: p.x, y: p.y, position}
-        return nP
-    }
-    // 获取连线的终点节点
-    getEnlnP(position){
-        position = position? position:'B'
-        // var p = this.getBp()
-        var methodName = 'get' + position + 'p'
-        var p = this[methodName]()
-        p.position = position
-        return p
-    }
-    /**
-     * 根据 A 点获取中心点
-     */
-    getCpByAp(x, y){
-        var opt = this.opt
-        x += opt.w/2
-        return {x, y}
-    }
-    // A 点
-    getAp(x, y){
-        var opt = this.opt
-        x = x? x: opt.cx
-        y = y? y: opt.cy
-        x -= (opt.w/2)
-        return {x, y}
-    }
-    getBp(x, y){
-        var opt = this.opt
-        x = x? x: opt.cx
-        y = y? y: opt.cy
-        y -= (opt.h/2)
-        return {x, y}
-    }
-    getCp(x, y){
-        var opt = this.opt
-        x = x? x: opt.cx
-        y = y? y: opt.cy
-        x += (opt.w/2)
-        return {x, y}
-    }
-    getDp(x, y){
-        var opt = this.opt
-        x = x? x: opt.cx
-        y = y? y: opt.cy
-        y += (opt.h/2)
-        return {x, y}
-    }
-    /**
-     * 是否为重合点
-     * @param {object} p {x,y}
-     * @param {string} type [from/to]
-     * @returns {boolean}
-     */
-    isCoincidence(p, type){
-        var successMK = false
-        if(p && 'object' == typeof p && 
-            'undefined' != typeof p.x && 'undefined' != typeof p.y){
-            // 起点
-            if('from' == type){
-                if(this.fromLine.length > 0){
-                    for(var i=0; i<this.fromLine.length; i++){
-                        var $line = this.fromLine[i]
-                        var path = $line.c.attr('path')
-                        var pathArr = path[0]
-                        if(pathArr[1] == p.x && pathArr[2] == p.y){
-                            successMK = true
-                            break
-                        }
-                    }
-                }
-            }
-            // 终点
-            else if('to' == type){
-                if(this.toLine.length > 0){
-                    for(var j=0; j<this.toLine.length; j++){
-                        var $line = this.toLine[j]
-                        var path = $line.c.attr('path')
-                        var pathArr = path[path.length - 1]
-                        if(pathArr[1] == p.x && pathArr[2] == p.y){
-                            successMK = true
-                            break
-                        }
-                    }
-                }
-            }
-        }
-        return successMK
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (NodeJudge);
-
-/***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2210,9 +2286,10 @@ class NodeLine{
      * @param {*} instance Raphael 实例
      */
     constructor(instance){
+        this.NodeType = 'line'
         this.instance = instance
         this.opt = {}       // 配置信息数据
-        this.position = {}      // 连接点        
+        this.position = {}      // 连接点
         /*
             {from: A/B/C/D, to: A/B/C/D}
         */
@@ -2276,7 +2353,7 @@ class NodeLine{
 /* harmony default export */ __webpack_exports__["a"] = (NodeLine);
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2291,6 +2368,7 @@ class NodeArrow{
      * @param {*} instance Raphael 实例
      */
     constructor(instance){
+        this.NodeType = 'arrow'
         this.instance = instance
         this.opt = {}           // 配置信息数据
         this.position = {}      // 连接点
@@ -2380,7 +2458,7 @@ class NodeArrow{
 /* harmony default export */ __webpack_exports__["a"] = (NodeArrow);
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2403,6 +2481,7 @@ class NodeBow{
      * @param {*} instance Raphael 实例
      */
     constructor(instance){
+        this.NodeType = 'bow'
         this.instance = instance
         this.opt = {}           // 配置信息数据
         this.position = {}      // 连接点
@@ -2541,85 +2620,13 @@ class NodeBow{
 /* harmony default export */ __webpack_exports__["a"] = (NodeBow);
 
 /***/ }),
-/* 12 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {/**
- * 2018年1月8日 星期一
- * 内部处理类，从 worker.js/flow.js 内部分离
- */
-// 实例索引序列
-var instanceIndex = 0
-var instanceSource = {}     // 实列资源队列
-
-// 内部协助函数(私有)
-class H{
-    /**
-     * 内部函数生成实例
-     * @param {*} config 
-     */
-    static createInstance(config){
-        config = 'object' == typeof config? config:{}
-        if(!config.dom){
-            if(process.env.NODE_ENV !== 'production'){
-                console.warn('[Worker] 配置文件无效，缺少 config.dom')
-            }
-        }
-        // 生成 HTML
-        if('string' == typeof config.dom){
-            config.dom = $(config.dom)
-        }
-        if(!config.w){
-            config.w = parseInt($(window).width() * 1.1)
-        }
-        if(!config.h){
-            config.h = parseInt($(window).height() * 1.1)
-        }
-        return Raphael(config.dom.get(0), config.w, config.h)
-    }
-    static onMoveEvt(){}
-    static onStartEvt(){}
-    static onEndEvt(){}
-    /**
-     * 内部索引序列
-     */
-    static getIndex(){
-        instanceIndex += 1
-        return instanceIndex
-    }
-    /**
-     * 内部资源处理
-     * @param {number} index 
-     * @param {string|null} key 
-     * @param {*} value 
-     */
-    static src(index, key, value){
-        if(!instanceSource[index]){
-            instanceSource[index] = {}
-        }
-        var dd = instanceSource[index]
-        if('undefined' == typeof key){
-            return dd
-        }
-        if('undefined' == typeof value){
-            return dd[key] || null
-        }
-        dd[key] = value
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (H);
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(2)))
-
-/***/ }),
 /* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeJudge__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__flow__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeJudge__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__flow__ = __webpack_require__(3);
 /**
  * 2018年3月1日 星期四
  * worker 工作流编辑器
@@ -2629,7 +2636,7 @@ class H{
 
 
 
-// 配置参数常量
+// 配置参数常量 , type 1801 为特殊类型
 const Conf = {
     start: {
         type: 1,
@@ -2646,6 +2653,10 @@ const Conf = {
     end: {
         type: 9,
         text: '结束'
+    },
+    arrow: {
+        type: 1801,
+        text: '箭头'
     }
 }
 /**
@@ -2660,9 +2671,11 @@ class WorkerEditor{
         this.raphael = __WEBPACK_IMPORTED_MODULE_0__helper__["a" /* default */].createInstance(config) // Raphael 对象
         // 配置参数处理
         this._configMergeToDefule()
-
+        this._LineDragingP = null              // RaphaelElement 直线正在拖动记录点
         this.flow = new __WEBPACK_IMPORTED_MODULE_2__flow__["a" /* Flow */](this.raphael)  // 工作流程按钮
         this.nodes = []                         // 运行节点数
+        this.lineQueues = []                    // 连线记录器
+        this.tempNodes = []                     // 临时节点集
         this._toolbar()
     }
     /**
@@ -2675,7 +2688,9 @@ class WorkerEditor{
         pkgClr.opera = pkgClr.opera || 'rgb(224, 223, 226)'
         pkgClr.judge = pkgClr.judge || 'rgb(49, 174, 196)'
         pkgClr.end = pkgClr.end || 'rgb(34, 185, 41)'
+        pkgClr.arrow = pkgClr.arrow || 'rgb(3, 84, 41)'
         pkgClr.NodeBox = pkgClr.NodeBox || 'rgb(15, 13, 105)'
+
         this.config.pkgClr = pkgClr
         this.config.listener = this.config.listener || {}   // 监听事件
     }
@@ -2725,6 +2740,12 @@ class WorkerEditor{
         $tool.endIst.attr('fill', pkgClr.end)
         $tool.endTxtIst = raphael.text(x+30, y, Conf.end.text)
 
+        // 箭头
+        y += 30
+        $tool.arrowIst = this.flow.arrow([x-5,y], [x+10, y], 3)
+        $tool.arrowIst.c.attr('fill', pkgClr.arrow)
+        $tool.arrowTxtIst = raphael.text(x+30, y, Conf.arrow.text)
+
         this.$tool = $tool
         this._toolbarDragEvt()
     }
@@ -2734,6 +2755,7 @@ class WorkerEditor{
     _toolbarDragEvt(){
         // console.log(this.$tool)
         var $this = this
+        var pkgClr = this.config.pkgClr
         // 拖动处理    
         var dragHandlerEvnt = function(node, type){
             var cDragDt = {}
@@ -2741,19 +2763,44 @@ class WorkerEditor{
                 function(dx, dy){   // moving
                     // console.log(type)
                     // console.log(dx, dy)
-                    cDragDt = {dx, dy}
+                    // cDragDt = {dx, dy}
+                    dx += cDragDt.dx
+                    dy += cDragDt.dy
+                    var newElem = $this.getLastElem()
+                    if(newElem){
+                        newElem.move(dx, dy)
+                    }
                 },
                 function(){         // start
-                    cDragDt = {dx: 0, dy: 0}
+                    // cDragDt = {dx: 0, dy: 0}
                     var _x, _y
-                    cDragDt.x = _x
-                    cDragDt.y = _y
+                    if(2 == type){
+                        _x = this.attr('x')
+                        _y = this.attr('y')
+                    }else if(3 == type){
+                        var tpPath = this.attr('path')
+                        var tpPath0 = tpPath[0]
+                        _x = tpPath0[1]
+                        _y = tpPath0[2]
+                    }else{
+                        // console.log(this)
+                        _x = this.attr('cx')
+                        _y = this.attr('cy')
+                    }
+                    
+                    cDragDt.dx = _x + 5
+                    cDragDt.dy = _y + 10
+
+                    // cDragDt.x = _x
+                    // cDragDt.y = _y
+                    // console.log(cDragDt)
+                    $this._createNode(cDragDt, type)
                 },
                 function(){         // end
-                    if(cDragDt.dx < 75 || cDragDt.dy < 50){
-                        return null
-                    }
-                    $this._createNode(cDragDt, type)
+                    // if(cDragDt.dx < 75 || cDragDt.dy < 50){
+                    //     return null
+                    // }
+                    // $this._createNode(cDragDt, type)
                 }
             )
         }
@@ -2773,6 +2820,166 @@ class WorkerEditor{
         dragHandlerEvnt(this.$tool.endIst, Conf.end.type)
         dragHandlerEvnt(this.$tool.endTxtIst, Conf.end.type)
 
+        // 特殊部件生成器
+        // dragHandlerEvnt(this.$tool.arrowIst, Conf.arrow.type)
+        // console.log(this.$tool.arrowIst)
+        // this.$tool.arrowIst.c.drag()
+        var arrowDragHandler = function(ist){
+            // console.log(ist)
+            var cDragDt = {x: 0, y: 0};
+            // (function(){
+            // var innerTmpArror = null
+            var innerTmpArror = null
+            ist.drag(
+                function(x, y){
+                    // console.log(arguments)
+                    // x += cDragDt.x;
+                    // y += cDragDt.y;
+                    // console.log(cDragDt)
+                    // cDragDt = {x, y}
+                    // cDragDt.x += x
+                    // cDragDt.y += y
+                    x += cDragDt.x
+                    y += cDragDt.y
+                    if(innerTmpArror){
+                        innerTmpArror.updatePath([x, y], [x + 50, y])
+                    }
+                    // console.log(cDragDt, x, y)
+                },
+                function(){
+                    // cDragDt = {x: 0, y: 0}
+                    // var _x, _y
+                    // cDragDt.x = _x
+                    // cDragDt.y = _y
+                    // console.log(ist)
+                    if('text' == ist.type){
+                        cDragDt.x = ist.attr('x')                        
+                        cDragDt.y = ist.attr('y')                        
+                    }
+                    else{
+                        var pathA1 = ist.attr('path')
+                        pathA1 = pathA1[0]
+                        cDragDt.x = pathA1[1]
+                        cDragDt.y = pathA1[2]
+                    }
+                    // 生成
+                    innerTmpArror = $this.flow.arrow([cDragDt.x, cDragDt.y], [cDragDt.x + 50, cDragDt.y], 5)
+                    innerTmpArror.c.attr('fill', pkgClr.arrow)
+                    innerTmpArror.c.click(function(){         
+                        $this.removeBBox()  // 移除当前的节点的外部边框      
+                        var opt = innerTmpArror.opt 
+                        var color = '#000000'
+                        var pR = 3      // 半径                        
+                        // console.log('*', innerTmpArror)
+                        // 起始节点
+                        var arrowLineP1 = $this.raphael.circle(opt.p1[0], opt.p1[1], pR)
+                        arrowLineP1.attr('fill', color);                        
+
+                        // 结束节点
+                        var arrowLineP2 = $this.raphael.circle(opt.p2[0], opt.p2[1], pR)
+                        arrowLineP2.attr('fill', color)
+
+                        var lineEndPointMoveEvt = function(LIst, isEnd){
+                            var aCDt = {ax: 0, ay: 0}
+                            // console.log(arrowLineP1)
+                            LIst.drag(
+                                function(ax, ay){
+                                    ax += aCDt.ax
+                                    ay += aCDt.ay
+                                    if(isEnd){
+                                        innerTmpArror.updatePath(null, [ax, ay])
+                                    }
+                                    else{
+                                        innerTmpArror.updatePath([ax, ay])
+                                    }
+                                    this.attr({
+                                        cx: ax,
+                                        cy: ay
+                                    })  
+                                },
+                                function(){
+                                    aCDt.ax = this.attr('cx')
+                                    aCDt.ay = this.attr('cy')
+                                },
+                                function(){
+                                    // if(aCDt.ax < 75 || aCDt.ay < 50){
+                                    //     return null
+                                    // }
+                                    // LIst.updatePath([aCDt.ax, aCDt.ay])
+                                    // arrowLineP1.attr({
+                                    //     x: aCDt.ax,
+                                    //     y: aCDt.ay
+                                    // })
+                                }
+                            )
+                        }
+
+                        lineEndPointMoveEvt(arrowLineP1)
+                        lineEndPointMoveEvt(arrowLineP2, true)
+                        // 临时数据节点
+                        $this.tempNodes.push(arrowLineP1, arrowLineP2)
+                    })
+                    // console.log(innerTmpArror)
+                    $this.lineQueues.push(innerTmpArror)
+                },
+                function(){
+                    /*
+                    var arrowLine = $this.flow.arrow([cDragDt.x, cDragDt.y], [cDragDt.x, cDragDt.y+50], 5)
+                    arrowLine.c.attr('fill', pkgClr.arrow)
+                    arrowLine.c.click(function(){
+                        $this.removeBBox()  // 移除当前的节点的外部边框
+                        //console.log(arrowLine)
+                        var opt = arrowLine.opt
+                        var color = '#000000'
+                        var pR = 3      // 半径
+                        // 起始节点
+                        var arrowLineP1 = $this.raphael.circle(opt.p1[0], opt.p1[1], pR)
+                        arrowLineP1.attr('fill', color);
+
+                        (function(LIst){
+                            var aCDt = {ax: 0, ay: 0}
+                            // console.log(arrowLineP1)
+                            arrowLineP1.drag(
+                                function(ax, ay){
+                                    ax += aCDt.ax;
+                                    ay += aCDt.ay;
+                                    aCDt = {ax, ay}
+                                },
+                                function(){
+                                    aCDt = {ax: 0, ay: 0}
+                                    var _ax, _ay
+                                    aCDt.ax = _ax
+                                    aCDt.ay = _ay
+                                },
+                                function(){
+                                    if(aCDt.ax < 75 || aCDt.ay < 50){
+                                        return null
+                                    }
+                                    LIst.updatePath([aCDt.ax, aCDt.ay])
+                                    arrowLineP1.attr({
+                                        x: aCDt.ax,
+                                        y: aCDt.ay
+                                    })
+                                }
+                            )
+                        })(arrowLine)
+                        
+
+                        // 结束节点
+                        var arrowLineP2 = $this.raphael.circle(opt.p2[0], opt.p2[1], pR)
+                        arrowLineP2.attr('fill', color)
+                        // 临时数据节点
+                        $this.tempNodes.push(arrowLineP1, arrowLineP2)
+                    })
+
+                    $this.lineQueues.push(arrowLine)
+                    */
+                }
+            )
+            // })()
+        }
+        arrowDragHandler(this.$tool.arrowIst.c)
+        arrowDragHandler(this.$tool.arrowTxtIst)
     }
     /**
      * 移除全部的边框
@@ -2786,6 +2993,13 @@ class WorkerEditor{
                 node.bBox = null    // 清空 bBox 
             }
         }
+        // 临时节点
+        var tempNodes = this.tempNodes
+        for(var j=0; j<tempNodes.length; j++){
+            var tNode = tempNodes[j]
+            tNode.remove()
+        }
+        this.tempNodes = []
     }
     /**
      * 删除节点, 为空是删除当前选中的节点
@@ -2827,12 +3041,62 @@ class WorkerEditor{
         return false
     }
     /**
+     * 设置指定/当前选择节点对象属性
+     * @param {object} option {text}
+     * @param {RaphaelElement|string|null} code 
+     * @returns {bool}
+     */
+    setOption(option, code){
+        var isSuccess = false
+        if(option){
+            if('object' != typeof option){  // 默认为文本，快速设置文本
+                option = {text: option}
+            }
+            if(!code){
+                code = this.getSelected()
+            }
+            var node = 'object' == typeof code? code : this.raphael.getById(code)
+            // 文本属性
+            if(option.text){
+                if(node.label){
+                    node.label.attr('text', option.text)
+                    // 自动适应文本的宽度
+                    if('function' == typeof node.resizeByText){
+                        node.resizeByText()
+                    }
+                }
+            }
+        }
+        return isSuccess
+    }
+    /**
+     * 赋值节点，为空是复制当前选中的节点
+     * @param {RaphaelElement|string|null} code 
+     */
+    cloneNode(code){
+        if(!code){
+            code = this.getSelected()
+        }
+        if(code){
+            var node = 'object' == typeof code? code : this.raphael.getById(code)
+            if('object' == typeof node){
+                // 删除实体数据
+                var id = node.id    // id 数据
+                node.c.clone()
+                node.label.clone()
+                return true
+            }
+        }
+        return false
+    }
+    /**
      * 获取被选中的节点，只能一个
      * @returns {NodeBase}
      */
     getSelected(){
         var nodes = this.nodes
         var selectedNode = null
+        // 节点扫描
         for(var i=0; i<nodes.length; i++){
             var node = nodes[i]
             if(node.bBox){
@@ -2840,7 +3104,24 @@ class WorkerEditor{
                 break
             }
         }
+        // 连线扫描
+        var lines = this.lineQueues
+        for(var j=0; j<lines.length; j++){
+            var line = lines[j]
+        }
         return selectedNode
+    }
+    /**
+     * 获取最新生成的节点
+     * @returns {NodeBase}
+     */
+    getLastElem(){
+        var lastElem = null
+        var nodes = this.nodes
+        if(nodes.length > 0){
+            lastElem = nodes[nodes.length - 1]
+        }
+        return lastElem
     }
     /**
      * 获取工作流步骤,用于保存工作流的数据结构

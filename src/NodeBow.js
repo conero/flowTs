@@ -17,6 +17,7 @@ class NodeBow{
      * @param {*} instance Raphael 实例
      */
     constructor(instance){
+        this.NodeType = 'bow'
         this.instance = instance
         this.opt = {}           // 配置信息数据
         this.position = {}      // 连接点

@@ -9,9 +9,10 @@ class NodeLine{
      * @param {*} instance Raphael 实例
      */
     constructor(instance){
+        this.NodeType = 'line'
         this.instance = instance
         this.opt = {}       // 配置信息数据
-        this.position = {}      // 连接点        
+        this.position = {}      // 连接点
         /*
             {from: A/B/C/D, to: A/B/C/D}
         */

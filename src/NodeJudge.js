@@ -11,6 +11,7 @@ class NodeJudge extends NodeBase{
      */
     constructor(instance){
         super()
+        this.NodeType = 'judge'
         this.instance = instance
         this.opt = {}       // 配置信息数据
     }

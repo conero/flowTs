@@ -66,7 +66,7 @@ class Flow{
     }
     /**
      * p1 -> p2 的连线
-     * @param {*} p1 {x,y} 
+     * @param {*} p1 [x,y]
      * @param {*} p2 
      * @param {number} r
      */

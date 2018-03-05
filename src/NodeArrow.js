@@ -9,6 +9,7 @@ class NodeArrow{
      * @param {*} instance Raphael 实例
      */
     constructor(instance){
+        this.NodeType = 'arrow'
         this.instance = instance
         this.opt = {}           // 配置信息数据
         this.position = {}      // 连接点

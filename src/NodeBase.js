@@ -7,6 +7,7 @@ class NodeBase{
         // 连接线起点获取终点
         this.fromLine = []
         this.toLine = []
+        this.NodeType = null            // 节点类型
     }    
     // 记录连接线
     recordLine(type, $node){

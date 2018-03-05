@@ -12,6 +12,7 @@ class NodeEndpoint extends NodeBase{
      */
     constructor(instance){
         super()
+        this.NodeType = 'endpnt'
         this.instance = instance
         this.opt = {}
     }

@@ -1,7 +1,7 @@
 {
   "name": "zmapp-workflow",
-  "version": "1.1.0",
-  "release": "20180302",
+  "version": "1.1.1",
+  "release": "20180305",
   "description": "workflow chart",
   "main": "index.js",
   "scripts": {
@@ -30,6 +30,6 @@
     "node-sass": "^4.7.2",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.19.1",
-    "webpack": "^3.10.0"
+    "webpack": "^3.11.0"
   }
 }

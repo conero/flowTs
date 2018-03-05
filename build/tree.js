@@ -908,6 +908,7 @@ var NodeOperation = function (_NodeBase) {
 
         var _this = _possibleConstructorReturn(this, (NodeOperation.__proto__ || Object.getPrototypeOf(NodeOperation)).call(this));
 
+        _this.NodeType = 'opera';
         _this.instance = instance;
         _this.opt = {}; // 配置信息数据
         _this.bBox = null; // 边缘盒子数据示例
@@ -1199,6 +1200,7 @@ var NodeBase = function () {
         // 连接线起点获取终点
         this.fromLine = [];
         this.toLine = [];
+        this.NodeType = null; // 节点类型
     }
     // 记录连接线
 
@@ -1274,9 +1276,10 @@ var NodeLine = function () {
     function NodeLine(instance) {
         _classCallCheck(this, NodeLine);
 
+        this.NodeType = 'line';
         this.instance = instance;
         this.opt = {}; // 配置信息数据
-        this.position = {}; // 连接点        
+        this.position = {}; // 连接点
         /*
             {from: A/B/C/D, to: A/B/C/D}
         */
@@ -1369,6 +1372,7 @@ var NodeArrow = function () {
     function NodeArrow(instance) {
         _classCallCheck(this, NodeArrow);
 
+        this.NodeType = 'arrow';
         this.instance = instance;
         this.opt = {}; // 配置信息数据
         this.position = {}; // 连接点
