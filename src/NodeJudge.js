@@ -130,6 +130,9 @@ class NodeJudge extends NodeBase{
             ['L', dP.x, dP.y],
             ['Z']
         ])
+        // 数据选项值更新
+        this.opt.cx = ctP.x
+        this.opt.cy = ctP.y
         // 文本移动
         this.label.attr(ctP)
     }

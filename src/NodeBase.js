@@ -19,7 +19,7 @@ class NodeBase{
         }
     }
     /**
-     * 同步处理取现
+     * 同步处理连线
      * @param {function} callback 
      */
     syncLineMove(callback){

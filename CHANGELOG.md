@@ -1,6 +1,16 @@
 ## 更新日志
 
 > ***V1.1.x/alpha-date*** alpha 类型模板
+- ***V1.1.2/20180306***
+- WorkerJs
+    - src/WorkerEditor.js 工作流编辑器
+        - 修复“连线”选中与拖动不一致，使用js回调内存保持的特性
+        - (+) 实现连线与节点关联，关联以后两者实现同步拖动；连线与节点之间的关联特性为松散式，支持不同节点间的只有切换
+        - (+) 实现“连线”端点与节点碰撞时，与“可连接点”进行磁化
+- NodeBase
+    - 修复 NodeBase 对象 move 操作时 opt 未同步
+
+
 - ***V1.1.1/20180305***
 - WorkerJs
     - src/WorkerEditor.js 工作流编辑器
@@ -15,6 +25,7 @@
         - arrow, bow, endpnt, judge, line, opera,        
 - 系统
     - 更新日志从“README.md” 分离
+
 - ***V1.1.0/20180302***
     - WorkerJs
         - (新增) src/WorkerEditor.js 工作流编辑器

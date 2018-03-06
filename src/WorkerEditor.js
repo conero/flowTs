@@ -42,11 +42,12 @@ class WorkerEditor{
         this.raphael = H.createInstance(config) // Raphael 对象
         // 配置参数处理
         this._configMergeToDefule()
-        this._LineDragingP = null              // RaphaelElement 直线正在拖动记录点
-        this.flow = new Flow(this.raphael)  // 工作流程按钮
+        this._LineDragingP = null               // RaphaelElement 直线正在拖动记录点
+        this.flow = new Flow(this.raphael)      // 工作流程按钮
         this.nodes = []                         // 运行节点数
         this.lineQueues = []                    // 连线记录器
         this.tempNodes = []                     // 临时节点集
+        this.MagneticCore = null                // 连线磁化中心点，用于节点关联，单状态的结构 data: {type: from/to}
         this._toolbar()
     }
     /**
@@ -129,6 +130,7 @@ class WorkerEditor{
         var pkgClr = this.config.pkgClr
         // 拖动处理    
         var dragHandlerEvnt = function(node, type){
+            $this.MagneticCore = null           // 移动工具栏时磁芯消失
             var cDragDt = {}
             node.drag(
                 function(dx, dy){   // moving
@@ -196,33 +198,17 @@ class WorkerEditor{
         // console.log(this.$tool.arrowIst)
         // this.$tool.arrowIst.c.drag()
         var arrowDragHandler = function(ist){
-            // console.log(ist)
             var cDragDt = {x: 0, y: 0};
-            // (function(){
-            // var innerTmpArror = null
             var innerTmpArror = null
             ist.drag(
                 function(x, y){
-                    // console.log(arguments)
-                    // x += cDragDt.x;
-                    // y += cDragDt.y;
-                    // console.log(cDragDt)
-                    // cDragDt = {x, y}
-                    // cDragDt.x += x
-                    // cDragDt.y += y
                     x += cDragDt.x
                     y += cDragDt.y
                     if(innerTmpArror){
                         innerTmpArror.updatePath([x, y], [x + 50, y])
                     }
-                    // console.log(cDragDt, x, y)
                 },
                 function(){
-                    // cDragDt = {x: 0, y: 0}
-                    // var _x, _y
-                    // cDragDt.x = _x
-                    // cDragDt.y = _y
-                    // console.log(ist)
                     if('text' == ist.type){
                         cDragDt.x = ist.attr('x')                        
                         cDragDt.y = ist.attr('y')                        
@@ -234,117 +220,103 @@ class WorkerEditor{
                         cDragDt.y = pathA1[2]
                     }
                     // 生成
-                    innerTmpArror = $this.flow.arrow([cDragDt.x, cDragDt.y], [cDragDt.x + 50, cDragDt.y], 5)
-                    innerTmpArror.c.attr('fill', pkgClr.arrow)
-                    innerTmpArror.c.click(function(){         
-                        $this.removeBBox()  // 移除当前的节点的外部边框      
-                        var opt = innerTmpArror.opt 
-                        var color = '#000000'
-                        var pR = 3      // 半径                        
-                        // console.log('*', innerTmpArror)
-                        // 起始节点
-                        var arrowLineP1 = $this.raphael.circle(opt.p1[0], opt.p1[1], pR)
-                        arrowLineP1.attr('fill', color);                        
+                    innerTmpArror = $this.flow.arrow([cDragDt.x, cDragDt.y], [cDragDt.x + 50, cDragDt.y], 5);
+                    // 使用js闭包，将值保存再内存中 修复V1.1.1 中的BUG
+                    (function(TmpArrIst){
+                        // console.log(innerTmpArror.c.id)
+                        TmpArrIst.c.attr('fill', pkgClr.arrow)
+                        TmpArrIst.c.click(function(){         
+                            $this.removeBBox()  // 移除当前的节点的外部边框      
+                            var opt = TmpArrIst.opt 
+                            var color = '#000000'
+                            var pR = 3      // 半径                        
+                            // console.log('*', innerTmpArror)
+                            // console.log(innerTmpArror.c.id, 'click')
+                            // 起始节点
+                            var arrowLineP1 = $this.raphael.circle(opt.p1[0], opt.p1[1], pR)
+                            arrowLineP1.attr('fill', color);                        
 
-                        // 结束节点
-                        var arrowLineP2 = $this.raphael.circle(opt.p2[0], opt.p2[1], pR)
-                        arrowLineP2.attr('fill', color)
+                            // 结束节点
+                            var arrowLineP2 = $this.raphael.circle(opt.p2[0], opt.p2[1], pR)
+                            arrowLineP2.attr('fill', color)
 
-                        var lineEndPointMoveEvt = function(LIst, isEnd){
-                            var aCDt = {ax: 0, ay: 0}
-                            // console.log(arrowLineP1)
-                            LIst.drag(
-                                function(ax, ay){
-                                    ax += aCDt.ax
-                                    ay += aCDt.ay
-                                    if(isEnd){
-                                        innerTmpArror.updatePath(null, [ax, ay])
+                            var lineEndPointMoveEvt = function(LIst, isEnd){
+                                var aCDt = {ax: 0, ay: 0}
+                                // console.log(arrowLineP1)
+                                LIst.drag(
+                                    function(ax, ay){
+                                        ax += aCDt.ax
+                                        ay += aCDt.ay
+                                        var hasIntersectElem = $this.getIntersectElem({x: ax, y:ay})
+                                        if(hasIntersectElem){   // 碰撞时，使用连接端点
+                                            $this.removeIntersectMk()
+                                            hasIntersectElem.c.attr('fill', '#FF0000')                                            
+                                            hasIntersectElem._IntersectMk = true
+                                            var CntLinePnt
+                                            if(isEnd){
+                                                CntLinePnt = hasIntersectElem.getEnlnP()
+                                            }
+                                            else{
+                                                CntLinePnt = hasIntersectElem.getStlnP()
+                                            }
+                                            // console.log(CntLinePnt, hasIntersectElem)
+                                            ax = CntLinePnt.x
+                                            ay = CntLinePnt.y
+                                            // 关联
+                                            var position = isEnd? 'to':'from'
+                                            $this.removeConLine(TmpArrIst, position)
+                                            hasIntersectElem.recordLine(position, TmpArrIst)
+                                            if(!TmpArrIst.position){
+                                                TmpArrIst.position = {}
+                                            }
+                                            TmpArrIst.position[position] = CntLinePnt.position
+                                        }
+                                        //console.log(hasIntersectElem)
+                                        var mmgntcIst = this    // 磁芯点
+                                        // var id = this.id
+                                        if(isEnd){
+                                            TmpArrIst.updatePath(null, [ax, ay])
+                                            mmgntcIst.data('type', 'to')
+                                            // TmpArrIst.position.to = id
+                                        }
+                                        else{
+                                            TmpArrIst.updatePath([ax, ay])
+                                            mmgntcIst.data('type', 'from')
+                                            // TmpArrIst.position.from = id
+                                        }
+                                        $this.MagneticCore = mmgntcIst  // 保存正在移动的磁芯点
+                                        this.attr({
+                                            cx: ax,
+                                            cy: ay
+                                        }) 
+                                    },
+                                    function(){
+                                        aCDt.ax = this.attr('cx')
+                                        aCDt.ay = this.attr('cy')
+                                    },
+                                    function(){
+                                        // if(aCDt.ax < 75 || aCDt.ay < 50){
+                                        //     return null
+                                        // }
+                                        // LIst.updatePath([aCDt.ax, aCDt.ay])
+                                        // arrowLineP1.attr({
+                                        //     x: aCDt.ax,
+                                        //     y: aCDt.ay
+                                        // })
+                                        $this.MagneticCore = null           // 拖动完成以后
                                     }
-                                    else{
-                                        innerTmpArror.updatePath([ax, ay])
-                                    }
-                                    this.attr({
-                                        cx: ax,
-                                        cy: ay
-                                    })  
-                                },
-                                function(){
-                                    aCDt.ax = this.attr('cx')
-                                    aCDt.ay = this.attr('cy')
-                                },
-                                function(){
-                                    // if(aCDt.ax < 75 || aCDt.ay < 50){
-                                    //     return null
-                                    // }
-                                    // LIst.updatePath([aCDt.ax, aCDt.ay])
-                                    // arrowLineP1.attr({
-                                    //     x: aCDt.ax,
-                                    //     y: aCDt.ay
-                                    // })
-                                }
-                            )
-                        }
+                                )
+                            }
 
-                        lineEndPointMoveEvt(arrowLineP1)
-                        lineEndPointMoveEvt(arrowLineP2, true)
-                        // 临时数据节点
-                        $this.tempNodes.push(arrowLineP1, arrowLineP2)
-                    })
-                    // console.log(innerTmpArror)
+                            lineEndPointMoveEvt(arrowLineP1)
+                            lineEndPointMoveEvt(arrowLineP2, true)
+                            // 临时数据节点
+                            $this.tempNodes.push(arrowLineP1, arrowLineP2)
+                        })
+                    })(innerTmpArror)
                     $this.lineQueues.push(innerTmpArror)
                 },
                 function(){
-                    /*
-                    var arrowLine = $this.flow.arrow([cDragDt.x, cDragDt.y], [cDragDt.x, cDragDt.y+50], 5)
-                    arrowLine.c.attr('fill', pkgClr.arrow)
-                    arrowLine.c.click(function(){
-                        $this.removeBBox()  // 移除当前的节点的外部边框
-                        //console.log(arrowLine)
-                        var opt = arrowLine.opt
-                        var color = '#000000'
-                        var pR = 3      // 半径
-                        // 起始节点
-                        var arrowLineP1 = $this.raphael.circle(opt.p1[0], opt.p1[1], pR)
-                        arrowLineP1.attr('fill', color);
-
-                        (function(LIst){
-                            var aCDt = {ax: 0, ay: 0}
-                            // console.log(arrowLineP1)
-                            arrowLineP1.drag(
-                                function(ax, ay){
-                                    ax += aCDt.ax;
-                                    ay += aCDt.ay;
-                                    aCDt = {ax, ay}
-                                },
-                                function(){
-                                    aCDt = {ax: 0, ay: 0}
-                                    var _ax, _ay
-                                    aCDt.ax = _ax
-                                    aCDt.ay = _ay
-                                },
-                                function(){
-                                    if(aCDt.ax < 75 || aCDt.ay < 50){
-                                        return null
-                                    }
-                                    LIst.updatePath([aCDt.ax, aCDt.ay])
-                                    arrowLineP1.attr({
-                                        x: aCDt.ax,
-                                        y: aCDt.ay
-                                    })
-                                }
-                            )
-                        })(arrowLine)
-                        
-
-                        // 结束节点
-                        var arrowLineP2 = $this.raphael.circle(opt.p2[0], opt.p2[1], pR)
-                        arrowLineP2.attr('fill', color)
-                        // 临时数据节点
-                        $this.tempNodes.push(arrowLineP1, arrowLineP2)
-                    })
-
-                    $this.lineQueues.push(arrowLine)
-                    */
                 }
             )
             // })()
@@ -356,6 +328,7 @@ class WorkerEditor{
      * 移除全部的边框
      */
     removeBBox(){
+        this.MagneticCore = null
         var nodes = this.nodes
         for(var i=0; i<nodes.length; i++){
             var node = nodes[i]
@@ -370,6 +343,7 @@ class WorkerEditor{
             var tNode = tempNodes[j]
             tNode.remove()
         }
+        this.removeIntersectMk()
         this.tempNodes = []
     }
     /**
@@ -410,6 +384,65 @@ class WorkerEditor{
             }
         }
         return false
+    }
+    /**
+     * 移除碰撞属性
+     */
+    removeIntersectMk(){
+        var nodes = this.nodes
+        var IntersectEl = null
+        for(var i=0; i<nodes.length; i++){
+            var node = nodes[i]
+            if(node._IntersectMk){
+                node._IntersectMk = false       
+                var _type = node.NodeType
+                var pkgClr = this.config.pkgClr
+                if(pkgClr[_type]){
+                    node.c.attr('fill', pkgClr[_type])
+                }else{
+                    _type = node.c.data('type')
+                    if(1 == _type){
+                        node.c.attr('fill', pkgClr.start)
+                    }
+                    else if(9 == _type){
+                        node.c.attr('fill', pkgClr.end)
+                    }
+                }
+                IntersectEl = node         
+
+            }
+        }
+        return IntersectEl
+    }
+    /**
+     * 移除连接检测线，用于连接线与节点关联时删除就的关联
+     * @param {NodeBase} lineIst 
+     * @param {string} type from/to
+     * @returns {bool}
+     */
+    removeConLine(lineIst, type){
+        var isSuccess = false
+        if(lineIst && type){
+            var nodes = this.nodes
+            var refId = lineIst.c.id
+            for(var i=0; i<nodes.length; i++){
+                var node = nodes[i]
+                var lineType = type + 'Line'
+                // 只检测为数组的类型
+                if(node[lineType] && node[lineType].length){
+                    var lineQues = node[lineType]
+                    var nLineQues = []
+                    for(var j=0; j<lineQues.length; j++){
+                        var lineQue = lineQues[j]
+                        if(refId != lineQue.c.id){
+                            nLineQues.push(lineQue)
+                        }
+                    }
+                    node[lineType] = nLineQues
+                }
+            }
+        }
+        return isSuccess
     }
     /**
      * 设置指定/当前选择节点对象属性
@@ -533,6 +566,74 @@ class WorkerEditor{
         return fjson
     }
     /**
+     * 获取碰撞的元素
+     * @param {object} point {x, y} 坐标点
+     * @returns {RapaelElement|null}
+     */
+    getIntersectElem(point){
+        var itsctEl = null
+        if('object' == typeof point){
+            var nodes = this.nodes
+            for(var i=0; i<nodes.length; i++){
+                var node = nodes[i]
+                var type = node.NodeType
+                if('endpnt' == type){
+                    var $c = node.c
+                    var cx = $c.attr('cx'),
+                        cy = $c.attr('cy'),
+                        rx = $c.attr('rx'),
+                        ry = $c.attr('ry')
+                    if(
+                        // x
+                        (point.x >= (cx - rx) && point.x <= (cx + rx))
+                        // y
+                        && 
+                        (point.y >= (cy - ry) && point.y <= (cy + ry))
+                    ){
+                        itsctEl = node
+                        break
+                    }        
+                }
+                else if('opera' == type){
+                    var $c = node.c,
+                        x = $c.attr('x'),
+                        y = $c.attr('y'),
+                        w = $c.attr('width'),
+                        h = $c.attr('height')
+                    if(
+                        // x
+                        (point.x >= x && point.x <= (x + w))
+                        // y
+                        && 
+                        (point.y >= y && point.y <= (y + h))
+                    ){
+                        itsctEl = node
+                        break
+                    }   
+                }
+                else if('judge' == type){
+                    var $opt = node.opt,
+                        cx = $opt.cx,
+                        cy = $opt.cy,
+                        h = $opt.h,
+                        w = $opt.w
+                    if(
+                        // x
+                        (point.x >= (cx - w/2) && point.x <= (cx + w/2))
+                        // y
+                        && 
+                        (point.y >= (cy - h/2) && point.y <= (cy + h/2))
+                    ){
+                        itsctEl = node
+                        break
+                    }    
+                }
+                //console.log(node)
+            }
+        }
+        return itsctEl
+    }
+    /**
      * 创建节点数
      * @param {object} cDragDt 当前节点拖动的参数
      * @param {number|string} type 节点类型
@@ -569,6 +670,7 @@ class WorkerEditor{
                         dx += cDragDt.x
                         dy += cDragDt.y
                         nodeIst.move(dx, dy)
+                        nodeIst.ToSyncArrow(dx, dy)
                     },
                     function(){
                         var _x, _y
@@ -612,6 +714,41 @@ class WorkerEditor{
                     'stroke': pkgClr.NodeBox
                 })
             })
+            /*
+                // mouseover  鼠标移动到元素上时 mousemove
+                nodeIst.c.mouseover(function(){
+                    if($this.MagneticCore){
+                        console.log($this.MagneticCore.data('type'), 'mouseover')
+                        // this.attr('fill', '#FF0000')
+                        this.attr('stroke', '#FF0000')
+                    }
+                })
+                // mouseup/mouseout
+                nodeIst.c.mouseout(function(){
+                    // if($this.MagneticCore){
+                        // console.log($this.MagneticCore.data('type'), 'mouseout')
+                        console.log('onmouseout')
+                        this.attr('stroke', '#000000')
+                    // }
+                })
+            */
+
+           /*
+           nodeIst.c.hover(
+               function(){
+                //    console.log('f_in')
+                    if($this.MagneticCore){
+                        console.log($this.MagneticCore.data('type'), 'mouseover')
+                        // this.attr('fill', '#FF0000')
+                        this.attr('stroke', '#FF0000')
+                    }
+               },
+               function(){
+                   console.log('f_out')
+                   this.attr('stroke', '#000000')
+               }
+           )
+           */
             nodeIst.c.data('type', type)
             this.nodes.push(nodeIst)
         }

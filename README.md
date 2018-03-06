@@ -87,6 +87,11 @@ worker.js 内联数据对象
     - getFlowJson(code) 获取指定节点的json数据对象
 - 连线
     - lineQueues 内部缓存器 
+- NodeBase 动态属性
+    - _IntersectMk  碰撞标识 bool    
+    - c
+        - data
+            - type: 与工作流类型相匹配
 
 ### tree
 ```javascript

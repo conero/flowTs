@@ -84,6 +84,8 @@ class NodeOperation extends NodeBase{
             x, y
         })
         this.label.attr(ctP)
+        this.opt.cx = x
+        this.opt.cy = y
     }
     // 直线同步移动
     ToSyncLine(x, y){

@@ -992,6 +992,8 @@ var NodeOperation = function (_NodeBase) {
                 x: x, y: y
             });
             this.label.attr(ctP);
+            this.opt.cx = x;
+            this.opt.cy = y;
         }
         // 直线同步移动
 
@@ -1215,7 +1217,7 @@ var NodeBase = function () {
             }
         }
         /**
-         * 同步处理取现
+         * 同步处理连线
          * @param {function} callback 
          */
 

@@ -81,7 +81,7 @@ class NodeEndpoint extends NodeBase{
         })
     }
     // 外部移动坐标处理， 
-    move(x, y){
+    move(x, y){        
         // 容器移动
         this.c.attr({
             cx: x,
@@ -91,6 +91,9 @@ class NodeEndpoint extends NodeBase{
         this.label.attr({
             x,y
         })
+        // 同步属性
+        this.opt.cx = x
+        this.opt.cy = y
         /*
         // 直线同步移动
         this.syncLineMove((lnC, type) => {
