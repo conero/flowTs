@@ -79,6 +79,13 @@ worker.js 内联数据对象
         listener: {}
     })
 ```
+- toolbar 工具栏
+    - start 开始
+    - opera 流程
+    - judge 判断
+    - end 结束
+    - → 箭头
+    - 文本 
 - Api
     - removeBBox 删除被选中节点的边框，去除选中
     - removeNode(code)  删除工作中指定的项目节点或者当前选中节点，接收节点id/节点对象
@@ -92,6 +99,19 @@ worker.js 内联数据对象
     - c
         - data
             - type: 与工作流类型相匹配
+- 保存的数据结构
+```js
+var step = 
+[{
+    "code" : "",            // RaphaelElement.id
+    "name" : "故障填报",     // 文本名称
+    "type" : "1 类型",       // 节点类型
+    "prev" : "",             // 连线源头
+    "next" : "R1",           // 连线终点，支持过节点
+    "attr" : [],              // 属性值
+    "_struct": {}            // 结构体
+}]
+```
 
 ### tree
 ```javascript

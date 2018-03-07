@@ -10,3 +10,5 @@ $(function(){
     // 暴露用于测试
     window.$worker = $worker
 })
+
+window.workerflow = worker

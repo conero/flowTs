@@ -1242,6 +1242,30 @@ var NodeBase = function () {
                 callback($tC, 'to', tLines[j]);
             }
         }
+        /**
+         * 公共接口化
+         * NodeBase struct to json 对象， 用于生产节点中 “struct” 的数据结构
+         * @returns {object}
+         */
+
+    }, {
+        key: 'toJson',
+        value: function toJson() {
+            var _struct = {
+                NodeType: this.NodeType, // 节点类型
+                opt: this.opt, // 数据属性
+                c: {
+                    attr: this.c.attr() // 容器属性值
+                }
+            };
+            if (this.label) {
+                // 节点标签
+                _struct.label = {
+                    attr: this.label.attr()
+                };
+            }
+            return _struct;
+        }
     }]);
 
     return NodeBase;

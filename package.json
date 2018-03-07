@@ -1,8 +1,9 @@
 {
   "name": "zmapp-workflow",
-  "version": "1.1.2",
-  "release": "20180306",
+  "version": "1.1.3",
+  "release": "20180307",
   "description": "workflow chart",
+  "author": "Joshua Conero",
   "main": "index.js",
   "scripts": {
     "prod": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules",
@@ -12,7 +13,6 @@
     "test-tree": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=test/tree/webpack.config.js",
     "test-gojs": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=test/gojs/webpack.config.js"
   },
-  "author": "Joshua Conero",
   "license": "ISC",
   "dependencies": {
     "babel-core": "^6.26.0",

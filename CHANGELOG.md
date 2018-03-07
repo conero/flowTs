@@ -1,6 +1,22 @@
 ## 更新日志
 
 > ***V1.1.x/alpha-date*** alpha 类型模板
+- ***V1.1.3/20180307***
+- WorkerJs
+    - src/WorkerEditor.js 工作流编辑器
+        - ***setOption*** 接口设置为本时同步“NodeBase” 属性值
+        - ***getFlowJson*** 单节点数据流程结构，实现节点间“连接线”数据的获取
+    - 包内引入 RaphaelJs 包，通过 npm
+- NodeBase
+    - (+) 添加 ***toJson*** 方法用于实现当前脚本中的图标实例
+- webpack
+    - webpack.config.js
+        - Queue.js() 方法支持脚本别名编译，以及最后生成的 opt 回调，用于实现 umd 规范
+        - 生成动态 version.js 文件用于显示当前库的版本号
+- src
+    - src/browser.workerflow.umd.js 添加 worker umd 风格发布版本，不予 Raphael 单文件集成
+    - src/browser.workerflow.js 实现浏览端与 Raphael 继承的 worker 版本库
+
 - ***V1.1.2/20180306***
 - WorkerJs
     - src/WorkerEditor.js 工作流编辑器

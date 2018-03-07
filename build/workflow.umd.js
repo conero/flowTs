@@ -1,4 +1,14 @@
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory(require("raphael"));
+	else if(typeof define === 'function' && define.amd)
+		define(["raphael"], factory);
+	else {
+		var a = typeof exports === 'object' ? factory(require("raphael")) : factory(root["raphael"]);
+		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
+	}
+})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE_15__) {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -464,11 +474,11 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _util = __webpack_require__(0);
 
-var _NodeEndpoint = __webpack_require__(7);
+var _NodeEndpoint = __webpack_require__(8);
 
 var _NodeEndpoint2 = _interopRequireDefault(_NodeEndpoint);
 
-var _NodeOperation = __webpack_require__(8);
+var _NodeOperation = __webpack_require__(9);
 
 var _NodeOperation2 = _interopRequireDefault(_NodeOperation);
 
@@ -476,15 +486,15 @@ var _NodeJudge = __webpack_require__(4);
 
 var _NodeJudge2 = _interopRequireDefault(_NodeJudge);
 
-var _NodeLine = __webpack_require__(9);
+var _NodeLine = __webpack_require__(10);
 
 var _NodeLine2 = _interopRequireDefault(_NodeLine);
 
-var _NodeArrow = __webpack_require__(10);
+var _NodeArrow = __webpack_require__(11);
 
 var _NodeArrow2 = _interopRequireDefault(_NodeArrow);
 
-var _NodeBow = __webpack_require__(11);
+var _NodeBow = __webpack_require__(12);
 
 var _NodeBow2 = _interopRequireDefault(_NodeBow);
 
@@ -1080,6 +1090,34 @@ exports.default = H;
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
+
+var _worker = __webpack_require__(7);
+
+var _worker2 = _interopRequireDefault(_worker);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (Raphael) {
+    window.Raphael = Raphael;
+    return _worker2.default;
+}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); /**
+     * 2018年3月7日 星期三
+     * 浏览器端，非 npm 管理引入包
+     * Joshua Conero
+     */
+
+/*--
+    Raphael 包与 worker 同文件打包时，umd 规范出错： eve is not defined // 2018年3月7日 星期三
+--
+*/
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 /* WEBPACK VAR INJECTION */(function(process) {
 
 Object.defineProperty(exports, "__esModule", {
@@ -1102,11 +1140,11 @@ var _helper = __webpack_require__(5);
 
 var _helper2 = _interopRequireDefault(_helper);
 
-var _WorkerEditor = __webpack_require__(12);
+var _WorkerEditor = __webpack_require__(13);
 
 var _WorkerEditor2 = _interopRequireDefault(_WorkerEditor);
 
-var _version = __webpack_require__(13);
+var _version = __webpack_require__(14);
 
 var _version2 = _interopRequireDefault(_version);
 
@@ -2081,7 +2119,7 @@ exports.default = Worker;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2354,7 +2392,7 @@ var NodeEndpoint = function (_NodeBase) {
 exports.default = NodeEndpoint;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2665,7 +2703,7 @@ var NodeOperation = function (_NodeBase) {
 exports.default = NodeOperation;
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2762,7 +2800,7 @@ var NodeLine = function () {
 exports.default = NodeLine;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2879,7 +2917,7 @@ var NodeArrow = function () {
 exports.default = NodeArrow;
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3061,7 +3099,7 @@ var NodeBow = function () {
 exports.default = NodeBow;
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3930,7 +3968,7 @@ var WorkerEditor = function () {
 exports.default = WorkerEditor;
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3941,5 +3979,12 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = { "version": "1.1.3", "release": "20180307", "author": "Joshua Conero" };
 
+/***/ }),
+/* 15 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_15__;
+
 /***/ })
 /******/ ]);
+});

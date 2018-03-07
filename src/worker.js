@@ -6,6 +6,7 @@ import {Flow} from './flow'
 import {Util} from './util'
 import H from './helper'
 import Editor from './WorkerEditor'
+import Version from '../version'
 
 /**
  * 工作流实例类
@@ -922,5 +923,8 @@ class Worker{
         return new Editor(config)
     }
 }
+
+// 静态属性
+Worker.Version = Version
 
 export default Worker

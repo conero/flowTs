@@ -464,6 +464,8 @@ class WorkerEditor{
             if(option.text){
                 if(node.label){
                     node.label.attr('text', option.text)
+                    node.opt = node.opt || {}
+                    node.opt.text = option.text     // NodeBase 的文本属性值
                     // 自动适应文本的宽度
                     if('function' == typeof node.resizeByText){
                         node.resizeByText()
@@ -543,7 +545,7 @@ class WorkerEditor{
     }
     /**
      * 获取节点业务需求的数据结构
-     * @param {RaphaelElement|null} node 节点实例， 为空时为当前选中的节点
+     * @param {NodeBase|null} node 节点实例， 为空时为当前选中的节点
      * @returns {object|null}
      */
     getFlowJson(node){
@@ -555,15 +557,70 @@ class WorkerEditor{
             var label = node.label || null
             var c = node.c
             fjson = {
-                text: label? label.attr('text'):'',
+                name: label? label.attr('text'):'',
                 code: c.id,
-                type: c.data('type')
+                type: c.data('type'),
+                _struct: node.toJson()
             }
+            // 终点
+            var toLines = node.toLine
+            var toLineArr = []
+            for(var j=0; j<toLines.length; j++){
+                var code = this.getLineCntCode('from', toLines[j].c.id, node)
+                if(code){
+                    toLineArr.push(code)
+                }
+            }
+            fjson.prev = toLineArr.length > 0? toLineArr.join(',') : '' 
+
+            // 终点
+            var fromLines = node.fromLine
+            var fromLineArr = []
+            for(var k=0; k<fromLines.length; k++){
+                var code = this.getLineCntCode('to', fromLines[k].c.id, node)
+                if(code){
+                    fromLineArr.push(code)
+                }
+            }
+            fjson.next = fromLineArr.length > 0? fromLineArr.join(',') : '' 
         }
         else{
             fjson = null
         }
         return fjson
+    }
+    /**
+     * 获取连接线端点的节点代码
+     * @param {string} type from/to
+     * @param {string} lineId 直线代码
+     * @param {NodeBase|null|string} refIst 参照id/NodeBase
+     * @returns {string}
+     */
+    getLineCntCode(type, lineId, refIst){
+        var code = null
+        if(type && lineId){
+            var nodes = this.nodes
+            var refId = null
+            if(refIst){
+                refId = 'string' == typeof refIst? refIst : refIst.c.id
+            }
+            var typeName = type + 'Line'
+            for(var i=0; i<nodes.length; i++){
+                var node = nodes[i]
+                var cId = node.c.id
+                if(refId == cId){   // 跳过自身检测
+                    continue
+                }
+                var typeLines = node[typeName]
+                for(var j=0; j<typeLines.length; j++){
+                    var typeLine = typeLines[j]
+                    if(lineId == typeLine.c.id){
+                        return cId
+                    }
+                }
+            }
+        }
+        return code
     }
     /**
      * 获取碰撞的元素
