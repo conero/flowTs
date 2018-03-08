@@ -1,6 +1,11 @@
 ## 更新日志
 
 > ***V1.1.x/alpha-date*** alpha 类型模板
+- ***V1.1.4/20180308***
+- WorkerJs
+    - src/WorkerEditor.js 工作流编辑器
+        - 添加 ***onNodeClick*** 接口函数
+
 - ***V1.1.3/20180307***
 - WorkerJs
     - src/WorkerEditor.js 工作流编辑器

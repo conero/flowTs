@@ -770,6 +770,7 @@ class WorkerEditor{
                 nodeIst.bBox.attr({
                     'stroke': pkgClr.NodeBox
                 })
+                $this.onNodeClick(nodeIst)
             })
             /*
                 // mouseover  鼠标移动到元素上时 mousemove
@@ -810,6 +811,11 @@ class WorkerEditor{
             this.nodes.push(nodeIst)
         }
     }
+    /**
+     * 事件处理接口
+     * @param {NodeBase} nodeIst 
+     */
+    onNodeClick(nodeIst){}
 }
 
 export default WorkerEditor

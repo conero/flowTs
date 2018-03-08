@@ -12307,6 +12307,7 @@ var WorkerEditor = function () {
                     nodeIst.bBox.attr({
                         'stroke': pkgClr.NodeBox
                     });
+                    $this.onNodeClick(nodeIst);
                 });
                 /*
                     // mouseover  鼠标移动到元素上时 mousemove
@@ -12347,6 +12348,14 @@ var WorkerEditor = function () {
                 this.nodes.push(nodeIst);
             }
         }
+        /**
+         * 事件处理接口
+         * @param {NodeBase} nodeIst 
+         */
+
+    }, {
+        key: 'onNodeClick',
+        value: function onNodeClick(nodeIst) {}
     }]);
 
     return WorkerEditor;
@@ -12364,7 +12373,7 @@ exports.default = WorkerEditor;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = { "version": "1.1.3", "release": "20180307", "author": "Joshua Conero" };
+exports.default = { "version": "1.1.4", "release": "20180308", "author": "Joshua Conero" };
 
 /***/ })
 /******/ ]);
