@@ -99,6 +99,9 @@ worker.js 内联数据对象
     - c
         - data
             - type: 与工作流类型相匹配
+- 文档
+    - ***WorkerEditor*** 类中，下划线开头标识私有类
+                
 - 保存的数据结构
 ```js
 var step = 

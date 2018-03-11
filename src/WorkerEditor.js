@@ -49,6 +49,9 @@ class WorkerEditor{
         this.tempNodes = []                     // 临时节点集
         this.MagneticCore = null                // 连线磁化中心点，用于节点关联，单状态的结构 data: {type: from/to}
         this._toolbar()
+        if(this.config.stepCfg){
+            this.loadStep(this.config.stepCfg)
+        }
     }
     /**
      * 配置参数与默认参数和合并处理
@@ -445,6 +448,23 @@ class WorkerEditor{
         return isSuccess
     }
     /**
+     * 通过节点代码获取节点
+     * @param {string} code  NodeBase.c.id
+     * @returns {NodeBase|null}
+     */
+    getNodeByCode(code){
+        var nodeIst = null
+        var nodes = this.nodes
+        for(var i=0; i<nodes.length; i++){
+            var node = nodes[i]
+            if(node.c.id == code){
+                nodeIst = node
+                break
+            }
+        }
+        return nodeIst
+    }
+    /**
      * 设置指定/当前选择节点对象属性
      * @param {object} option {text}
      * @param {RaphaelElement|string|null} code 
@@ -459,9 +479,9 @@ class WorkerEditor{
             if(!code){
                 code = this.getSelected()
             }
-            var node = 'object' == typeof code? code : this.raphael.getById(code)
+            var node = 'object' == typeof code? code : this.getNodeByCode(code)
             // 文本属性
-            if(option.text){
+            if(node && option.text){
                 if(node.label){
                     node.label.attr('text', option.text)
                     node.opt = node.opt || {}
@@ -691,6 +711,45 @@ class WorkerEditor{
         return itsctEl
     }
     /**
+     * 加载流程数据,用于修改时加载历史数据
+     * @param {object|null} steps 
+     */
+    loadStep(steps){
+        if('object' == typeof steps){
+            for(var i = 0;i <steps.length; i++){
+                var step = steps[i]
+                var _struct = step._struct,
+                    opt = _struct.opt,
+                    config = this.config,
+                    pkgClr = config.pkgClr
+                var type = step.type
+                var nodeIst = null
+                if(1 == type || 9 == type){
+                    nodeIst = this.flow.endpoint(opt.cx, opt.cy, opt.r, opt.text)
+                    if(1 == type){
+                        nodeIst.c.attr('fill', pkgClr.start)
+                    }else{
+                        nodeIst.c.attr('fill', pkgClr.end)
+                    }
+                }
+                else if(2 == type){
+                    nodeIst = this.flow.operation(opt.cx, opt.cy, opt.w, opt.h, opt.text)
+                    nodeIst.c.attr('fill', pkgClr.opera)
+                }
+                else if(3 == type){
+                    nodeIst = this.flow.judge(opt.cx, opt.cy, opt.w, opt.h, opt.text)
+                    nodeIst.c.attr('fill', pkgClr.judge)
+                }
+                if(nodeIst){
+                    nodeIst.c.data('type', type)
+                    this._bindEvent(nodeIst)
+                    this.nodes.push(nodeIst)
+                }
+            }
+        }
+        return this
+    }
+    /**
      * 创建节点数
      * @param {object} cDragDt 当前节点拖动的参数
      * @param {number|string} type 节点类型
@@ -719,97 +778,75 @@ class WorkerEditor{
                 break;                          
         }
         if(nodeIst){    // 保存节点实例
-             // 节点拖动
-            (function(){
-                var cDragDt = {}
-                nodeIst.c.drag(
-                    function(dx, dy){
-                        dx += cDragDt.x
-                        dy += cDragDt.y
-                        nodeIst.move(dx, dy)
-                        nodeIst.ToSyncArrow(dx, dy)
-                    },
-                    function(){
-                        var _x, _y
-                        if('ellipse' == this.type){
-                            _x = this.attr('cx')
-                            _y = this.attr('cy')
-                        }
-                        else if('rect' == this.type){
-                            _x = this.attr('x')
-                            _y = this.attr('y')
-                        }
-                        else if('path' == this.type){
-                            var _path = this.attr('path')
-                            var sP1 = _path[0]
-                            _x = sP1[1]
-                            _y = sP1[2]
-                        }
-
-                        cDragDt.x = _x
-                        cDragDt.y = _y
-                        // console.log(cDragDt)
-                    },
-                    function(){
-                        cDragDt = {x:0, y:0}
-                    }
-                )
-                // console.log(nodeIst)
-                // console.log(nodeIst.c)
-            })()
-
-            // 节点点击处理
-            nodeIst.c.click(function(){
-                $this.removeBBox()
-                // if(nodeIst.bBox){
-                //     nodeIst.bBox.remove()
-                // }
-                var bt = this.getBBox()
-                var dt = 5
-                nodeIst.bBox = nodeIst.instance.rect(bt.x-dt, bt.y-dt, bt.width+dt*2, bt.height+dt*2)
-                nodeIst.bBox.attr({
-                    'stroke': pkgClr.NodeBox
-                })
-                $this.onNodeClick(nodeIst)
-            })
-            /*
-                // mouseover  鼠标移动到元素上时 mousemove
-                nodeIst.c.mouseover(function(){
-                    if($this.MagneticCore){
-                        console.log($this.MagneticCore.data('type'), 'mouseover')
-                        // this.attr('fill', '#FF0000')
-                        this.attr('stroke', '#FF0000')
-                    }
-                })
-                // mouseup/mouseout
-                nodeIst.c.mouseout(function(){
-                    // if($this.MagneticCore){
-                        // console.log($this.MagneticCore.data('type'), 'mouseout')
-                        console.log('onmouseout')
-                        this.attr('stroke', '#000000')
-                    // }
-                })
-            */
-
-           /*
-           nodeIst.c.hover(
-               function(){
-                //    console.log('f_in')
-                    if($this.MagneticCore){
-                        console.log($this.MagneticCore.data('type'), 'mouseover')
-                        // this.attr('fill', '#FF0000')
-                        this.attr('stroke', '#FF0000')
-                    }
-               },
-               function(){
-                   console.log('f_out')
-                   this.attr('stroke', '#000000')
-               }
-           )
-           */
             nodeIst.c.data('type', type)
+            this._bindEvent(nodeIst)
             this.nodes.push(nodeIst)
         }
+    }
+    /**
+     * 节点绑定事件
+     * @param {NodeBase} nodeIst 
+     */
+    _bindEvent(nodeIst){
+        if(nodeIst){    // 保存节点实例
+            var $this = this,
+            config = this.config,
+            pkgClr = config.pkgClr
+            ;
+            // 节点拖动
+           (function(){
+               var cDragDt = {}
+               nodeIst.c.drag(
+                   function(dx, dy){
+                       dx += cDragDt.x
+                       dy += cDragDt.y
+                       nodeIst.move(dx, dy)
+                       nodeIst.ToSyncArrow(dx, dy)
+                   },
+                   function(){
+                       var _x, _y
+                       if('ellipse' == this.type){
+                           _x = this.attr('cx')
+                           _y = this.attr('cy')
+                       }
+                       else if('rect' == this.type){
+                           _x = this.attr('x')
+                           _y = this.attr('y')
+                       }
+                       else if('path' == this.type){
+                           var _path = this.attr('path')
+                           var sP1 = _path[0]
+                           _x = sP1[1]
+                           _y = sP1[2]
+                       }
+
+                       cDragDt.x = _x
+                       cDragDt.y = _y
+                       // console.log(cDragDt)
+                   },
+                   function(){
+                       cDragDt = {x:0, y:0}
+                   }
+               )
+               // console.log(nodeIst)
+               // console.log(nodeIst.c)
+           })()
+
+           // 节点点击处理
+           nodeIst.c.click(function(){
+               $this.removeBBox()
+               // if(nodeIst.bBox){
+               //     nodeIst.bBox.remove()
+               // }
+               var bt = this.getBBox()
+               var dt = 5
+               nodeIst.bBox = nodeIst.instance.rect(bt.x-dt, bt.y-dt, bt.width+dt*2, bt.height+dt*2)
+               nodeIst.bBox.attr({
+                   'stroke': pkgClr.NodeBox
+               })
+               $this.onNodeClick(nodeIst)
+           })
+       }
     }
     /**
      * 事件处理接口

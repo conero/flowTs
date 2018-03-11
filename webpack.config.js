@@ -9,6 +9,7 @@ const Pkg = require('./package.json')
 
 // 压缩插件
 const nodeEnv = process.env.NODE_ENV 
+const isProdEv = nodeEnv == 'production'
 
 class Queue{
     constructor(){
@@ -60,6 +61,15 @@ class Queue{
         this.FileList.push(opt)
         return this
     }
+    /**
+     * 通过构造配置选项编译
+     * @param {object} opt 
+     */
+    addOpt(opt){
+        if('object' == typeof opt){
+            this.FileList.push(opt)
+        }
+    }
     getFiles(){
         return this.FileList
     }
@@ -75,7 +85,8 @@ class Queue{
     fs.writeFileSync('./version.js', `export default ${JSON.stringify(_json)}`)
 })()
 
-module.exports = new Queue()
+var $queue = new Queue()
+module.exports = $queue
     .js('worker')
 
     .js('worker', 'workflow')   // 别名编译， 实际用于 zonmaker 框架的工作流库
@@ -87,6 +98,14 @@ module.exports = new Queue()
         opt.output.libraryTarget = 'umd'
         opt.externals = {
             'raphael': 'raphael'
+        }
+        if(!isProdEv){
+            // 本地测试使用，深复制
+            var newOptStr = JSON.stringify(opt)
+            // var newOpt = Object.assign({}, opt)
+            var newOpt = JSON.parse(newOptStr)
+            newOpt.output.filename = '../../zmapp/ZonMaker/public/libs/workflow/workflow.'+(isProdEv? 'min.':'')+'js'
+            $queue.addOpt(newOpt)
         }
     })
 
