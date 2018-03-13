@@ -9,7 +9,11 @@ class NodeBase{
         this.toLine = []
         this.NodeType = null            // 节点类型
     }    
-    // 记录连接线
+    /**
+     * 记录连接线
+     * @param {stirng} type 连接线类型
+     * @param {this}  $node 节点实例
+     */
     recordLine(type, $node){
         if('from' == type){
             this.fromLine.push($node)

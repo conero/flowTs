@@ -75,6 +75,8 @@ worker.js 内联数据对象
             end: 'rgb(34, 185, 41)',
             NodeBox: '节点外部边界, rgb(15, 13, 105)'
         },
+        prefCode: 'A',       // 默认前缀
+        stepCfg: [],            // 历史流程节点     
         // 监听事件
         listener: {}
     })
@@ -99,6 +101,7 @@ worker.js 内联数据对象
     - c
         - data
             - type: 与工作流类型相匹配
+            - code: 实际生成的 code
 - 文档
     - ***WorkerEditor*** 类中，下划线开头标识私有类
                 

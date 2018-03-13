@@ -1,6 +1,19 @@
 ## 更新日志
 
 > ***V1.1.x/alpha-date*** alpha 类型模板
+- ***V1.1.6/20180313***
+- (概述) 工作流编辑器
+    - 由于之前的版本使用 ***RaphaelElement.id*** 作为保存数据的 ***code*** 字段，造成历史保存的数据与现有数据id不可检测且冲突
+    - 引入指定义 ***code*** 弥补 Element.id 操作的缺陷
+    - 使用 ***code*** 与 id 相映射实现
+- WorkerJs
+    - src/WorkerEditor.js 工作流编辑器
+        - (+) 添加 ***_lineTragEvent*** 方法，统一管理箭头直线拖动处理事件，整合原工具栏中的 箭头连线拖动
+        - (+) 添加 ***_getOrderCode*** 内部code自动生成器，保持code唯一性
+        - (+) 添加 ***code2Id*** code 与 id 映射处理
+        - (优化) ***getNodeByCode*** 分离出方法 ***getNodeByEid***
+        - (优化) ***loadStep*** 实现根据历史数据恢复工作流图，且与原绘制时的时间一直
+
 - ***V1.1.5/20180311***
 - WorkerJs
     - src/WorkerEditor.js 工作流编辑器
