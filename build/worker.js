@@ -3106,7 +3106,7 @@ var Conf = {
     },
     opera: {
         type: 2,
-        text: '流程'
+        text: '任务'
     },
     judge: {
         type: 3,
@@ -4170,7 +4170,7 @@ exports.default = WorkerEditor;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = { "version": "1.1.6", "release": "20180313", "author": "Joshua Conero" };
+exports.default = { "version": "1.1.6", "release": "20180314", "author": "Joshua Conero" };
 
 /***/ })
 /******/ ]);

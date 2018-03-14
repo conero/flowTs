@@ -15,7 +15,7 @@ const Conf = {
     },
     opera: {
         type: 2,
-        text: '流程'
+        text: '任务'
     },
     judge: {
         type: 3,
