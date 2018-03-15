@@ -78,7 +78,8 @@ worker.js 内联数据对象
         prefCode: 'A',       // 默认前缀
         stepCfg: [],            // 历史流程节点     
         // 监听事件
-        listener: {}
+        listener: {},
+        noToolBar: bool         // 无工具栏, false
     })
 ```
 - toolbar 工具栏
@@ -96,6 +97,12 @@ worker.js 内联数据对象
     - getFlowJson(code) 获取指定节点的json数据对象
 - 连线
     - lineQueues 内部缓存器 
+- 文本
+    - textQueues 内部独立文本
+- 内部存在的数据
+    - 节点
+    - 连线
+    - 独立文本        
 - NodeBase 动态属性
     - _IntersectMk  碰撞标识 bool    
     - c

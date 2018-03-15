@@ -6,6 +6,7 @@ import worker from '../../src/worker'
 $(function(){
     var $worker = worker.editor({
         dom: '#workflow',
+        // noToolBar: true
     })
     // 暴露用于测试
     window.$worker = $worker

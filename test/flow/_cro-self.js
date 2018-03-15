@@ -2709,7 +2709,7 @@ const Conf = {
     },
     opera: {
         type: 2,
-        text: '流程'
+        text: '任务'
     },
     judge: {
         type: 3,
@@ -2722,6 +2722,20 @@ const Conf = {
     arrow: {
         type: 1801,
         text: '箭头'
+    },
+    text: {
+        type: 1802,
+        text: '文本框',
+        size: 10,            // 默认大小
+        selected:{              // 选择属性
+            'font-size':20,
+            'fill':'red'
+        },
+        // 默认属性
+        defAtrr:{
+            'font-size':10,
+            'fill':'black'
+        }
     }
 }
 /**
@@ -2740,11 +2754,16 @@ class WorkerEditor{
         this._code2EidDick = {}                 // 内部代码与元素id的映射字段
         this._LineDragingP = null               // RaphaelElement 直线正在拖动记录点
         this.flow = new __WEBPACK_IMPORTED_MODULE_2__flow__["a" /* Flow */](this.raphael)      // 工作流程按钮
-        this.nodes = []                         // 运行节点数
+        // 内部缓存数组件容器： 节点、连接线、独立文本
+        this.nodeQueues = []                         // 运行节点数
         this.lineQueues = []                    // 连线记录器
+        this.textQueues = []
         this.tempNodes = []                     // 临时节点集
         this.MagneticCore = null                // 连线磁化中心点，用于节点关联，单状态的结构 data: {type: from/to}
-        this._toolbar()
+        // 工具栏显示控制
+        if(!this.config.noToolBar){
+            this._toolbar()
+        }
         if(this.config.stepCfg){
             this.loadStep(this.config.stepCfg)
         }
@@ -2765,6 +2784,8 @@ class WorkerEditor{
         this.config.pkgClr = pkgClr
         this.config.prefCode = this.config.prefCode || 'A' // 内部代码前缀
         this.config.listener = this.config.listener || {}   // 监听事件
+
+        this.config.noToolBar = this.config.noToolBar || false
     }
     /**
      * 工具集按钮栏
@@ -2817,6 +2838,11 @@ class WorkerEditor{
         $tool.arrowIst = this.flow.arrow([x-5,y], [x+10, y], 3)
         $tool.arrowIst.c.attr('fill', pkgClr.arrow)
         $tool.arrowTxtIst = raphael.text(x+30, y, Conf.arrow.text)
+
+
+        // 文本框
+        y += 30
+        $tool.textInst = this.raphael.text(x+10, y, Conf.text.text)
 
         this.$tool = $tool
         this._toolbarDragEvt()
@@ -2931,7 +2957,30 @@ class WorkerEditor{
             // })()
         }
         arrowDragHandler(this.$tool.arrowIst.c)
-        arrowDragHandler(this.$tool.arrowTxtIst)
+        arrowDragHandler(this.$tool.arrowTxtIst);
+
+        // 文字拖动
+        (function(){
+            var _dragDt = {x: 0, y:0}
+            var tmpTxtInst = null   // 临时文本
+            $this.$tool.textInst.drag(
+                function(x, y){
+                    x += _dragDt.x
+                    y += _dragDt.y
+                    if(tmpTxtInst){
+                        tmpTxtInst.attr({x, y})
+                    }
+                },
+                function(){
+                    _dragDt.x = this.attr('x') + 5
+                    _dragDt.y = this.attr('y') + 5
+                    tmpTxtInst = $this.raphael.text(_dragDt.x, _dragDt.y, '文本框')
+                    $this._textBindEvent(tmpTxtInst)
+                    $this.textQueues.push(tmpTxtInst)
+                },
+                function(){}
+            )
+        })()
     }
     /**
      * 获取
@@ -2950,7 +2999,8 @@ class WorkerEditor{
      */
     removeBBox(){
         this.MagneticCore = null
-        var nodes = this.nodes
+        // 系统节点
+        var nodes = this.nodeQueues
         for(var i=0; i<nodes.length; i++){
             var node = nodes[i]
             if(node.bBox){
@@ -2963,6 +3013,14 @@ class WorkerEditor{
         for(var j=0; j<tempNodes.length; j++){
             var tNode = tempNodes[j]
             tNode.remove()
+        }
+        // 直线选中删除
+        var lines = this.lineQueues
+        for(var k=0; k<lines.length; k++){
+            var line = lines[k]
+            if(lines.selectEdMk){
+                line.selectEdMk = false
+            }
         }
         this.removeIntersectMk()
         this.tempNodes = []
@@ -2981,28 +3039,55 @@ class WorkerEditor{
             if('object' == typeof node){
                 // 删除实体数据
                 var id = node.id    // id 数据
+                var isConnectMk = false // 是否为连接线
+                if(node.NodeType == 'arrow'){
+                    isConnectMk = true
+                }
                 if(node.bBox){
                     node.bBox.remove()
                     node.bBox = null
                 }
+                // 文本
                 if(node.label){
                     node.label.remove()
                     node.label = null
                 }
+                // 连线选择标识
+                if(node.selectEdMk){
+                    node.selectEdMk = false
+                }
                 node.c.remove();
                 node = null // 覆盖并或删除数据
-                // 删除内部对象缓存的数据
-                var nodes = this.nodes
-                var nodeStack = []
-                for(var i=0; i<nodes.length; i++){
-                    var $node = nodes[i]
-                    // 清除已经删除节点的缓存数据
-                    if(id == $node.c.id){
-                        continue
+                // 清除连接线中的缓存器
+                if(isConnectMk){
+                    var lines = this.lineQueues
+                    var newLineQ = []
+                    for(var x=0; x<lines.length; x++){
+                        var line = lines[x]
+                        if(id == line.c.id){
+                            continue
+                        }
+                        newLineQ.push(line)
                     }
-                    nodeStack.push($node)
+                    this.lineQueues = newLineQ
                 }
-                this.nodes = nodeStack
+                else{
+                    // 删除内部对象缓存的数据
+                    var nodes = this.nodeQueues
+                    var nodeStack = []
+                    for(var i=0; i<nodes.length; i++){
+                        var $node = nodes[i]
+                        // 清除已经删除节点的缓存数据
+                        if(id == $node.c.id){
+                            continue
+                        }
+                        nodeStack.push($node)
+                    }
+                    this.nodeQueues = nodeStack
+                }
+                
+                // 删除边框以及选中标识
+                this.removeBBox()
                 return true
             }
         }
@@ -3012,7 +3097,7 @@ class WorkerEditor{
      * 移除碰撞属性
      */
     removeIntersectMk(){
-        var nodes = this.nodes
+        var nodes = this.nodeQueues
         var IntersectEl = null
         for(var i=0; i<nodes.length; i++){
             var node = nodes[i]
@@ -3046,7 +3131,7 @@ class WorkerEditor{
     removeConLine(lineIst, type){
         var isSuccess = false
         if(lineIst && type){
-            var nodes = this.nodes
+            var nodes = this.nodeQueues
             var refId = lineIst.c.id
             for(var i=0; i<nodes.length; i++){
                 var node = nodes[i]
@@ -3074,7 +3159,7 @@ class WorkerEditor{
      */
     getNodeByCode(code){
         var nodeIst = null
-        var nodes = this.nodes
+        var nodes = this.nodeQueues
         for(var i=0; i<nodes.length; i++){
             var node = nodes[i]
             if(node.c.data('code') == code){
@@ -3091,7 +3176,7 @@ class WorkerEditor{
      */
     getNodeByEid(code){
         var nodeIst = null
-        var nodes = this.nodes
+        var nodes = this.nodeQueues
         for(var i=0; i<nodes.length; i++){
             var node = nodes[i]
             if(node.c.id == code){
@@ -3100,6 +3185,32 @@ class WorkerEditor{
             }
         }
         return nodeIst
+    }
+    /**
+     * 代码与id对应，不同时传入值；设置字典
+     * @param {string|null} code 
+     * @param {string|null} id 
+     * @returns {string|null|this}
+     */
+    code2Id(code, id){
+        // 通过 code 获取 Id
+        if(code && !id){
+            return this._code2EidDick[code] || null
+        }
+        // 通过id 获取 code
+        else if(id && !code){
+            var dick = this._code2EidDick
+            for(var prefCode in dick){
+                if(id == dick[prefCode]){
+                    return prefCode
+                }
+            }
+            return null
+        }
+        else if(id && code){
+            this._code2EidDick[code] = id
+            return this
+        }
     }
     /**
      * 设置指定/当前选择节点对象属性
@@ -3157,7 +3268,7 @@ class WorkerEditor{
      * @returns {NodeBase}
      */
     getSelected(){
-        var nodes = this.nodes
+        var nodes = this.nodeQueues
         var selectedNode = null
         // 节点扫描
         for(var i=0; i<nodes.length; i++){
@@ -3167,10 +3278,16 @@ class WorkerEditor{
                 break
             }
         }
-        // 连线扫描
-        var lines = this.lineQueues
-        for(var j=0; j<lines.length; j++){
-            var line = lines[j]
+        //console.log(this.lineQueues, selectedNode)
+        if(!selectedNode){
+            // 连线扫描
+            var lines = this.lineQueues
+            for(var j=0; j<lines.length; j++){
+                var line = lines[j]
+                if(line.selectEdMk){
+                    selectedNode = line
+                }
+            }
         }
         return selectedNode
     }
@@ -3180,7 +3297,7 @@ class WorkerEditor{
      */
     getLastElem(){
         var lastElem = null
-        var nodes = this.nodes
+        var nodes = this.nodeQueues
         if(nodes.length > 0){
             lastElem = nodes[nodes.length - 1]
         }
@@ -3192,7 +3309,7 @@ class WorkerEditor{
      */
     getFlowStep(){
         var step = []
-        var nodes = this.nodes
+        var nodes = this.nodeQueues
         for(var i=0; i<nodes.length; i++){
             var node = nodes[i]
             var stepAttr = this.getFlowJson(node)
@@ -3256,7 +3373,7 @@ class WorkerEditor{
     getLineCntCode(type, lineId, refIst){
         var code = null
         if(type && lineId){
-            var nodes = this.nodes
+            var nodes = this.nodeQueues
             var refId = null
             if(refIst){
                 refId = 'string' == typeof refIst? refIst : refIst.c.data('code')
@@ -3287,7 +3404,7 @@ class WorkerEditor{
     getIntersectElem(point){
         var itsctEl = null
         if('object' == typeof point){
-            var nodes = this.nodes
+            var nodes = this.nodeQueues
             for(var i=0; i<nodes.length; i++){
                 var node = nodes[i]
                 var type = node.NodeType
@@ -3356,6 +3473,28 @@ class WorkerEditor{
             // 连接性先关联信息: {id:{}}
             var lineCntMapInfo = {},
                 pkgClr = this.config.pkgClr
+            // 记录连线端点信息                
+            var recordLMapFn = (_from, _to) =>{
+                if(_from.indexOf(',') == -1){
+                    var _toQus = _to.indexOf(',') == -1? [_to]: _to.split(',')
+                    for(var x1=0; x1<_toQus.length; x1++){
+                        var ftK = _from + '__' + _toQus[x1]
+                        if(!lineCntMapInfo[ftK]){
+                            lineCntMapInfo[ftK] = true
+                        }
+                    }
+                }
+                else if(_to.indexOf(',') == -1){
+                    var _fromQus = _from.indexOf(',') == -1? [_from]: _from.split(',')
+                    for(var x2=0; x2<_fromQus.length; x2++){
+                        var ftK = _fromQus[x2] + '__' + _to
+                        if(!lineCntMapInfo[ftK]){
+                            lineCntMapInfo[ftK] = true
+                        }
+                    }
+                }
+            }
+            // 遍历节点
             for(var i = 0;i <steps.length; i++){
                 var step = steps[i]
                 var _struct = step._struct,
@@ -3390,86 +3529,65 @@ class WorkerEditor{
                     this._code2EidDick[code] = instId
                     nodeIst.c.data('type', type)
                     this._bindEvent(nodeIst)
-                    this.nodes.push(nodeIst)
+                    this.nodeQueues.push(nodeIst)
                     
-
                     // 连线缓存器
-                    lineCntMapInfo[instId] = lineCntMapInfo[instId] || {}                    
                     var prev = step.prev || null    // to
                     if(prev){
-                        var prevQu = lineCntMapInfo[instId].to || []
-                        if(prev.indexOf(',') > -1){
-                            prevQu = [].concat(prevQu, prev.split(','))
-                        }else{
-                            prevQu.push(prev)
-                        }
-                        lineCntMapInfo[instId].to = prevQu
+                        recordLMapFn(prev, code)
                     }
                     var next = step.next || null    // from
                     if(next){
-                        var nextQu = lineCntMapInfo[instId].from || []
-                        if(next.indexOf(',') > -1){
-                            nextQu = [].concat(nextQu, next.split(','))
-                        }else{
-                            nextQu.push(next)
-                        }
-                        lineCntMapInfo[instId].from = nextQu
+                        recordLMapFn(code, next)
                     }
+
+                    // lineCntMapInfo[instId] = lineCntMapInfo[instId] || {}                    
+                    // var prev = step.prev || null    // to
+                    // if(prev){
+                    //     var prevQu = lineCntMapInfo[instId].to || []
+                    //     if(prev.indexOf(',') > -1){
+                    //         prevQu = [].concat(prevQu, prev.split(','))
+                    //     }else{
+                    //         prevQu.push(prev)
+                    //     }
+                    //     lineCntMapInfo[instId].to = prevQu
+                    // }
+                    // var next = step.next || null    // from
+                    // if(next){
+                    //     var nextQu = lineCntMapInfo[instId].from || []
+                    //     if(next.indexOf(',') > -1){
+                    //         nextQu = [].concat(nextQu, next.split(','))
+                    //     }else{
+                    //         nextQu.push(next)
+                    //     }
+                    //     lineCntMapInfo[instId].from = nextQu
+                    // }
                 }
             }
             // console.log(lineCntMapInfo)
 
-            // 绘制连接线
-            // 获取连线终点id
-            var getToCodeFn = (_fcode) => {
-                for(var _cId in lineCntMapInfo){
-                    var _lineInfo = lineCntMapInfo[_cId]
-                    if(_lineInfo.to && _lineInfo.to.length > 0){
-                        if($.inArray(_fcode, _lineInfo.to) > -1){
-                            return _cId
-                        }
-                    }
+            for(var lnstr in lineCntMapInfo){
+                var lnstrQus = lnstr.split('__')
+                var fCodeNd = this.getNodeByCode(lnstrQus[0])
+                var tCodeNd = this.getNodeByCode(lnstrQus[1])
+                //console.log(fCodeNd, tCodeNd)
+                var p1 = fCodeNd.getStlnP()
+                var p2 = tCodeNd.getEnlnP()
+                // console.log(p1, p2)
+                var innerTmpArror = this.flow.arrow([p1.x, p1.y], [p2.x, p2.y], 5)
+                // 连线实体关联，起点
+                if(!innerTmpArror.position){
+                    innerTmpArror.position = {}
                 }
-                return null
-            }
-            // console.log(lineCntMapInfo)
-            // 坐标绘制线
-            for(var cId in lineCntMapInfo){
-                var lineInfo = lineCntMapInfo[cId]
-                // console.log(lineInfo)
-                var fromCodes = lineInfo.from || null
-                if(fromCodes){
-                    for(var j=0; j<fromCodes.length; j++){
-                        var fCode = fromCodes[j]
-                        var tCode = getToCodeFn(fCode)
-                        fCode = this._code2EidDick[fCode] || null
-                        //console.log(fCode, tCode)
-                        if(fCode && tCode){
-                            var fCodeNd = this.getNodeByEid(fCode)
-                            var tCodeNd = this.getNodeByEid(tCode)
-                            //console.log(fCodeNd, tCodeNd)
-                            var p1 = fCodeNd.getStlnP()
-                            var p2 = tCodeNd.getEnlnP()
-                            // console.log(p1, p2)
-                            var innerTmpArror = this.flow.arrow([p1.x, p1.y], [p2.x, p2.y], 5)
-                            // 连线实体关联，起点
-                            if(!innerTmpArror.position){
-                                innerTmpArror.position = {}
-                            }
-                            innerTmpArror.position['from'] = p1.position
-                            fCodeNd.recordLine('from', innerTmpArror)
-                            tCodeNd.recordLine('to', innerTmpArror)
-                            innerTmpArror.position['to'] = p2.position
+                innerTmpArror.position['from'] = p1.position
+                fCodeNd.recordLine('from', innerTmpArror)
+                tCodeNd.recordLine('to', innerTmpArror)
+                innerTmpArror.position['to'] = p2.position
 
-                            innerTmpArror.c.attr('fill', pkgClr.arrow)                            
-                            this._lineTragEvent(innerTmpArror)
-                            this.lineQueues.push(innerTmpArror)
-                        }
-                    }
-                }
+                innerTmpArror.c.attr('fill', pkgClr.arrow)                            
+                this._lineTragEvent(innerTmpArror)
+                this.lineQueues.push(innerTmpArror)
             }
-            // console.log(this._code2EidDick)
-            // console.log(step)
         }
         // console.log(this._code2EidDick)
         // console.log(steps)
@@ -3511,7 +3629,7 @@ class WorkerEditor{
             this._code2EidDick[code] = nodeIst.c.id
             nodeIst.c.data('type', type)
             this._bindEvent(nodeIst)
-            this.nodes.push(nodeIst)
+            this.nodeQueues.push(nodeIst)
         }
     }
     /**
@@ -3580,7 +3698,7 @@ class WorkerEditor{
        }
     }
     /**
-     * 
+     * 直线拖动
      * @param {RapaelElement} lineInst 
      */
     _lineTragEvent(lineInst){
@@ -3589,8 +3707,11 @@ class WorkerEditor{
         }
         var $this = this;
         (function(TmpArrIst){
-            TmpArrIst.c.click(function(){         
-                $this.removeBBox()  // 移除当前的节点的外部边框      
+            TmpArrIst.c.click(function(){     
+                $this.removeBBox()  // 移除当前的节点的外部边框
+                // 选中标识符号
+                TmpArrIst.selectEdMk = true   
+
                 var opt = TmpArrIst.opt 
                 var color = '#000000'
                 var pR = 3      // 半径                        
@@ -3681,6 +3802,50 @@ class WorkerEditor{
         return true
     }
     /**
+     * 文本拖动，独立文本
+     * @param {RapaelElement} textElem 
+     */
+    _textBindEvent(textElem){
+        var $this = this;
+        // 拖动
+        (function(textIst){
+            var _dragDt = {x:0, y:0}
+            textIst.drag(
+                function(x, y){
+                    x += _dragDt.x
+                    y += _dragDt.y
+                    textIst.attr({x, y})
+                },
+                function(){
+                    _dragDt.x = textIst.attr('x')
+                    _dragDt.y = textIst.attr('y')
+                },
+                function(){}
+            )
+        })(textElem);
+        // 点击处理
+        textElem.click(function(){
+            // this.attr('font-size', '100rem')
+            // this.attr('font-size', '1.23em')
+            $this._removeTxtSelect()
+            this.attr(Conf.text.selected)
+            this.data('selectMk', true)
+        })
+    }
+    /**
+     * 移除文本选中状态
+     */
+    _removeTxtSelect(){
+        var texts = this.textQueues
+        for(var i=0; i<texts.length; i++){
+            var text = texts[i]
+            if(text.data('selectMk')){
+                text.attr(Conf.text.defAtrr)
+                text.data('selectMk', false)
+            }
+        }
+    }
+    /**
      * 事件处理接口
      * @param {NodeBase} nodeIst 
      */
@@ -3694,7 +3859,7 @@ class WorkerEditor{
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony default export */ __webpack_exports__["a"] = ({"version":"1.1.6","release":"20180313","author":"Joshua Conero"});
+/* harmony default export */ __webpack_exports__["a"] = ({"version":"1.1.6","release":"20180314","author":"Joshua Conero"});
 
 /***/ })
 /******/ ]);

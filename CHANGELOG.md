@@ -1,6 +1,11 @@
 ## 更新日志
 
 > ***V1.1.x/alpha-date*** alpha 类型模板
+- ***V1.1.7/20180314***
+- WorkerJs
+    - src/WorkerEditor.js 工作流编辑器
+        - (优化) removeBBox/getSelected 方法添加对“连线”的管理
+
 - ***V1.1.6/20180313***
 - (概述) 工作流编辑器
     - 由于之前的版本使用 ***RaphaelElement.id*** 作为保存数据的 ***code*** 字段，造成历史保存的数据与现有数据id不可检测且冲突
