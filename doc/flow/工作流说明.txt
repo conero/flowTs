@@ -1,0 +1,245 @@
+
+
+一、流程特殊变量 (以两个下划线开头)
+__uid 当前用户id
+__cname 当前用户姓名
+__stru_id 当前用户部门id
+__stru_name 当前用户部门名称
+__curdate 当前时间(天)
+__curtime2 当前时间(分)
+__curtime1 当前时间(秒)
+__dunix 当前unix时间戳(天)
+__munix 当前unix时间戳(分)
+__sunix 当前unix时间戳(秒)
+__flow_id 流程id
+__flow_pk_id 流程的主键值
+__flow_uid 流程发起人id
+__flow_cname 流程发起人姓名
+__flow_stru_id 流程发起人部门id
+__flow_stru_name 流程发起人部门名称
+
+
+二、工作流数据表结构
+
+sys_wf1000c (工作流设置)
+    flow_id 流程id (只能填字母和数字)
+    flow_name 流程名称
+    last_ver 最新版本  
+
+sys_wf1010c (工作流版本)
+    flow_id 流程id
+    ver_no 版本号
+    flow_cfg 流程配置
+    status 状态 (0-已过期、1-未发布、2-已发布)
+    remark 备注
+    muser 维护者
+    mname 维护者姓名
+    mtime 维护时间
+
+
+流程配置明细
+form (表单)
+    fields - 表单字段 (格式: {"字段代码": {"参数名":"参数值", ...}})
+    url - 访问地址 (格式: 模块名#doName, 如: tmod#edit)
+    args - 访问参数 (格式: {"参数代码":{"name":"参数名称","map":"映射字段或流程特殊变量"}, ...})
+
+表单字段参数列表
+    name - 字段名称
+    classify: 字段分类 (1-普通字段、2-人员字段、3-部门字段)
+    dtype - 数据类型 (格式: {"type":"char-字符、date-日期、number-数字","len":"长度","dec":"小数","def":"默认","min":"最小","max":"最大"})
+    ctype - 字段类型 (1-基础字段、2-可写字段、3-步骤主办人)
+    attr - 字段属性
+注:
+1. 步骤主办人字段是在添加步骤时自动生成, 以下划线开头,   基础及可写字段不能以下划线开头
+2. 数据类型的默认值可用流程特殊变量
+
+可写字段的属性    
+    etype: 编辑类型(text-文本框、mtext-多行文本、email-邮箱、mobile-手机号、phone-座机号码、url-网址、date-日期控件、dtime-时间控件、
+                _user-人员选择器、_dept-部门选择器、select-下拉框、radio-单选框、chkbox-复选框、area-行政区划选择器、
+                uppic-上传图片、upfile-上传文件、switch-开关、hide-隐藏)
+    label: (string) 字段标签 (可选)
+    width: (int) 列宽
+    opt_source: 动态选项的数据源, 仅etype=radio、chkbox、select
+    option: 固定选项列表(格式: {"code":"desc", ...}, 仅etype=radio、chkbox、select)
+    notnull: (bool) 必填(缺省为false)
+    prompt: (string) 输入框中的提示信息, 仅etype=text、mtext、date、dtime、mail、mobile、phone、url
+    text_unit: (string) 文本框的计量单位, 仅etype=text
+    mtext_rows: (int) 多行文本的行数, 缺省为3
+    upload_max: (int) 最大可上传多少兆文件(图片缺省为2、文件缺省为20), 仅etype=uppic、upfile
+    upload_len: (int) 可上传的文件数(缺省为1), 仅etype=uppic、upfile
+    upload_filetype: (string) 可上传的文件类型, 多个用逗号分隔, 仅etype=upfile
+    area_level: (int) 行政区域层级(1-仅选择省、2-可选择省市、3-可选择省市县, 缺省为3)
+    switch_val: (string) 开关值(用逗号分隔, 缺省为“1,0”), 仅etype=switch
+    pic_width: (int) 图片显示宽度(缺省为80), 仅etype=uppic
+    pic_height: (int) 图片显示高度(缺省为80)', 仅etype=uppic
+    opt_inline: (bool) 选项显示成1行 (缺省为true, 设为false将1行显示一个选项), 仅etype=radio、chkbox
+    _user_range: 用户选择范围 (1-全部人员、2-本部门人员、3-指定步骤的全部经办人、4-指定步骤的本部门经办人)
+    _user_rngval: 用户范围值
+    _stru_range: 部门选择范围 (1-全部部门、2-指定步骤的经办部门)
+    _stru_rngval: 部门范围值
+
+
+dataset (数据源, 格式: {"数据源代码":{"参数名":"参数值", ...}})
+参数列表:
+    name 数据源名称
+    from 主表
+    join 关联表 (格式: [['连接方式(i-内连接、l-左连接、r-右连接)','表名','表别名','连接条件'], ...]
+    where 约束条件
+    bind 变量绑定 (格式: {"变量名":"字段映射", ...})
+    orderby 排序规则
+    groupby 分组规则
+    fields 查询字段集 (格式: {"字段代码":字段属性(与popup字段属性相同, 必填项: name、fieldsql), ...})
+    pk_code 主键代码字段名
+    pk_desc 主键描述字段名
+注: 数据源代码不能以下划线开头
+    
+
+callback (回调)
+    module 模块名
+    args - 回传参数 (格式: {"参数代码":{"name": "参数名称", "map": "映射字段"}, ...})
+    
+step (流程步骤)
+    code 步骤代码
+    name 步骤名称
+    type 步骤类型 (1-开始、2-流程节点、3-判断节点、4-合并节点、8-子流程节点、9-结束)
+    prev 上一步骤 (格式: ['步骤代码', ...])
+    next 下一步骤 (格式: ['步骤代码', ...])
+    attr 节点属性
+
+流程节点的属性
+    col_list 可写字段, 格式: ['字段名1', '字段名2', ...]
+    can_revoke 允许退回 (0-不允许、1-允许)
+    is_allsign 是否会签 (0-不会签、1-允许会签、2-强制会签)
+    hide_allsign 会签不可见 (0-总是可见、1-本步骤经办人不可见、2-其他步骤不可见)
+    max_hour 办理时限(小时)
+    auth_list 经办权限 (格式: [{"obj_id":"对象类型", "obj_id":"对象值"}, ...])
+        obj_type 对象类型 (1-部门、2-角色)
+        obj_id 对象值
+    filter_by 选人规则 (格式: {"type":"规则类型","val":"规则值"})
+        type - 规则类型
+            1 - 所有经办人
+            2 - 表单人员字段
+            3 - 表单部门字段的部门主管
+            4 - 表单部门字段的所有人
+            5 - 指定步骤主办人
+            6 - 本部门主管
+            7 - 流程发起人
+            8 - 经办部门主管
+        val - 规则数值
+    data_check 数据校验(格式: [{"expr_list":"条件表达式","msg":"提示信息"}, ...])
+    
+
+ 子流程节点属性
+    flow_name 子流程名称
+    p2c_map 父->子映射关系
+    c2p_map 子->父映射关系
+    end_act 结束后的动作 (1-更新父流程为结束, 2-返回父流程)
+
+分支判断的属性
+    expr_list 条件表达式
+    y_step 符合的下步 (步骤代码)
+    n_step 不符合的下步 (步骤代码)
+
+条件表达式
+    格式: [['连接符: &、|', '左括号', '字段名', '条件符', '条件值', '右括号'], ...]
+    匹配符:
+        =  等于
+        !=  不等于
+        >  大于
+        >=  大于等于
+        <  小于
+        <=  小于等于
+        n  为空
+        !n  不为空
+        in  在...中
+        !in  不在...中
+        %  包含
+        _%  以...开头
+        %_  以...结尾
+
+
+sys_wf2000c (流程实例表)
+    case_id 实例id
+    case_name 实例描述
+    flow_id 流程id
+    ver_no 版本号
+    pk_id 主键id
+    status 状态 (1-运行中、2-已完成、8-已驳回、9-已取消)
+    begin_uid 创建人
+    begin_cname 创建人姓名
+    begin_time 创建时间
+    cancel_uid 取消人
+    cancel_cname 取消人姓名
+    cancel_time 取消时间
+    reject_time 驳回时间
+    end_time 完成时间
+
+sys_wf2010c (实例执行步骤)
+    step_id 步骤id
+    case_id 实例id
+    step_type 步骤类型
+    step_code 步骤代码
+    step_name 步骤名称
+    is_allsign 是否会签
+    hide_allsign 会签不可见
+    max_hour 办理时限(小时)
+    prev_stepid 上一步骤id
+    status 状态 (0-未接收、1-执行中、2-已完成、3-已流转、8-已挂起、9-已取消)
+    begin_time 创建时间
+    run_time 接收时间
+    end_time 完成时间
+
+sys_wf2011c (实例经办人)
+    case_id 实例id
+    step_id 步骤id
+    uid 经办人id
+    cname 经办人姓名
+    is_key 是否主办
+    sign_state 会签结果 (0-无会签、1-同意、2-不同意)
+    sign_opinion 会签意见
+    sign_time 会签时间
+
+sys_wf2012c (实例字段值)
+    case_id 实例id
+    step_id 步骤id
+    colid 字段名
+    value 字段值
+
+sys_wf2020c (实例关系表)
+    pcase_id 父级实例id
+    pstep_id 父级步骤id
+    case_id 子级实例id  
+
+sys_wf2030c (实例操作日志)
+    log_id 日志id
+    case_id 实例id
+    op_type 操作类型 (1-创建流程、2-接收任务、3-挂起任务、4-退回任务、5-提交任务、6-驳回流程、7-取消流程、8-流程完成)
+    op_desc 操作描述
+    op_uid 操作人
+    op_cname 操作人姓名
+    op_time 操作时间
+
+
+三、模块工作流相关操作
+
+1> 在业务模块中初始工作流实例, 例如:
+    //参数: (string)工作流id, (string)主键值, (array)表单基础字段值
+    Zworkflow::init('fra2000c', 'FRA201712200001', ['f1'=>'123', 'f2'=>'abc']);
+
+2> 事件回调的接收处理
+(1) 在项目source/modal/Call 新建回调模块，文件以“Flow”开头, 主入口为“doMain”, 例如:
+<?php
+Call_FlowFra2000c extends Call_Abstract
+{
+    /**
+     * 主入口
+     * @param array $args - 回调参数, 参数项如下:
+     *     event (事件代码): init-创建实例、save-提交任务、reject-驳回、end-结束实例
+     *     data (当前步骤的表单数据): ['f1'=>'字段值1', ...]
+     *     alldata (截止到当前步骤的所有数据): ['f1'=>'字段值1', ...]
+     *     id (主键值): 创建实例时传入的主键值
+     */
+    public function doMain($args)
+    {
+    }
+}

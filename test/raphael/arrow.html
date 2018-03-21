@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>箭头</title>
+    <link href="../flow/flow.css" rel="stylesheet">
+    <script src="../jquery.min.js"></script>
+    <script src="../raphael.min.js"></script>
+    <style>
+        body{margin: 0px;}
+    </style>
+</head>
+<body>
+<div id="workflow" class="flow-body"></div>
+<script>
+$(function(){
+    var paper = Raphael('workflow', $(window).width(), $(window).height());
+
+    var arrowMaker = (p1, p2) => {
+        var arrowIstn = paper.path(
+            'M' + p1[0] + ',' + p1[1] + 
+            'L' + p2[0] + ',' + p2[1]
+        )
+        ;
+        var r = 2;
+        var arrowStart = paper.circle(p1[0], p1[1], r);
+            arrowStart.attr('fill', 'rgb(14, 10, 10)');
+        var arrowEnd = paper.circle(p2[0], p2[1], r);
+            arrowEnd.attr('fill', 'rgb(14, 10, 10)');
+
+        (function($nd){
+            var crDt = {};
+            $nd.drag(
+                function(dx, dy){},
+                function(){
+                    console.log(this)
+                }
+            )
+        })(arrowIstn);
+        
+    };
+    // 来源网络资源
+    // 画箭头，p1 开始位置,p2 结束位置, r前头的边长
+    var arrowNode = (p1, p2, r) =>{
+        var atan = Math.atan2(p1.y - p2.y, p2.x - p1.x) * (180 / Math.PI);
+
+        var centerX = p2.x - r * Math.cos(atan * (Math.PI / 180));
+        var centerY = p2.y + r * Math.sin(atan * (Math.PI / 180));
+
+        var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
+        var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
+
+        var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
+        var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
+        var $aNd = paper.path(
+            'M' + p1.x + ',' + p1.y + 
+            'L' + p2.x + ',' + p2.y + 
+            'L' + x2 + ',' + y2 + 
+            'L' + x3 + ',' + y3 + 
+            'L' + p2.x + ',' + p2.y
+        )
+        $aNd.attr('fill', 'rgb(14, 10, 10)')
+    }
+    // 直线转角走法
+    var lineRightAngle = (p1, p2) =>{
+        var middleLine = ''
+        if(p1.x != p2.x && p1.y != p2.y){
+            var d1 = p2.x - p1.x
+            var d0 = 20
+            middleLine = 
+                'L' + (p1.x+d1 + d0*(d1>0? 1:-1)) + ',' + p1.y + 
+                'L' + (p1.x+d1 + d0*(d1>0? 1:-1)) + ',' + p2.y + 
+                ''
+        }
+        var $line = paper.path(
+            'M' + p1.x + ',' + p1.y + 
+            middleLine +
+            'L' + p2.x + ',' + p2.y
+        )
+    }
+    // 两个容器组合
+    var arrowRightAngle = function(p1, p2, r){
+        var pathStr = '';
+        var middlePoint = []
+        var endPt = p1
+        if(p1.x < p2.x){
+            middlePoint.push({x:p2.x, y:p1.y})
+        }
+        else if(p1.x > p2.x){
+            middlePoint.push({x:p1.x, y:p2.y})
+        }
+
+        if(middlePoint.length > 0){
+            endPt = middlePoint[middlePoint.length - 1]
+        }
+        
+        // 系统
+        var atan = Math.atan2(endPt.y - p2.y, p2.x - endPt.x) * (180 / Math.PI);
+
+        for(var i=0; i<middlePoint.length; i++){
+            var mP = middlePoint[i]
+            pathStr += 'L' + mP.x + ',' + mP.y
+        }
+
+
+        var centerX = p2.x - r * Math.cos(atan * (Math.PI / 180));
+        var centerY = p2.y + r * Math.sin(atan * (Math.PI / 180));
+
+        var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
+        var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
+
+        var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
+        var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
+        
+        // var $aNd = paper.path(
+        //     'M' + p1.x + ',' + p1.y + 
+        //     pathStr +
+        //     // 箭头连接点
+        //     'L' + p2.x + ',' + p2.y + 
+        //     // 箭头体
+        //     'L' + x2 + ',' + y2 + 
+        //     'L' + x3 + ',' + y3 + 
+        //     'L' + p2.x + ',' + p2.y
+        // )
+
+
+        var $line = paper.path(
+            'M' + p1.x + ',' + p1.y + 
+            pathStr +
+            // 箭头连接点
+            'L' + p2.x + ',' + p2.y
+        )
+
+        var $arrow = paper.path(
+            'M' + p2.x + ',' + p2.y +
+            // 箭头体
+            'L' + x2 + ',' + y2 + 
+            'L' + x3 + ',' + y3 + 
+            'L' + p2.x + ',' + p2.y
+        )
+
+        $line.data('arrow-id', $arrow.id)
+        $line.attr('stroke', 'rgb(14, 10, 10)')
+        $arrow.attr('fill', 'rgb(14, 10, 10)')
+        // $aNd.attr('fill', 'rgb(14, 10, 10)')
+        // console.log($line)
+        // console.log($line.data())
+
+    }
+
+    // 单容器
+    var arrowRightAngle2 = function(p1, p2, r){
+        var pathStr = '';
+        var middlePoint = []
+        var endPt = p1
+        if(p1.x < p2.x){
+            middlePoint.push({x:p2.x, y:p1.y})
+        }
+        else if(p1.x > p2.x){
+            middlePoint.push({x:p1.x, y:p2.y})
+        }
+
+        if(middlePoint.length > 0){
+            endPt = middlePoint[middlePoint.length - 1]
+        }
+        
+        // 系统
+        var atan = Math.atan2(endPt.y - p2.y, p2.x - endPt.x) * (180 / Math.PI);
+
+        for(var i=0; i<middlePoint.length; i++){
+            var mP = middlePoint[i]
+            pathStr += 'L' + mP.x + ',' + mP.y
+        }
+
+
+        var centerX = p2.x - r * Math.cos(atan * (Math.PI / 180));
+        var centerY = p2.y + r * Math.sin(atan * (Math.PI / 180));
+
+        var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
+        var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
+
+        var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
+        var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
+        
+        // var $aNd = paper.path(
+        //     'M' + p1.x + ',' + p1.y + 
+        //     pathStr +
+        //     // 箭头连接点
+        //     'L' + p2.x + ',' + p2.y + 
+        //     // 箭头体
+        //     'L' + x2 + ',' + y2 + 
+        //     'L' + x3 + ',' + y3 + 
+        //     'L' + p2.x + ',' + p2.y
+        // )
+
+
+        var $line = paper.path(
+            'M' + p1.x + ',' + p1.y + 
+            pathStr +
+            // 箭头连接点
+            'L' + p2.x + ',' + p2.y + 
+            // 箭头体
+            'L' + x2 + ',' + y2 + 
+            'L' + x3 + ',' + y3 + 
+            'L' + p2.x + ',' + p2.y
+        )
+        // $line.data('arrow-id', $arrow.id)
+        $line.attr('stroke', 'rgb(14, 10, 10)')
+        // $line.attr('fill', 'rgb(14, 10, 10)')
+        // console.log($line)
+        // console.log($line.data())
+
+    }
+
+
+    // 箭头测试
+    arrowMaker([200, 400], [700, 500]);
+    // 箭头
+    arrowNode({x: 100, y:50}, {x: 265, y:112}, 5)
+    lineRightAngle({x: 410, y:230}, {x:630, y:380})
+    lineRightAngle({x: 430, y:130}, {x:210, y:380})
+    lineRightAngle({x: 110, y:130}, {x:110, y:380})
+    lineRightAngle({x: 50, y:380}, {x:90, y:380})
+    
+    // 箭头转角
+    arrowRightAngle({x:611, y:50}, {x:900, y:315}, 5)
+    arrowRightAngle({x:720, y:350}, {x:950, y:50}, 5)
+    arrowRightAngle({x:1000, y:350}, {x:700, y:20}, 5)
+    arrowRightAngle({x:1060, y:19}, {x:700, y:400}, 5)
+
+    // 箭头转角
+    arrowRightAngle2({x:611, y:523}, {x:900, y:700}, 5)
+    // arrowRightAngle2({x:720, y:350}, {x:950, y:50}, 5)
+    // arrowRightAngle2({x:1000, y:350}, {x:700, y:20}, 5)
+    // arrowRightAngle2({x:1060, y:19}, {x:700, y:400}, 5)
+})
+
+</script>
+</body>
+</html>
