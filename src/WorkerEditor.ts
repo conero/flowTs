@@ -6,6 +6,18 @@ import H from './helper'            // 助手方法
 import Judge from './node/NodeJudge'
 import {Flow} from './flow'
 
+// 通过数据 object 类型
+interface ItfMap {
+    [k: string]: any,
+    [k: number]: any
+}
+
+// 坐标点
+interface ItfPoint {
+    x?: number,
+    y?: number
+}
+
 
 // 配置参数常量 , type 1801 为特殊类型
 const Conf = {
@@ -52,13 +64,15 @@ class WorkerEditor{
     config: any
     raphael: any
     _rIdx: number
-    _code2EidDick: object
+    _code2EidDick: {
+        [k: string]: string
+    }
     _LineDragingP:any
     flow: any
     nodeQueues: any
     lineQueues: any
     textQueues: any
-    tempNodes: object
+    tempNodes: any
     MagneticCore: any
     /**
      * @param {object} config 数据配置项
@@ -714,7 +728,7 @@ class WorkerEditor{
         if(!node){
             node = this.getSelected()
         }
-        var fjson = {}
+        var fjson: ItfPoint = {}
         if(node){
             var label = node.label || null
             var c = node.c
@@ -758,7 +772,7 @@ class WorkerEditor{
      * @param {NodeBase|null|string} refIst 参照id/NodeBase attr= {code}
      * @returns {string}
      */
-    getLineCntCode(type, lineId, refIst){
+    getLineCntCode(type: string, lineId: string, refIst?: any){
         var code = null
         if(type && lineId){
             var nodes = this.nodeQueues
@@ -789,7 +803,7 @@ class WorkerEditor{
      * @param {object} point {x, y} 坐标点
      * @returns {RapaelElement|null}
      */
-    getIntersectElem(point){
+    getIntersectElem(point: ){
         var itsctEl = null
         if('object' == typeof point){
             var nodes = this.nodeQueues
@@ -856,13 +870,13 @@ class WorkerEditor{
      * 加载流程数据,用于修改时加载历史数据
      * @param {object|null} steps 
      */
-    loadStep(steps){
+    loadStep(steps: any){
         if('object' == typeof steps){
             // 连接性先关联信息: {id:{}}
-            var lineCntMapInfo = {},
+            var lineCntMapInfo: ItfMap = {},
                 pkgClr = this.config.pkgClr
             // 记录连线端点信息                
-            var recordLMapFn = (_from, _to) =>{
+            var recordLMapFn = (_from: string, _to: string) =>{
                 if(_from.indexOf(',') == -1){
                     var _toQus = _to.indexOf(',') == -1? [_to]: _to.split(',')
                     for(var x1=0; x1<_toQus.length; x1++){
@@ -988,7 +1002,7 @@ class WorkerEditor{
      * @param {object} cDragDt 当前节点拖动的参数
      * @param {number|string} type 节点类型
      */
-    _createNode(tbDragDt, type){
+    _createNode(tbDragDt: any, type: any){
         var $this = this,
             nodeIst = null,
             config = this.config,
@@ -1012,7 +1026,7 @@ class WorkerEditor{
                 break;                          
         }
         if(nodeIst){    // 保存节点实例
-            var code = code = this._getOrderCode()
+            var code = this._getOrderCode()
             nodeIst.c.data('code', code)
             this._code2EidDick[code] = nodeIst.c.id
             nodeIst.c.data('type', type)
@@ -1024,7 +1038,7 @@ class WorkerEditor{
      * 节点绑定事件
      * @param {NodeBase} nodeIst 
      */
-    _bindEvent(nodeIst){
+    _bindEvent(nodeIst: any){
         if(nodeIst){    // 保存节点实例
             var $this = this,
             config = this.config,
@@ -1032,9 +1046,9 @@ class WorkerEditor{
             ;
             // 节点拖动
            (function(){
-               var cDragDt = {}
+               var cDragDt = {x: 0, y: 0}
                nodeIst.c.drag(
-                   function(dx, dy){
+                   function(dx: number, dy: number){
                        dx += cDragDt.x
                        dy += cDragDt.y
                        nodeIst.move(dx, dy)
@@ -1089,7 +1103,7 @@ class WorkerEditor{
      * 直线拖动
      * @param {RapaelElement} lineInst 
      */
-    _lineTragEvent(lineInst){
+    _lineTragEvent(lineInst: any){
         if(!lineInst || 'object' != typeof lineInst){
             return false
         }
@@ -1113,11 +1127,12 @@ class WorkerEditor{
                 var arrowLineP2 = $this.raphael.circle(opt.p2[0], opt.p2[1], pR)
                 arrowLineP2.attr('fill', color)
 
-                var lineEndPointMoveEvt = function(LIst, isEnd){
+                // tsc isEnd 可选参数
+                var lineEndPointMoveEvt = function(LIst: any, isEnd?: any){
                     var aCDt = {ax: 0, ay: 0}
                     // console.log(arrowLineP1)
                     LIst.drag(
-                        function(ax, ay){
+                        function(ax: number, ay: number){
                             ax += aCDt.ax
                             ay += aCDt.ay
                             var hasIntersectElem = $this.getIntersectElem({x: ax, y:ay})
@@ -1193,13 +1208,13 @@ class WorkerEditor{
      * 文本拖动，独立文本
      * @param {RapaelElement} textElem 
      */
-    _textBindEvent(textElem){
+    _textBindEvent(textElem: any){
         var $this = this;
         // 拖动
         (function(textIst){
             var _dragDt = {x:0, y:0}
             textIst.drag(
-                function(x, y){
+                function(x: number, y: number){
                     x += _dragDt.x
                     y += _dragDt.y
                     textIst.attr({x, y})
@@ -1238,7 +1253,7 @@ class WorkerEditor{
      * 事件处理接口
      * @param {NodeBase} nodeIst 
      */
-    onNodeClick(nodeIst){}
+    onNodeClick(nodeIst: any){}
 }
 
 export default WorkerEditor

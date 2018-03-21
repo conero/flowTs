@@ -209,19 +209,6 @@ var NodeJudge = /** @class */ (function (_super) {
      * @param {object} opt / [cx, cy, w, h, text]
      */
     NodeJudge.prototype.create = function (opt) {
-        // 解析类型
-        if ('object' != typeof opt) {
-            var param = arguments;
-            opt = {
-                cx: param[0],
-                cy: param[1],
-                w: param[2],
-                h: param[3],
-            };
-            if (param[4]) {
-                opt.text = param[4];
-            }
-        }
         this.opt = opt;
         this.minWidth = opt.w;
         // 容器        
@@ -1423,7 +1410,7 @@ var WorkerEditor = /** @class */ (function () {
                 break;
         }
         if (nodeIst) {
-            var code = code = this._getOrderCode();
+            var code = this._getOrderCode();
             nodeIst.c.data('code', code);
             this._code2EidDick[code] = nodeIst.c.id;
             nodeIst.c.data('type', type);
@@ -1440,7 +1427,7 @@ var WorkerEditor = /** @class */ (function () {
             var $this = this, config = this.config, pkgClr = config.pkgClr;
             // 节点拖动
             (function () {
-                var cDragDt = {};
+                var cDragDt = { x: 0, y: 0 };
                 nodeIst.c.drag(function (dx, dy) {
                     dx += cDragDt.x;
                     dy += cDragDt.y;
@@ -1512,6 +1499,7 @@ var WorkerEditor = /** @class */ (function () {
                 // 结束节点
                 var arrowLineP2 = $this.raphael.circle(opt.p2[0], opt.p2[1], pR);
                 arrowLineP2.attr('fill', color);
+                // tsc isEnd 可选参数
                 var lineEndPointMoveEvt = function (LIst, isEnd) {
                     var aCDt = { ax: 0, ay: 0 };
                     // console.log(arrowLineP1)
@@ -1937,23 +1925,23 @@ var Flow = /** @class */ (function () {
      */
     Flow.prototype.endpoint = function (cx, cy, r, text) {
         var nd = new __WEBPACK_IMPORTED_MODULE_0__node_NodeEndpoint__["a" /* default */](this.paper);
-        nd.create(cx, cy, r, text);
+        nd.create({ cx: cx, cy: cy, r: r, text: text });
         return nd;
     };
     /**
      * 判断节点
      */
-    Flow.prototype.judge = function (x, y, w, h, text) {
+    Flow.prototype.judge = function (cx, cy, w, h, text) {
         var nd = new __WEBPACK_IMPORTED_MODULE_2__node_NodeJudge__["a" /* default */](this.paper);
-        nd.create(x, y, w, h, text);
+        nd.create({ cx: cx, cy: cy, w: w, h: h, text: text });
         return nd;
     };
     /**
      * 操作节点
      */
-    Flow.prototype.operation = function (x, y, w, h, text) {
+    Flow.prototype.operation = function (cx, cy, w, h, text) {
         var nd = new __WEBPACK_IMPORTED_MODULE_1__node_NodeOperation__["a" /* default */](this.paper);
-        nd.create(x, y, w, h, text);
+        nd.create({ cx: cx, cy: cy, w: w, h: h, text: text });
         return nd;
     };
     /**
@@ -2061,7 +2049,7 @@ var NodeEndpoint = /** @class */ (function (_super) {
         return _this;
     }
     /**
-     * @param {...any} opt / [cx, cy, r, text]
+     * @param {object} opt / {cx, cy, r, text}
      */
     NodeEndpoint.prototype.create = function (opt) {
         // 解析类型
@@ -2290,19 +2278,6 @@ var NodeOperation = /** @class */ (function (_super) {
      * @param {object} opt / [cx, cy, w, h, text]
      */
     NodeOperation.prototype.create = function (opt) {
-        // 解析类型
-        if ('object' != typeof opt) {
-            var param = arguments;
-            opt = {
-                cx: param[0],
-                cy: param[1],
-                w: param[2],
-                h: param[3],
-            };
-            if (param[4]) {
-                opt.text = param[4];
-            }
-        }
         this.opt = opt;
         this.minWidth = opt.w; // 最小宽度
         // 容器        

@@ -29,7 +29,7 @@ class NodeJudge extends NodeBase{
      * @param {number} h 
      * @returns RaphaelElement
      */
-    onlyCell(cx, cy, w, h){
+    onlyCell(cx: number, cy: number, w: number, h: number){
         this.opt = {cx, cy, w, h}
         // 容器        
         var ap = this.getAp()
@@ -47,20 +47,7 @@ class NodeJudge extends NodeBase{
     /**
      * @param {object} opt / [cx, cy, w, h, text]
      */
-    create(opt){
-        // 解析类型
-        if('object' != typeof opt){
-            var param = arguments
-            opt = {
-                cx: param[0],
-                cy: param[1],
-                w: param[2],
-                h: param[3],
-            }
-            if(param[4]){
-                opt.text = param[4]
-            }
-        }
+    create(opt: object){
         this.opt = opt
         this.minWidth = opt.w
         // 容器        

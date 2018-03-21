@@ -16,16 +16,16 @@ class NodeEndpoint extends NodeBase{
      * 
      * @param {*} instance Raphael 实例
      */
-    constructor(instance){
+    constructor(instance: any){
         super()
         this.NodeType = 'endpnt'
         this.instance = instance
         this.opt = {}
     }
     /**
-     * @param {...any} opt / [cx, cy, r, text]
+     * @param {object} opt / {cx, cy, r, text}
      */
-    create(opt){
+    create(opt: any){
         // 解析类型
         if('object' != typeof opt){
             var param = arguments

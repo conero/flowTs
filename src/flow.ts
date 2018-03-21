@@ -25,25 +25,25 @@ class Flow{
      * @param {number} r 
      * @param {string|null} 文本框
      */
-    endpoint(cx, cy, r, text){
+    endpoint(cx: number, cy: number, r: number, text: string){
         var nd = new NodeEndpoint(this.paper)
-        nd.create(cx, cy, r, text)
+        nd.create({cx, cy, r, text})
         return nd
     }
     /**
      * 判断节点
      */
-    judge(x, y, w, h, text){
+    judge(cx: number, cy: number, w: number, h: number, text: string){
         var nd = new NodeJudge(this.paper)
-        nd.create(x, y, w, h, text)
+        nd.create({cx, cy, w, h, text})
         return nd
     }
     /**
      * 操作节点
      */
-    operation(x:number, y:number, w:number, h:number, text: string){
+    operation(cx:number, cy:number, w:number, h:number, text: string){
         var nd = new NodeOperation(this.paper)
-        nd.create(x, y, w, h, text)
+        nd.create({cx, cy, w, h, text})
         return nd
     }
     /**

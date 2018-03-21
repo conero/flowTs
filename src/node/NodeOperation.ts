@@ -17,7 +17,7 @@ class NodeOperation extends NodeBase{
      * 
      * @param {*} instance Raphael 实例
      */
-    constructor(instance){
+    constructor(instance: any){
         super()
         this.NodeType = 'opera'
         this.instance = instance
@@ -27,20 +27,7 @@ class NodeOperation extends NodeBase{
     /**
      * @param {object} opt / [cx, cy, w, h, text]
      */
-    create(opt){
-        // 解析类型
-        if('object' != typeof opt){
-            var param = arguments
-            opt = {
-                cx: param[0],
-                cy: param[1],
-                w: param[2],
-                h: param[3],
-            }
-            if(param[4]){
-                opt.text = param[4]
-            }
-        }
+    create(opt: object){
         this.opt = opt
         this.minWidth = opt.w       // 最小宽度
         // 容器        
