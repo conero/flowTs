@@ -4,15 +4,90 @@
  */
 import NodeBase from './NodeBase'
 
+// 工作流数据结构 -------------------------------------------------------------------->
+
+declare namespace  Flow{
+    // 工作流-步骤-属性
+    interface FlowStepAttr{
+        col_list?: string[]
+        can_revoke?: number
+        auth_list?: any
+        filter_by?: any
+    }
+    // 工作流-步骤-属性
+    interface FlowStepStru{
+        NodeType?: string
+        opt?: rSu.NodeOpt
+        c?: any
+        label: any
+    }
+    // 工作流-步骤 数据结构
+    interface FlowStepStr{
+        code?: string                // 代码
+        name?: string                // 名称
+        type?: number
+        prev?: string
+        next?: string
+        attr?: FlowStepAttr
+        _struct?: FlowStepStru
+    }
+}
+
+
+
+// 工作流数据结构 --------------------------------------------------------------------||
+
+
+
+// 图标界面 -------------------------------------------------------------------->
+
+// 画布
+declare namespace Dance {
+    // 工具栏
+    interface Tool{
+        containerIst?: any        
+        startIst?: any
+        startTxtIst?: any
+        operaIst?: any
+        operaTxtIst?: any
+        judgeIst?: any
+        judgeTxtIst?: any
+        endIst?: any
+        endTxtIst?: any
+        arrowIst?: any
+        arrowTxtIst?: any
+        textInst?: any
+    }
+}
+// 界面布局
+declare namespace rSu{
+    // 坐标点
+    interface P{
+        x: number
+        y: number
+    }
+    // 节点属性
+    interface NodeOpt{
+        cx?: number 
+        cy?: number 
+        w?: number 
+        h?: number
+        text?: string
+    }
+}
+
+// 图标界面 --------------------------------------------------------------------||
+
 class NodeOperation extends NodeBase{
     NodeType: any
     opt: any
-    c: any
+    // c: any
     label: any
     instance: any
     position: any
     bBox: any
     minWidth: any
+    [k: string]: any
     /**
      * 
      * @param {*} instance Raphael 实例
@@ -27,7 +102,7 @@ class NodeOperation extends NodeBase{
     /**
      * @param {object} opt / [cx, cy, w, h, text]
      */
-    create(opt: object){
+    create(opt: rSu.NodeOpt){
         this.opt = opt
         this.minWidth = opt.w       // 最小宽度
         // 容器        
@@ -107,7 +182,7 @@ class NodeOperation extends NodeBase{
     // 箭头同步移动
     ToSyncArrow(x: number, y: number){
         var ctP = this.getCtpByAp(x, y)
-        this.syncLineMove((lnC, type, $ln) => {
+        this.syncLineMove((lnC: any, type: any, $ln: any) => {
             var position = $ln.position, methodName
             if(type == 'from'){
                 methodName = 'get'+position.from+'p'
@@ -161,7 +236,7 @@ class NodeOperation extends NodeBase{
         y += opt.h/2
         return {x, y}
     }
-    getAp(x: number, y: number){
+    getAp(x?: number, y?: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
@@ -169,7 +244,7 @@ class NodeOperation extends NodeBase{
         y -= opt.h/2
         return {x, y}
     }
-    getBp(x: number, y: number){
+    getBp(x?: number, y?: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
@@ -177,7 +252,7 @@ class NodeOperation extends NodeBase{
         y += opt.h/2
         return {x, y}
     }
-    getCp(x: number, y: number){
+    getCp(x?: number, y?: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
@@ -185,7 +260,7 @@ class NodeOperation extends NodeBase{
         y += opt.h/2
         return {x, y}
     }
-    getDp(x: number, y: number){
+    getDp(x?: number, y?: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
@@ -193,28 +268,28 @@ class NodeOperation extends NodeBase{
         y += opt.h/2
         return {x, y}
     }
-    getTp(x: number, y: number){
+    getTp(x?: number, y?: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         y -= opt.h/2
         return {x, y}
     }
-    getRp(x: number, y: number){
+    getRp(x?: number, y?: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         x += opt.w/2
         return {x, y}
     }
-    getBtp(x: number, y: number){
+    getBtp(x?: number, y?: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         y += opt.h/2
         return {x, y}
     }
-    getLp(x: number, y: number){
+    getLp(x?: number, y?: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy

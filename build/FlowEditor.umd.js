@@ -82,6 +82,7 @@ return /******/ (function(modules) { // webpackBootstrap
  * 2018年1月5日 星期五
  * 基础节点类
  */
+// 图标界面 --------------------------------------------------------------------||
 var NodeBase = /** @class */ (function () {
     function NodeBase() {
         // 连接线起点获取终点
@@ -171,6 +172,7 @@ var __extends = (this && this.__extends) || (function () {
  * 判断处理节点
  */
 
+// 图标界面 --------------------------------------------------------------------||
 var NodeJudge = /** @class */ (function (_super) {
     __extends(NodeJudge, _super);
     /**
@@ -621,7 +623,7 @@ var WorkerEditor = /** @class */ (function () {
         // 拖动处理    
         var dragHandlerEvnt = function (node, type) {
             $this.MagneticCore = null; // 移动工具栏时磁芯消失
-            var cDragDt = {};
+            var cDragDt = { dx: 0, dy: 0 };
             node.drag(function (dx, dy) {
                 // console.log(type)
                 // console.log(dx, dy)
@@ -1627,7 +1629,11 @@ var WorkerEditor = /** @class */ (function () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(process) {// 实例索引序列
+/* WEBPACK VAR INJECTION */(function(process) {/**
+ * 2018年1月8日 星期一
+ * 内部处理类，从 worker.js/flow.js 内部分离
+ */
+// 实例索引序列
 var instanceIndex = 0;
 var instanceSource = {}; // 实列资源队列
 // 内部协助函数(私有)
@@ -1650,10 +1656,11 @@ var H = /** @class */ (function () {
             config.dom = $(config.dom);
         }
         if (!config.w) {
-            config.w = parseInt($(window).width() * 1.1);
+            // config.w = parseInt(width * 1.1)
+            config.w = $(window).width() * 1.1;
         }
         if (!config.h) {
-            config.h = parseInt($(window).height() * 1.1);
+            config.h = $(window).height() * 1.1;
         }
         return Raphael(config.dom.get(0), config.w, config.h);
     };
@@ -2256,6 +2263,7 @@ var __extends = (this && this.__extends) || (function () {
  * 操作处理节点
  */
 
+// 图标界面 --------------------------------------------------------------------||
 var NodeOperation = /** @class */ (function (_super) {
     __extends(NodeOperation, _super);
     /**
@@ -2623,6 +2631,7 @@ var Util = /** @class */ (function () {
  * 2018年1月6日 星期六
  * 连接类型： 箭头
  */
+// 工作流数据结构 -------------------------------------------------------------------->
 var NodeArrow = /** @class */ (function () {
     /**
      *

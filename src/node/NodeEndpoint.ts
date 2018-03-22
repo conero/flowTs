@@ -12,6 +12,7 @@ class NodeEndpoint extends NodeBase{
     label: any
     instance: any
     minWidth: any
+    [k: string]: any
     /**
      * 
      * @param {*} instance Raphael 实例
@@ -145,7 +146,7 @@ class NodeEndpoint extends NodeBase{
     }
     // 箭头同步移动
     ToSyncArrow(x: number, y: number){
-        this.syncLineMove((lnC, type, $ln) => {
+        this.syncLineMove((lnC: any, type: string, $ln: any) => {
             var position = $ln.position
             var methodName            
             if(type == 'from'){

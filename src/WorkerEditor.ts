@@ -6,6 +6,54 @@ import H from './helper'            // 助手方法
 import Judge from './node/NodeJudge'
 import {Flow} from './flow'
 
+
+// 工作流-步骤-属性
+interface FlowStepAttr{
+    col_list?: string[]
+    can_revoke?: number
+    auth_list?: any
+    filter_by?: any
+}
+// 工作流-步骤 数据结构
+interface FlowStepStr{
+    code?: string                // 代码
+    name?: string                // 名称
+    type?: number
+    prev?: string
+    next?: string
+    attr?: FlowStepAttr
+    _struct?: any
+}
+
+
+// 画布
+declare namespace Dance {
+    // 工具栏
+    interface Tool{
+        containerIst?: any        
+        startIst?: any
+        startTxtIst?: any
+        operaIst?: any
+        operaTxtIst?: any
+        judgeIst?: any
+        judgeTxtIst?: any
+        endIst?: any
+        endTxtIst?: any
+        arrowIst?: any
+        arrowTxtIst?: any
+        textInst?: any
+    }
+}
+
+// 节点布局
+declare namespace rSu{
+    // 坐标点
+    interface P{
+        x?: number
+        y?: number
+    }
+}
+
 // 通过数据 object 类型
 interface ItfMap {
     [k: string]: any,
@@ -131,7 +179,7 @@ class WorkerEditor{
      */
     _toolbar(){
         // 工具栏参数信息
-        var $tool = {}  
+        var $tool: Dance.Tool = {}  
         var raphael = this.raphael
         var ctX = 5, 
             ctY = 5,
@@ -194,11 +242,11 @@ class WorkerEditor{
         var $this = this
         var pkgClr = this.config.pkgClr
         // 拖动处理    
-        var dragHandlerEvnt = function(node, type){
+        var dragHandlerEvnt = function(node: any, type: any){
             $this.MagneticCore = null           // 移动工具栏时磁芯消失
-            var cDragDt = {}
+            var cDragDt = {dx: 0, dy: 0}
             node.drag(
-                function(dx, dy){   // moving
+                function(dx: number, dy: number){   // moving
                     // console.log(type)
                     // console.log(dx, dy)
                     // cDragDt = {dx, dy}
@@ -262,11 +310,11 @@ class WorkerEditor{
         // dragHandlerEvnt(this.$tool.arrowIst, Conf.arrow.type)
         // console.log(this.$tool.arrowIst)
         // this.$tool.arrowIst.c.drag()
-        var arrowDragHandler = function(ist){
+        var arrowDragHandler = function(ist: any){
             var cDragDt = {x: 0, y: 0};
-            var innerTmpArror = null
+            var innerTmpArror: any = null
             ist.drag(
-                function(x, y){
+                function(x: number, y: number){
                     x += cDragDt.x
                     y += cDragDt.y
                     if(innerTmpArror){
@@ -301,9 +349,9 @@ class WorkerEditor{
         // 文字拖动
         (function(){
             var _dragDt = {x: 0, y:0}
-            var tmpTxtInst = null   // 临时文本
+            var tmpTxtInst: any = null   // 临时文本
             $this.$tool.textInst.drag(
-                function(x, y){
+                function(x: number, y: number){
                     x += _dragDt.x
                     y += _dragDt.y
                     if(tmpTxtInst){
@@ -731,7 +779,7 @@ class WorkerEditor{
         if(!node){
             node = this.getSelected()
         }
-        var fjson: ItfPoint = {}
+        var fjson: FlowStepStr = {}
         if(node){
             var label = node.label || null
             var c = node.c
@@ -806,7 +854,7 @@ class WorkerEditor{
      * @param {object} point {x, y} 坐标点
      * @returns {RapaelElement|null}
      */
-    getIntersectElem(point: ){
+    getIntersectElem(point: rSu.P){
         var itsctEl = null
         if('object' == typeof point){
             var nodes = this.nodeQueues

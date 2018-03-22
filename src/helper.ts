@@ -2,9 +2,19 @@
  * 2018年1月8日 星期一
  * 内部处理类，从 worker.js/flow.js 内部分离
  */
+
+// import {Raphael} from './rSu'
+
+// 外部对象申明
+declare var Raphael: any
+declare var $:any
+
 interface numberMap {
     [k: number]: any
 }
+
+
+
 // 实例索引序列
 var instanceIndex = 0
 var instanceSource: numberMap = {}     // 实列资源队列
@@ -27,10 +37,11 @@ class H{
             config.dom = $(config.dom)
         }
         if(!config.w){
-            config.w = parseInt($(window).width() * 1.1)
+            // config.w = parseInt(width * 1.1)
+            config.w = $(window).width() * 1.1
         }
         if(!config.h){
-            config.h = parseInt($(window).height() * 1.1)
+            config.h = $(window).height() * 1.1
         }
         return Raphael(config.dom.get(0), config.w, config.h)
     }

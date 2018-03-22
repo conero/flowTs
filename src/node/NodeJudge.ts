@@ -4,6 +4,80 @@
  */
 import NodeBase from './NodeBase'
 
+// 工作流数据结构 -------------------------------------------------------------------->
+
+declare namespace  Flow{
+    // 工作流-步骤-属性
+    interface FlowStepAttr{
+        col_list?: string[]
+        can_revoke?: number
+        auth_list?: any
+        filter_by?: any
+    }
+    // 工作流-步骤-属性
+    interface FlowStepStru{
+        NodeType?: string
+        opt?: rSu.NodeOpt
+        c?: any
+        label: any
+    }
+    // 工作流-步骤 数据结构
+    interface FlowStepStr{
+        code?: string                // 代码
+        name?: string                // 名称
+        type?: number
+        prev?: string
+        next?: string
+        attr?: FlowStepAttr
+        _struct?: FlowStepStru
+    }
+}
+
+
+
+// 工作流数据结构 --------------------------------------------------------------------||
+
+
+
+// 图标界面 -------------------------------------------------------------------->
+
+// 画布
+declare namespace Dance {
+    // 工具栏
+    interface Tool{
+        containerIst?: any        
+        startIst?: any
+        startTxtIst?: any
+        operaIst?: any
+        operaTxtIst?: any
+        judgeIst?: any
+        judgeTxtIst?: any
+        endIst?: any
+        endTxtIst?: any
+        arrowIst?: any
+        arrowTxtIst?: any
+        textInst?: any
+    }
+}
+// 界面布局
+declare namespace rSu{
+    // 坐标点
+    interface P{
+        x: number
+        y: number
+    }
+    // 节点属性
+    interface NodeOpt{
+        cx?: number 
+        cy?: number 
+        w?: number 
+        h?: number
+        text?: string
+    }
+}
+
+// 图标界面 --------------------------------------------------------------------||
+
 class NodeJudge extends NodeBase{
     NodeType: any
     opt: any
@@ -11,11 +85,12 @@ class NodeJudge extends NodeBase{
     label: any
     instance: any
     minWidth: any
+    [k: string]: any
     /**
      * 
      * @param {*} instance Raphael 实例
      */
-    constructor(instance){
+    constructor(instance: any){
         super()
         this.NodeType = 'judge'
         this.instance = instance
@@ -47,7 +122,7 @@ class NodeJudge extends NodeBase{
     /**
      * @param {object} opt / [cx, cy, w, h, text]
      */
-    create(opt: object){
+    create(opt: rSu.NodeOpt){
         this.opt = opt
         this.minWidth = opt.w
         // 容器        
@@ -132,7 +207,7 @@ class NodeJudge extends NodeBase{
     // 直线同步移动
     ToSyncLine(x: number, y: number){
         var ctP = this.getCpByAp(x, y)
-        this.syncLineMove((lnC, type, $ln) => {
+        this.syncLineMove((lnC: any, type: string, $ln: any) => {
             var position = $ln.position
             var methodName
             if(type == 'from'){
@@ -196,34 +271,34 @@ class NodeJudge extends NodeBase{
     /**
      * 根据 A 点获取中心点
      */
-    getCpByAp(x: number, y: number){
+    getCpByAp(x?: number, y?: number){
         var opt = this.opt
         x += opt.w/2
         return {x, y}
     }
     // A 点
-    getAp(x: number, y: number){
+    getAp(x?: number, y?: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         x -= (opt.w/2)
         return {x, y}
     }
-    getBp(x: number, y: number){
+    getBp(x?: number, y?: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         y -= (opt.h/2)
         return {x, y}
     }
-    getCp(x: number, y: number){
+    getCp(x?: number, y?: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         x += (opt.w/2)
         return {x, y}
     }
-    getDp(x: number, y: number){
+    getDp(x?: number, y?: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
