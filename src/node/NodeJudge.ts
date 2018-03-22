@@ -110,7 +110,7 @@ class NodeJudge extends NodeBase{
         ])
     }
     // 按照 A 点移动
-    move(x, y){
+    move(x: number, y: number){
         var ctP = this.getCpByAp(x, y)
         var bP = this.getBp(ctP.x, ctP.y)
         var cP = this.getCp(ctP.x, ctP.y)
@@ -130,7 +130,7 @@ class NodeJudge extends NodeBase{
         this.label.attr(ctP)
     }
     // 直线同步移动
-    ToSyncLine(x, y){
+    ToSyncLine(x: number, y: number){
         var ctP = this.getCpByAp(x, y)
         this.syncLineMove((lnC, type, $ln) => {
             var position = $ln.position
@@ -152,9 +152,9 @@ class NodeJudge extends NodeBase{
         })
     }
     // 箭头同步器
-    ToSyncArrow(x, y){
+    ToSyncArrow(x: number, y: number){
         var ctP = this.getCpByAp(x, y)
-        this.syncLineMove((lnC, type, $ln) => {
+        this.syncLineMove((lnC: any, type: any, $ln: any) => {
             var position = $ln.position
             var methodName
             if(type == 'from'){
@@ -170,7 +170,7 @@ class NodeJudge extends NodeBase{
         })
     }
     // 获取连线的起点节点
-    getStlnP(position){
+    getStlnP(position: string){
         // var position = 'D'
         position = position? position:'D'
         var methodName = 'get' + position + 'p';
@@ -185,7 +185,7 @@ class NodeJudge extends NodeBase{
         return nP
     }
     // 获取连线的终点节点
-    getEnlnP(position){
+    getEnlnP(position: string){
         position = position? position:'B'
         // var p = this.getBp()
         var methodName = 'get' + position + 'p'
@@ -196,34 +196,34 @@ class NodeJudge extends NodeBase{
     /**
      * 根据 A 点获取中心点
      */
-    getCpByAp(x, y){
+    getCpByAp(x: number, y: number){
         var opt = this.opt
         x += opt.w/2
         return {x, y}
     }
     // A 点
-    getAp(x, y){
+    getAp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         x -= (opt.w/2)
         return {x, y}
     }
-    getBp(x, y){
+    getBp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         y -= (opt.h/2)
         return {x, y}
     }
-    getCp(x, y){
+    getCp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         x += (opt.w/2)
         return {x, y}
     }
-    getDp(x, y){
+    getDp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
@@ -236,7 +236,7 @@ class NodeJudge extends NodeBase{
      * @param {string} type [from/to]
      * @returns {boolean}
      */
-    isCoincidence(p, type){
+    isCoincidence(p: any, type: string){
         var successMK = false
         if(p && 'object' == typeof p && 
             'undefined' != typeof p.x && 'undefined' != typeof p.y){

@@ -2,9 +2,12 @@
  * 2018年1月8日 星期一
  * 内部处理类，从 worker.js/flow.js 内部分离
  */
+interface numberMap {
+    [k: number]: any
+}
 // 实例索引序列
 var instanceIndex = 0
-var instanceSource = {}     // 实列资源队列
+var instanceSource: numberMap = {}     // 实列资源队列
 
 // 内部协助函数(私有)
 class H{
@@ -12,7 +15,7 @@ class H{
      * 内部函数生成实例
      * @param {*} config 
      */
-    static createInstance(config){
+    static createInstance(config?: any){
         config = 'object' == typeof config? config:{}
         if(!config.dom){
             if(process.env.NODE_ENV !== 'production'){
@@ -47,7 +50,7 @@ class H{
      * @param {string|null} key 
      * @param {*} value 
      */
-    static src(index, key, value){
+    static src(index: number, key?:any, value?: any){
         if(!instanceSource[index]){
             instanceSource[index] = {}
         }

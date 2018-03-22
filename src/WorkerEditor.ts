@@ -18,6 +18,8 @@ interface ItfPoint {
     y?: number
 }
 
+// 什么jQuery/RaphaelJs
+declare var $: any;
 
 // 配置参数常量 , type 1801 为特殊类型
 const Conf = {
@@ -74,6 +76,7 @@ class WorkerEditor{
     textQueues: any
     tempNodes: any
     MagneticCore: any
+    $tool: any
     /**
      * @param {object} config 数据配置项
      */

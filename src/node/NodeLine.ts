@@ -15,7 +15,7 @@ class NodeLine{
      * 
      * @param {*} instance Raphael 实例
      */
-    constructor(instance){
+    constructor(instance: any){
         this.NodeType = 'line'
         this.instance = instance
         this.opt = {}       // 配置信息数据
@@ -26,7 +26,7 @@ class NodeLine{
 
         this.rightAngle = false // 直线直角连法
     }
-    create(p1, p2){
+    create(p1: any, p2: any){
         this.opt = {
             p1, p2
         }
@@ -39,7 +39,7 @@ class NodeLine{
      * 直角连接法
      * @param {object} opt {p1{x,y}, p2, d}
      */
-    RightAngle(opt){
+    RightAngle(opt: any){
         this.opt = opt
         this.rightAngle = true
         var p1 = opt.p1, 
@@ -68,10 +68,10 @@ class NodeLine{
      * 直接通过坐标点生成直线
      * @param {object} point 
      */
-    createByPoint(point){
+    createByPoint(point: any){
         this.opt = point
         var pathStr = ''
-        Util.each(this.opt.points, (index, value) => {
+        Util.each(this.opt.points, (index:any, value: any) => {
             if(value){
                 pathStr += (pathStr? 'L':'M') + value.x + ',' + value.y
             }

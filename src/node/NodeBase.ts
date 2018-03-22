@@ -19,7 +19,7 @@ class NodeBase{
      * @param {stirng} type 连接线类型
      * @param {this}  $node 节点实例
      */
-    recordLine(type, $node){
+    recordLine(type: string, $node: any){
         if('from' == type){
             this.fromLine.push($node)
         }
@@ -31,9 +31,9 @@ class NodeBase{
      * 同步处理连线
      * @param {function} callback 
      */
-    syncLineMove(callback){
+    syncLineMove(callback: any){
         if('function' !== typeof callback){
-            callback = (instance, type) => {}
+            callback = (instance: any, type: any) => {}
         }
         // 直线同步移动
         var fLines = this.fromLine        

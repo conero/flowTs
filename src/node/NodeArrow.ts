@@ -13,7 +13,7 @@ class NodeArrow{
      * 
      * @param {*} instance Raphael 实例
      */
-    constructor(instance){
+    constructor(instance: any){
         this.NodeType = 'arrow'
         this.instance = instance
         this.opt = {}           // 配置信息数据
@@ -28,7 +28,7 @@ class NodeArrow{
      * @param {*} p2 [x,y]
      * @param {*} r  
      */
-    create(p1, p2, r){
+    create(p1: any, p2: any, r: number){
         this.opt = {
             p1, p2, r
         }

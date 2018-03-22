@@ -87,7 +87,7 @@ class NodeEndpoint extends NodeBase{
         })
     }
     // 外部移动坐标处理， 
-    move(x, y){        
+    move(x: number, y: number){        
         // 容器移动
         this.c.attr({
             cx: x,
@@ -123,8 +123,8 @@ class NodeEndpoint extends NodeBase{
         */
     }
     // 直线同步移动
-    ToSyncLine(x, y){
-        this.syncLineMove((lnC, type, $ln) => {
+    ToSyncLine(x: number, y: number){
+        this.syncLineMove((lnC: any, type: any, $ln:any) => {
             var position = $ln.position
             var methodName      
             if(type == 'from'){
@@ -144,7 +144,7 @@ class NodeEndpoint extends NodeBase{
         })
     }
     // 箭头同步移动
-    ToSyncArrow(x, y){
+    ToSyncArrow(x: number, y: number){
         this.syncLineMove((lnC, type, $ln) => {
             var position = $ln.position
             var methodName            
@@ -161,7 +161,7 @@ class NodeEndpoint extends NodeBase{
         })
     }
     // 获取连线的起点节点
-    getStlnP(position){
+    getStlnP(position?: string){
         position = position? position: 'D'
         var methodName = 'get' + position + 'p'
         var p = this[methodName]()
@@ -169,35 +169,35 @@ class NodeEndpoint extends NodeBase{
         return p
     }
     // 获取连线的终点节点
-    getEnlnP(position){
+    getEnlnP(position?: string){
         position = position? position: 'B'
         var methodName = 'get' + position + 'p'
         var p = this[methodName]()
         p.position = position
         return p
     }
-    getAp(x, y){
+    getAp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         x -= opt.r
         return {x, y}
     }
-    getBp(x, y){
+    getBp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         y -= opt.r
         return {x, y}
     }
-    getCp(x, y){
+    getCp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         x += opt.r
         return {x, y}
     }
-    getDp(x, y){
+    getDp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy

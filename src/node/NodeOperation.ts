@@ -73,7 +73,7 @@ class NodeOperation extends NodeBase{
     }    
 
     // 外部移动坐标处理
-    move(x, y){
+    move(x: number, y: number){
         var ctP = this.getCtpByAp(x, y)
         this.c.attr({
             x, y
@@ -83,10 +83,10 @@ class NodeOperation extends NodeBase{
         this.opt.cy = y
     }
     // 直线同步移动
-    ToSyncLine(x, y){
+    ToSyncLine(x: number, y: number){
         var ctP = this.getCtpByAp(x, y)
         // 直线同步移动
-        this.syncLineMove((lnC, type, $ln) => {
+        this.syncLineMove((lnC: any, type: any, $ln: any) => {
             var position = $ln.position, methodName
             if(type == 'from'){
                 var $fPath = lnC.attr('path')
@@ -105,7 +105,7 @@ class NodeOperation extends NodeBase{
         })
     }
     // 箭头同步移动
-    ToSyncArrow(x, y){
+    ToSyncArrow(x: number, y: number){
         var ctP = this.getCtpByAp(x, y)
         this.syncLineMove((lnC, type, $ln) => {
             var position = $ln.position, methodName
@@ -139,7 +139,7 @@ class NodeOperation extends NodeBase{
     //     })
     // }
     // 获取连线的起点节点
-    getStlnP(position){
+    getStlnP(position?: string){
         position = position? position: 'Bt'
         var methodName = 'get' + position + 'p'
         var p = this[methodName]()
@@ -147,7 +147,7 @@ class NodeOperation extends NodeBase{
         return p
     }
     // 获取连线的终点节点
-    getEnlnP(position){
+    getEnlnP(position?: string){
         position = position? position: 'T'
         var methodName = 'get' + position + 'p'
         var p = this[methodName]()
@@ -155,13 +155,13 @@ class NodeOperation extends NodeBase{
         return p
     }
     // 根据 A 点获取 中心点
-    getCtpByAp(x, y){
+    getCtpByAp(x: number, y: number){
         var opt = this.opt
         x += opt.w/2
         y += opt.h/2
         return {x, y}
     }
-    getAp(x, y){
+    getAp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
@@ -169,7 +169,7 @@ class NodeOperation extends NodeBase{
         y -= opt.h/2
         return {x, y}
     }
-    getBp(x, y){
+    getBp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
@@ -177,7 +177,7 @@ class NodeOperation extends NodeBase{
         y += opt.h/2
         return {x, y}
     }
-    getCp(x, y){
+    getCp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
@@ -185,7 +185,7 @@ class NodeOperation extends NodeBase{
         y += opt.h/2
         return {x, y}
     }
-    getDp(x, y){
+    getDp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
@@ -193,28 +193,28 @@ class NodeOperation extends NodeBase{
         y += opt.h/2
         return {x, y}
     }
-    getTp(x, y){
+    getTp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         y -= opt.h/2
         return {x, y}
     }
-    getRp(x, y){
+    getRp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         x += opt.w/2
         return {x, y}
     }
-    getBtp(x, y){
+    getBtp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy
         y += opt.h/2
         return {x, y}
     }
-    getLp(x, y){
+    getLp(x: number, y: number){
         var opt = this.opt
         x = x? x: opt.cx
         y = y? y: opt.cy

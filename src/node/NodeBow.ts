@@ -23,7 +23,7 @@ class NodeBow{
      * 
      * @param {*} instance Raphael 实例
      */
-    constructor(instance){
+    constructor(instance: any){
         this.NodeType = 'bow'
         this.instance = instance
         this.opt = {}           // 配置信息数据
@@ -38,7 +38,7 @@ class NodeBow{
      * 弓形箭头创建
      * @param {*} opt   {r: 直径, queue:[点队列]}
      */
-    create(opt){
+    create(opt: any){
         this.opt = opt
         this.queueCheck()
         this.bodySharp()
@@ -143,7 +143,7 @@ class NodeBow{
      * @param {*} p2 
      * @param {*} r 
      */
-    updatePath(p1, p2, r){
+    updatePath(p1: any, p2: any, r?: number){
         var opt = this.opt
         if(p1){
             opt.queue[0] = {x:p1[0], y:p1[1]}

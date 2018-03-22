@@ -1627,11 +1627,7 @@ var WorkerEditor = /** @class */ (function () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(process) {/**
- * 2018年1月8日 星期一
- * 内部处理类，从 worker.js/flow.js 内部分离
- */
-// 实例索引序列
+/* WEBPACK VAR INJECTION */(function(process) {// 实例索引序列
 var instanceIndex = 0;
 var instanceSource = {}; // 实列资源队列
 // 内部协助函数(私有)
@@ -2560,10 +2556,6 @@ var NodeLine = /** @class */ (function () {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Util; });
-/**
- * 2018年1月4日 星期四
- * 工具库
- */
 var Util = /** @class */ (function () {
     function Util() {
     }
