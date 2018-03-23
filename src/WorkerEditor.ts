@@ -5,6 +5,7 @@
 import H from './helper'            // 助手方法
 import Judge from './node/NodeJudge'
 import {Flow} from './flow'
+import {VersionStruct, LibVersion} from '../version'
 
 
 // 工作流-步骤-属性
@@ -109,7 +110,7 @@ const Conf = {
 /**
  * 工作流编辑器轻量级
  */
-class WorkerEditor{
+export default class WorkerEditor{
     // config: object
     config: any
     raphael: any
@@ -125,6 +126,9 @@ class WorkerEditor{
     tempNodes: any
     MagneticCore: any
     $tool: any
+    // 静态属性
+    static version: VersionStruct = LibVersion
+
     /**
      * @param {object} config 数据配置项
      */
@@ -1306,5 +1310,3 @@ class WorkerEditor{
      */
     onNodeClick(nodeIst: any){}
 }
-
-export default WorkerEditor

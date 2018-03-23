@@ -1,1 +1,0 @@
-export default {"version":"2.0.0","release":"20180321","author":"Joshua Conero"}

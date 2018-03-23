@@ -17,6 +17,19 @@ var js = (name) => {
         entry: './test/flow/'+name+'.js',
         output: {
             filename: './test/flow/_cro-'+name+'.js'
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.tsx?$/,
+                    // use: 'ts-loader',
+                    // exclude: /node_modules/
+                    loader: "ts-loader"
+                }
+            ]
+        },
+        resolve: {// 现在你require文件的时候可以直接使用require('file')，不用使用require('file.coffee')
+            extensions: ['.js', '.json', '.ts']
         }
     })
 }
@@ -113,6 +126,7 @@ class Config{
         return this
     }
     js(name){
+        /*
         if('object' == typeof name){
             for(var i=0; i<name.length; i++){
                 this.js(name[i])
@@ -123,6 +137,33 @@ class Config{
             entry: './test/'+this.baseDir + name +'.js',
             output: {
                 filename: './test/'+this.baseDir+'_cro-'+name+'.js'
+            }
+        })
+        return this
+        */
+       if('object' == typeof name){
+            for(var i=0; i<name.length; i++){
+                this.js(name[i])
+            }
+            return this
+        }
+        this.jsFileList.push({
+            entry: './test/flow/'+name+'.js',
+            output: {
+                filename: './test/flow/_cro-'+name+'.js'
+            },
+            module: {
+                rules: [
+                    {
+                        test: /\.tsx?$/,
+                        // use: 'ts-loader',
+                        // exclude: /node_modules/
+                        loader: "ts-loader"
+                    }
+                ]
+            },
+            resolve: {// 现在你require文件的时候可以直接使用require('file')，不用使用require('file.coffee')
+                extensions: ['.js', '.json', '.ts']
             }
         })
         return this

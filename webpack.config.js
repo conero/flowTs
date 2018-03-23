@@ -92,34 +92,62 @@ class Queue{
         release: Pkg.release,
         author: Pkg.author
     }
-    fs.writeFileSync('./version.js', `export default ${JSON.stringify(_json)}`)
+    
+    // 版本信息脚本
+    var versionSrpt = `
+    export interface VersionStruct {
+        version?: string
+        release?: string
+        author?: string
+    }
+    export const LibVersion: VersionStruct = ${JSON.stringify(_json)}
+    `
+    fs.writeFileSync('./version.ts', versionSrpt)
 })()
 
 var $queue = new Queue()
-module.exports = $queue
-    /*
+var jsBuilderQue = $queue
+    
     // 别名编译， 实际用于 zonmaker 框架的工作流库  AMD
     // 仅仅从 WorkerEditor 页面中编译
-    .js('browser.FlowEditor.umd', 'FlowEditor.umd', (opt) => {
+    .add('browser.FlowEditor.umd', 'FlowEditor.umd', (opt) => {
+        // opt.output.libraryTarget = 'umd'
+        // opt.output.libraryTarget = 'amd'
         opt.output.libraryTarget = 'umd'
         opt.externals = {
             'raphael': 'raphael'
         }
-        if(!isProdEv){
-            // 本地测试使用，深复制
-            var newOptStr = JSON.stringify(opt)
-            // var newOpt = Object.assign({}, opt)
-            var newOpt = JSON.parse(newOptStr)
-            newOpt.output.filename = '../../zmapp/ZonMaker/public/libs/workflow/workflow.'+(isProdEv? 'min.':'')+'js'
-            $queue.addOpt(newOpt)
-        }
+        
+        // 本地测试使用，深复制
+        var newOpt = Object.assign({}, opt)
+        
+        newOpt.output.filename = '../../zmapp/ZonMaker/public/libs/workflow/workflow.'+(isProdEv? 'min.':'')+'js'
+        $queue.addOpt(newOpt)
     })
-    */
-   .add('browser.FlowEditor.umd.js', 'FlowEditor.umd', (opt) => {
+    
+   .add('browser.FlowEditor.umd', 'FlowEditor.umd', (opt) => {
         opt.output.libraryTarget = 'umd'
         opt.externals = {
             'raphael': 'raphael'
         }
+        // Enable sourcemaps for debugging webpack's output.
+        // 只用于 build 目录
+        opt.devtool = 'source-map'
+    })
+
+    .add('WorkerEditor', null, (opt) => {
+        // opt.output.libraryTarget = 'umd'
+        // opt.externals = {
+        //     'raphael': 'raphael'
+        // }
+        // Enable sourcemaps for debugging webpack's output.
+        // 只用于 build 目录
+        opt.devtool = 'source-map'
     })
 
 .getFiles()
+
+
+// fs.writeFileSync('./debug.json', JSON.stringify(jsBuilderQue, null, 4))
+
+module.exports = jsBuilderQue

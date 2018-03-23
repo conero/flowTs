@@ -6,6 +6,10 @@
 > 矢量图处理库
 
 
+## workflow-ts-2
+- typescript 重写 工作流库
+
+
 ## src
 - 基本文件介绍
     - flow.js   工作流容器生成算法，可迁移至其他的项目中
@@ -142,3 +146,4 @@ var option = {
 ## flow 节点类型
 > 所有节点都由： 容器(container/c), 标签组成(label)
 - endpoint  端点
+

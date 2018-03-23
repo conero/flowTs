@@ -1,10 +1,10 @@
 /**
  * 工作流程编辑器
  */
-import worker from '../../src/worker'
+import workerflow from '../../src/WorkerEditor'
 
 $(function(){
-    var $worker = worker.editor({
+    var $worker = new workerflow({
         dom: '#workflow',
         // noToolBar: true
     })
@@ -12,4 +12,4 @@ $(function(){
     window.$worker = $worker
 })
 
-window.workerflow = worker
+window.workerflow = workerflow

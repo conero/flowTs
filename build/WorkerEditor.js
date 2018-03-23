@@ -1,14 +1,4 @@
-(function webpackUniversalModuleDefinition(root, factory) {
-	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("raphael"));
-	else if(typeof define === 'function' && define.amd)
-		define(["raphael"], factory);
-	else {
-		var a = typeof exports === 'object' ? factory(require("raphael")) : factory(root["raphael"]);
-		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
-	}
-})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE_3__) {
-return /******/ (function(modules) { // webpackBootstrap
+/******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -442,39 +432,14 @@ var NodeJudge = /** @class */ (function (_super) {
 
 /***/ }),
 /* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
- * 2018年3月7日 星期三
- * 浏览器端，非 npm 管理引入包
- * Joshua Conero
- */
-!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(3), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (Raphael, WorkerEditor) {
-    window.Raphael = Raphael;
-    // 2018年3月23日 星期五
-    // `` AMD/RequireJs 文件加载风格，从 ts 库 中加载的文件，默认加载无效
-    var workflow = 'function' == typeof WorkerEditor.default ? WorkerEditor.default : WorkerEditor;
-    return workflow;
-}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports) {
-
-module.exports = __WEBPACK_EXTERNAL_MODULE_3__;
-
-/***/ }),
-/* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeJudge__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__flow__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__version__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__flow__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__version__ = __webpack_require__(12);
 /**
  * 2018年3月1日 星期四
  * worker 工作流编辑器
@@ -1631,7 +1596,7 @@ var WorkerEditor = /** @class */ (function () {
 
 
 /***/ }),
-/* 5 */
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1703,10 +1668,10 @@ var H = /** @class */ (function () {
 }());
 /* harmony default export */ __webpack_exports__["a"] = (H);
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(6)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(4)))
 
 /***/ }),
-/* 6 */
+/* 4 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -1896,17 +1861,17 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 7 */
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Flow; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_NodeEndpoint__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeOperation__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_NodeEndpoint__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeOperation__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_NodeJudge__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_NodeLine__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeArrow__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_NodeBow__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_NodeLine__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeArrow__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_NodeBow__ = __webpack_require__(11);
 /* unused harmony reexport NodeLine */
 /* unused harmony reexport NodeArrow */
 /* unused harmony reexport NodeEndpoint */
@@ -2028,7 +1993,7 @@ var Flow = /** @class */ (function () {
 
 
 /***/ }),
-/* 8 */
+/* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2249,7 +2214,7 @@ var NodeEndpoint = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 9 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2490,11 +2455,11 @@ var NodeOperation = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 10 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(9);
 /**
  * 2018年1月5日 星期五
  * 连接类型： 连线
@@ -2565,7 +2530,7 @@ var NodeLine = /** @class */ (function () {
 
 
 /***/ }),
-/* 11 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2629,7 +2594,7 @@ var Util = /** @class */ (function () {
 
 
 /***/ }),
-/* 12 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2730,7 +2695,7 @@ var NodeArrow = /** @class */ (function () {
 
 
 /***/ }),
-/* 13 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2884,7 +2849,7 @@ var NodeBow = /** @class */ (function () {
 
 
 /***/ }),
-/* 14 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2894,5 +2859,4 @@ var LibVersion = { "version": "2.0.1", "release": "20180323", "author": "Joshua 
 
 /***/ })
 /******/ ]);
-});
-//# sourceMappingURL=FlowEditor.umd.js.map
+//# sourceMappingURL=WorkerEditor.js.map
