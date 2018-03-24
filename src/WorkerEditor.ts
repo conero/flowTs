@@ -1,3 +1,4 @@
+///<reference path='../index.d.ts' />
 /**
  * 2018年3月1日 星期四
  * worker 工作流编辑器
@@ -6,54 +7,6 @@ import H from './helper'            // 助手方法
 import Judge from './node/NodeJudge'
 import {Flow} from './flow'
 import {VersionStruct, LibVersion} from '../version'
-
-
-// 工作流-步骤-属性
-interface FlowStepAttr{
-    col_list?: string[]
-    can_revoke?: number
-    auth_list?: any
-    filter_by?: any
-}
-// 工作流-步骤 数据结构
-interface FlowStepStr{
-    code?: string                // 代码
-    name?: string                // 名称
-    type?: number
-    prev?: string
-    next?: string
-    attr?: FlowStepAttr
-    _struct?: any
-}
-
-
-// 画布
-declare namespace Dance {
-    // 工具栏
-    interface Tool{
-        containerIst?: any        
-        startIst?: any
-        startTxtIst?: any
-        operaIst?: any
-        operaTxtIst?: any
-        judgeIst?: any
-        judgeTxtIst?: any
-        endIst?: any
-        endTxtIst?: any
-        arrowIst?: any
-        arrowTxtIst?: any
-        textInst?: any
-    }
-}
-
-// 节点布局
-declare namespace rSu{
-    // 坐标点
-    interface P{
-        x?: number
-        y?: number
-    }
-}
 
 // 通过数据 object 类型
 interface ItfMap {
@@ -68,7 +21,7 @@ interface ItfPoint {
 }
 
 // 什么jQuery/RaphaelJs
-declare var $: any;
+// declare var $: any;
 
 // 配置参数常量 , type 1801 为特殊类型
 const Conf = {
@@ -783,7 +736,7 @@ export default class WorkerEditor{
         if(!node){
             node = this.getSelected()
         }
-        var fjson: FlowStepStr = {}
+        var fjson: Flower.StepStr = {}
         if(node){
             var label = node.label || null
             var c = node.c

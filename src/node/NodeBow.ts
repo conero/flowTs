@@ -6,10 +6,6 @@
  * 
  * 
  * @class NodeBow
-/**
- * 
- * 
- * @class NodeBow
  */
 class NodeBow{
     NodeType: any

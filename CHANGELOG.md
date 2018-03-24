@@ -1,6 +1,15 @@
 ## 更新日志
 
 > ***V2.0.x/alpha-date*** alpha 类型模板
+- ***V2.0.2/20180324***
+    - (+) index.d.ts 新增申明文件
+        - 删除源代码中重复的类型生成
+    - (+) 引入外部类型库 {https://github.com/DefinitelyTyped/DefinitelyTyped 下 types 文件夹}
+        - types
+            - jquery.ts
+            - raphael.ts
+    - (-) 删除 src/rSu.d.ts 用 index.d.ts 代替
+
 - ***V2.0.1/20180323***
     - webpack
         - 修改 webpack.config.js 配置文件，用于测试 requirejs(AMD) 文件加载风格

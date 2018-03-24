@@ -72,7 +72,6 @@
  * 2018年1月5日 星期五
  * 基础节点类
  */
-// 图标界面 --------------------------------------------------------------------||
 var NodeBase = /** @class */ (function () {
     function NodeBase() {
         // 连接线起点获取终点
@@ -162,7 +161,6 @@ var __extends = (this && this.__extends) || (function () {
  * 判断处理节点
  */
 
-// 图标界面 --------------------------------------------------------------------||
 var NodeJudge = /** @class */ (function (_super) {
     __extends(NodeJudge, _super);
     /**
@@ -440,6 +438,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeJudge__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__flow__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__version__ = __webpack_require__(12);
+///<reference path='../index.d.ts' />
 /**
  * 2018年3月1日 星期四
  * worker 工作流编辑器
@@ -448,6 +447,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
+// 什么jQuery/RaphaelJs
+// declare var $: any;
 // 配置参数常量 , type 1801 为特殊类型
 var Conf = {
     start: {
@@ -2234,7 +2235,6 @@ var __extends = (this && this.__extends) || (function () {
  * 操作处理节点
  */
 
-// 图标界面 --------------------------------------------------------------------||
 var NodeOperation = /** @class */ (function (_super) {
     __extends(NodeOperation, _super);
     /**
@@ -2598,11 +2598,11 @@ var Util = /** @class */ (function () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+///<reference path='../../index.d.ts' />
 /**
  * 2018年1月6日 星期六
  * 连接类型： 箭头
  */
-// 工作流数据结构 -------------------------------------------------------------------->
 var NodeArrow = /** @class */ (function () {
     /**
      *
@@ -2703,10 +2703,6 @@ var NodeArrow = /** @class */ (function () {
  * 2018年1月23日 星期二
  * 弓形箭头
  */
-/**
- *
- *
- * @class NodeBow
 /**
  *
  *

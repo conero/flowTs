@@ -6,3 +6,6 @@ node_modules
 
 # .test4local. 本地测试，文件
 *.test4local.*
+
+# 私有文件夹
+private/

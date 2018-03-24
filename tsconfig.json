@@ -5,5 +5,8 @@
     "module": "es6",
     "sourceMap": true,
     "target": "es5"
-  }
+  },
+  "files": [
+      "index.d.ts",
+  ]
 }

@@ -1,42 +1,35 @@
 /**
- * declear 申明接口类型
- * 2018年3月22日 星期四
- * Joshua Conero
+ * 2018年3月24日 星期六
+ * 库 类型申明
  */
-
-// jQuery
-declare var $:any
-
-// RaphaelJs
-declare var Raphael: any
 
 
 // 工作流数据结构 -------------------------------------------------------------------->
 
-declare namespace  Flow{
+declare namespace  Flower{
     // 工作流-步骤-属性
-    interface FlowStepAttr{
+    export interface StepAttr{
         col_list?: string[]
         can_revoke?: number
         auth_list?: any
         filter_by?: any
     }
     // 工作流-步骤-属性
-    interface FlowStepStru{
+    export interface StepStru{
         NodeType?: string
         opt?: rSu.NodeOpt
         c?: any
-        label: any
+        label?: any
     }
     // 工作流-步骤 数据结构
-    interface FlowStepStr{
+    export interface StepStr{
         code?: string                // 代码
         name?: string                // 名称
         type?: number
         prev?: string
         next?: string
-        attr?: FlowStepAttr
-        _struct?: FlowStepStru
+        attr?: StepAttr
+        _struct?: StepStr
     }
 }
 
@@ -51,7 +44,7 @@ declare namespace  Flow{
 // 画布
 declare namespace Dance {
     // 工具栏
-    interface Tool{
+    export interface Tool{
         containerIst?: any        
         startIst?: any
         startTxtIst?: any
@@ -69,12 +62,12 @@ declare namespace Dance {
 // 界面布局
 declare namespace rSu{
     // 坐标点
-    interface P{
+    export interface P{
         x: number
         y: number
     }
     // 节点属性
-    interface NodeOpt{
+    export interface NodeOpt{
         cx?: number 
         cy?: number 
         w?: number 
