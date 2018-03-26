@@ -7,6 +7,14 @@ import H from './helper'            // 助手方法
 import Judge from './node/NodeJudge'
 import {Flow} from './flow'
 import {VersionStruct, LibVersion} from '../version'
+import NodeBegin from './node/NodeBegin';
+import NodeTask from './node/NodeTask';
+import NodeAudit from './node/NodeAudit';
+import NodeSign from './node/NodeSign';
+import NodeCond from './node/NodeCond';
+import NodeSubFlow from './node/NodeSubFlow';
+import NodeParallel from './node/NodeParallel';
+import NodeMerge from './node/NodeMerge';
 
 // 通过数据 object 类型
 interface ItfMap {
@@ -152,6 +160,43 @@ export default class WorkerEditor{
         // 容器集
         $tool.containerIst = raphael.rect(ctX, ctY, ctW, ctH)
         $tool.containerIst.attr('fill', '#ffffff')      // 容器底色
+
+        // 开始
+        x += 20, y += 50
+        new NodeBegin(raphael, {cx: x, cy: y, w: 16, h: 12})
+            .creator()
+
+        // 任务
+        y += 20
+        new NodeTask(raphael, {cx: x, cy: y, w: 16, h: 12})
+            .creator()
+
+        // 审核
+        y += 20
+        new NodeAudit(raphael, {cx: x, cy: y, w: 16, h: 12})
+            .creator()
+        // 会签
+        y += 20
+        new NodeSign(raphael, {cx: x, cy: y, w: 16, h: 12})
+            .creator()
+        // 判断
+        y += 20
+        new NodeCond(raphael, {cx: x, cy: y, w: 16, h: 12})
+            .creator()
+
+        // 子流程
+        y += 20
+        new NodeSubFlow(raphael, {cx: x, cy: y, w: 16, h: 12})
+            .creator()
+        // 并行
+        y += 30
+        new NodeParallel(raphael, {cx: x, cy: y, w: 16, h: 12})
+            .creator()
+        // 合并
+        y += 20
+        new NodeMerge(raphael, {cx: x, cy: y, w: 16, h: 12})
+            .creator()
+        // ~~ 历史代码
 
         // 开始
         x += 20, y += 50

@@ -61,18 +61,18 @@ declare namespace Dance {
 }
 // 界面布局
 declare namespace rSu{
-    // 坐标点
+    // 坐标点 x, y 轴坐标
     export interface P{
         x: number
         y: number
     }
     // 节点属性
     export interface NodeOpt{
-        cx?: number 
-        cy?: number 
-        w?: number 
-        h?: number
-        text?: string
+        cx?: number             // 中心坐标点 x 轴坐标
+        cy?: number             // 中心坐标点 y 轴坐标
+        w?: number              // 容器的宽度
+        h?: number              // 容器的高度
+        text?: string           // 容器标签文字
     }
 }
 

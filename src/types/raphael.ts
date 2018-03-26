@@ -30,7 +30,9 @@ interface RaphaelElement {
     animateWith(el: RaphaelElement, anim: RaphaelAnimation, params: any, ms: number, easing?: string, callback?: Function): RaphaelElement;
     animateWith(el: RaphaelElement, anim: RaphaelAnimation, animation: RaphaelAnimation): RaphaelElement;
     attr(attrName: string, value: any): RaphaelElement;
-    attr(attrName: string): any;
+    // attr(attrName: string): any;
+    // 2018年3月26日 星期一： 可以传入空值，且返回object对象
+    attr(attrName?: string): any;
     attr(attrNames: string[]): any[];
     attr(params: any): RaphaelElement;
     click(handler: Function): RaphaelElement;
