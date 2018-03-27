@@ -18,9 +18,12 @@ export default class NodeSubFlow extends NodeAbstract{
         var attrs = this.opt2Attr(),
             attr = attrs.cAttr,
             lLine = attrs.lLine,
-            rLine = attrs.rLine
+            rLine = attrs.rLine,
+            opt = this.opt,
+            bkg = opt.bkg || '#88EEEA'
 
         this.c = this.paper.rect(attr.x, attr.y, attr.w, attr.h)
+        this.c.attr('fill', bkg)
         this.inlineEle = [
             this.paper.path(
                 'M' + lLine[0].x + ',' + lLine[0].y + 

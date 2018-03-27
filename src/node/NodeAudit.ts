@@ -12,7 +12,10 @@ export default class NodeAudit extends NodeAbstract{
         this.xRate = 0.20
     }
     protected _whenCreatorEvt(){
-        var pQue = this.opt2Attr()        
+        var pQue = this.opt2Attr(),
+            nOpt = this.opt,
+            bkg = nOpt.bkg || '#88EEEA'
+
         this.c = this.paper.path(
             'M' + pQue[0].x + ',' + pQue[0].y + 
             'L' + pQue[1].x + ',' + pQue[1].y + 
@@ -20,6 +23,7 @@ export default class NodeAudit extends NodeAbstract{
             'L' + pQue[3].x + ',' + pQue[3].y +
             'Z'
         )
+        this.c.attr('fill', bkg)
     }
     /**
      * 选项与节点属性的映射

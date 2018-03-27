@@ -60,11 +60,137 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/**
+ * 2018年3月26日 星期一
+ * 抽象节点
+ */
+///<reference path="../../index.d.ts"/>
+///<reference path="../types/raphael.ts"/>
+var NodeAbstract = /** @class */ (function () {
+    function NodeAbstract(paper, opt) {
+        this.paper = paper;
+        // 连接线起点获取终点
+        this.fromLine = [];
+        this.toLine = [];
+        this.NodeType = null; // 节点类型
+        // 传入属性时，设置目前的对象
+        if (opt) {
+            this.opt = opt;
+        }
+        this._onInit();
+    }
+    /**
+     * 节点生成器，外部可访问接口
+     * @param opt
+     */
+    NodeAbstract.prototype.creator = function (opt) {
+        this._whenCreatorEvt();
+    };
+    /**
+     * 点连线
+     * @param {array} pQue
+     * @param {bool} isClose
+     * @returns {string}
+     */
+    NodeAbstract.prototype._ps2Path = function (pQue, isClose) {
+        var path = '';
+        for (var i = 0; i < pQue.length; i++) {
+            path += (path ? 'L' : 'M') + pQue[i].x + ',' + pQue[i].y;
+        }
+        if (isClose) {
+            path += 'Z';
+        }
+        return path;
+    };
+    /**
+     * 创建事件时，处理事件
+     */
+    NodeAbstract.prototype._whenCreatorEvt = function () { };
+    /**
+     * 节点初始化 [接口]
+     */
+    NodeAbstract.prototype._onInit = function () { };
+    /**
+     * 节点拖动以后处理，调用拖动以后 [接口]
+     */
+    NodeAbstract.prototype.onDrag = function () { };
+    /**
+     * 记录连接线
+     * @param {stirng} type 连接线类型
+     * @param {this}  $node 节点实例
+     */
+    NodeAbstract.prototype.recordLine = function (type, $node) {
+        if ('from' == type) {
+            this.fromLine.push($node);
+        }
+        else if ('to' == type) {
+            this.toLine.push($node);
+        }
+    };
+    /**
+     * 同步处理连线
+     * @param {function} callback
+     */
+    NodeAbstract.prototype.syncLineMove = function (callback) {
+        if ('function' !== typeof callback) {
+            callback = function (instance, type) { };
+        }
+        // 直线同步移动
+        var fLines = this.fromLine;
+        var tLines = this.toLine;
+        // 起点列表处理
+        for (var i = 0; i < fLines.length; i++) {
+            var $fC = fLines[i].c;
+            var $fPath = $fC.attr('path');
+            callback($fC, 'from', fLines[i]);
+        }
+        // 终点列表处理
+        for (var j = 0; j < tLines.length; j++) {
+            var $tC = tLines[j].c;
+            callback($tC, 'to', tLines[j]);
+        }
+    };
+    /**
+     * 公共接口化
+     * NodeBase struct to json 对象， 用于生产节点中 “struct” 的数据结构
+     * @returns {object}
+     */
+    NodeAbstract.prototype.toJson = function () {
+        var _struct = {
+            NodeType: this.NodeType,
+            opt: this.opt,
+            c: {
+                attr: this.c.attr() // 容器属性值
+            }
+        };
+        if (this.label) {
+            _struct.label = {
+                attr: this.label.attr()
+            };
+        }
+        return _struct;
+    };
+    /**
+     * 获取两点间的距离
+     */
+    NodeAbstract.prototype.getPLen = function (P1, P2) {
+        return Math.pow((Math.pow((P1.x - P2.x), 2) + Math.pow((P1.y - P2.y), 2)), 1 / 2);
+    };
+    return NodeAbstract;
+}());
+/* harmony default export */ __webpack_exports__["a"] = (NodeAbstract);
+
+
+/***/ }),
+/* 1 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -141,11 +267,11 @@ var NodeBase = /** @class */ (function () {
 
 
 /***/ }),
-/* 1 */
+/* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeBase__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeBase__ = __webpack_require__(1);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -429,12 +555,12 @@ var NodeJudge = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_WorkerEditor__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_WorkerEditor__ = __webpack_require__(4);
 /**
  * 工作流程编辑器
  */
@@ -452,15 +578,15 @@ $(function(){
 window.workerflow = __WEBPACK_IMPORTED_MODULE_0__src_WorkerEditor__["a" /* default */]
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeJudge__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__flow__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__version__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeBegin__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeJudge__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__flow__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__version__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeBegin__ = __webpack_require__(15);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_NodeTask__ = __webpack_require__(16);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_NodeAudit__ = __webpack_require__(17);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__node_NodeSign__ = __webpack_require__(18);
@@ -468,12 +594,18 @@ window.workerflow = __WEBPACK_IMPORTED_MODULE_0__src_WorkerEditor__["a" /* defau
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__node_NodeSubFlow__ = __webpack_require__(20);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__node_NodeParallel__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__node_NodeMerge__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__node_NodeEnd__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__node_NodeLn__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__node_NodeLnPoly__ = __webpack_require__(25);
 ///<reference path='../index.d.ts' />
 /**
  * 2018年3月1日 星期四
  * worker 工作流编辑器
  */
  // 助手方法
+
+
+
 
 
 
@@ -621,6 +753,25 @@ var WorkerEditor = /** @class */ (function () {
         // 合并
         y += 20;
         new __WEBPACK_IMPORTED_MODULE_11__node_NodeMerge__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
+            .creator();
+        // 结束
+        y += 20;
+        new __WEBPACK_IMPORTED_MODULE_12__node_NodeEnd__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
+            .creator();
+        // 直线
+        y += 20;
+        new __WEBPACK_IMPORTED_MODULE_13__node_NodeLn__["a" /* default */](raphael, {
+            P1: { x: x - 5, y: y },
+            P2: { x: x + 10, y: y }
+        })
+            .creator();
+        // 折线
+        y += 20;
+        new __WEBPACK_IMPORTED_MODULE_14__node_NodeLnPoly__["a" /* default */](raphael, {
+            P1: { x: x - 5, y: y },
+            P2: { x: x + 10, y: y + 4 },
+            h: 4
+        })
             .creator();
         // ~~ 历史代码
         // 开始
@@ -1668,7 +1819,7 @@ var WorkerEditor = /** @class */ (function () {
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1740,10 +1891,10 @@ var H = /** @class */ (function () {
 }());
 /* harmony default export */ __webpack_exports__["a"] = (H);
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(5)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(6)))
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -1933,17 +2084,17 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Flow; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_NodeEndpoint__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeOperation__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_NodeJudge__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_NodeLine__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeArrow__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_NodeBow__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_NodeEndpoint__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeOperation__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_NodeJudge__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_NodeLine__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeArrow__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_NodeBow__ = __webpack_require__(13);
 /* unused harmony reexport NodeLine */
 /* unused harmony reexport NodeArrow */
 /* unused harmony reexport NodeEndpoint */
@@ -2065,11 +2216,11 @@ var Flow = /** @class */ (function () {
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeBase__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeBase__ = __webpack_require__(1);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -2286,11 +2437,11 @@ var NodeEndpoint = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeBase__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeBase__ = __webpack_require__(1);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -2526,11 +2677,11 @@ var NodeOperation = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(11);
 /**
  * 2018年1月5日 星期五
  * 连接类型： 连线
@@ -2601,7 +2752,7 @@ var NodeLine = /** @class */ (function () {
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2665,7 +2816,7 @@ var Util = /** @class */ (function () {
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2766,7 +2917,7 @@ var NodeArrow = /** @class */ (function () {
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2916,20 +3067,20 @@ var NodeBow = /** @class */ (function () {
 
 
 /***/ }),
-/* 13 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.0.2", "release": "20180324", "author": "Joshua Conero" };
-
-
-/***/ }),
 /* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(15);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
+var LibVersion = { "version": "2.0.3", "release": "20180326", "author": "Joshua Conero" };
+
+
+/***/ }),
+/* 15 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
 /**
  * 2018年3月26日 星期一
  * 开始
@@ -2958,8 +3109,9 @@ var NodeBegin = /** @class */ (function (_super) {
      * 生成器处理事件
      */
     NodeBegin.prototype._whenCreatorEvt = function () {
-        var opt = this.opt;
+        var opt = this.opt, bkg = opt.bkg || '#851E07';
         this.c = this.paper.ellipse(opt.cx, opt.cy, opt.w / 2, opt.h / 2);
+        this.c.attr('fill', bkg);
     };
     return NodeBegin;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
@@ -2967,127 +3119,11 @@ var NodeBegin = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 15 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/**
- * 2018年3月26日 星期一
- * 抽象节点
- */
-///<reference path="../../index.d.ts"/>
-///<reference path="../types/raphael.ts"/>
-var NodeAbstract = /** @class */ (function () {
-    function NodeAbstract(paper, opt) {
-        this.paper = paper;
-        // 连接线起点获取终点
-        this.fromLine = [];
-        this.toLine = [];
-        this.NodeType = null; // 节点类型
-        // 传入属性时，设置目前的对象
-        if (opt) {
-            this.opt = opt;
-        }
-        this._onInit();
-    }
-    /**
-     * 节点生成器，外部可访问接口
-     * @param opt
-     */
-    NodeAbstract.prototype.creator = function (opt) {
-        this._whenCreatorEvt();
-    };
-    /**
-     * 点连线
-     * @param {array} pQue
-     * @param {bool} isClose
-     * @returns {string}
-     */
-    NodeAbstract.prototype._ps2Path = function (pQue, isClose) {
-        var path = '';
-        for (var i = 0; i < pQue.length; i++) {
-            path += (path ? 'L' : 'M') + pQue[i].x + ',' + pQue[i].y;
-        }
-        if (isClose) {
-            path += 'Z';
-        }
-        return path;
-    };
-    /**
-     * 创建事件时，处理事件
-     */
-    NodeAbstract.prototype._whenCreatorEvt = function () { };
-    /**
-     * 节点初始化 [接口]
-     */
-    NodeAbstract.prototype._onInit = function () { };
-    /**
-     * 记录连接线
-     * @param {stirng} type 连接线类型
-     * @param {this}  $node 节点实例
-     */
-    NodeAbstract.prototype.recordLine = function (type, $node) {
-        if ('from' == type) {
-            this.fromLine.push($node);
-        }
-        else if ('to' == type) {
-            this.toLine.push($node);
-        }
-    };
-    /**
-     * 同步处理连线
-     * @param {function} callback
-     */
-    NodeAbstract.prototype.syncLineMove = function (callback) {
-        if ('function' !== typeof callback) {
-            callback = function (instance, type) { };
-        }
-        // 直线同步移动
-        var fLines = this.fromLine;
-        var tLines = this.toLine;
-        // 起点列表处理
-        for (var i = 0; i < fLines.length; i++) {
-            var $fC = fLines[i].c;
-            var $fPath = $fC.attr('path');
-            callback($fC, 'from', fLines[i]);
-        }
-        // 终点列表处理
-        for (var j = 0; j < tLines.length; j++) {
-            var $tC = tLines[j].c;
-            callback($tC, 'to', tLines[j]);
-        }
-    };
-    /**
-     * 公共接口化
-     * NodeBase struct to json 对象， 用于生产节点中 “struct” 的数据结构
-     * @returns {object}
-     */
-    NodeAbstract.prototype.toJson = function () {
-        var _struct = {
-            NodeType: this.NodeType,
-            opt: this.opt,
-            c: {
-                attr: this.c.attr() // 容器属性值
-            }
-        };
-        if (this.label) {
-            _struct.label = {
-                attr: this.label.attr()
-            };
-        }
-        return _struct;
-    };
-    return NodeAbstract;
-}());
-/* harmony default export */ __webpack_exports__["a"] = (NodeAbstract);
-
-
-/***/ }),
 /* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
 /**
  * 2018年3月26日 星期一
  * 任务节点
@@ -3115,21 +3151,31 @@ var NodeTask = /** @class */ (function (_super) {
      * 生成器处理事件
      */
     NodeTask.prototype._whenCreatorEvt = function () {
-        var attr = this.opt2Attr();
+        var attr = this.opt2Attr(), opt = this.opt, bkg = opt.bkg || '#88EEEA';
         this.c = this.paper.rect(attr.x, attr.y, attr.w, attr.h);
+        this.c.attr('fill', bkg);
     };
     /**
      * 通过选项映射到节点属性
      */
     NodeTask.prototype.opt2Attr = function (nOpt) {
-        var opt = nOpt ? nOpt : this.opt;
-        var x = opt.cx - opt.w / 2;
-        var y = opt.cy - opt.h / 2;
-        var w = opt.w;
-        var h = opt.h;
+        var opt = nOpt ? nOpt : this.opt, x = opt.cx - opt.w / 2, y = opt.cy - opt.h / 2, w = opt.w, h = opt.h;
         return {
             x: x, y: y, w: w, h: h
         };
+    };
+    /**
+     * 拖动处理事件
+     */
+    NodeTask.prototype.drag = function () {
+        var $this = this;
+        this.c.drag(function (dx, dy) {
+            return {};
+        }, function (x, y) {
+            return {};
+        }, function () {
+            return {};
+        });
     };
     return NodeTask;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
@@ -3141,7 +3187,7 @@ var NodeTask = /** @class */ (function (_super) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
 /**
  * 2018年3月26日 星期一
  * 审核节点
@@ -3167,12 +3213,13 @@ var NodeAudit = /** @class */ (function (_super) {
         this.xRate = 0.20;
     };
     NodeAudit.prototype._whenCreatorEvt = function () {
-        var pQue = this.opt2Attr();
+        var pQue = this.opt2Attr(), nOpt = this.opt, bkg = nOpt.bkg || '#88EEEA';
         this.c = this.paper.path('M' + pQue[0].x + ',' + pQue[0].y +
             'L' + pQue[1].x + ',' + pQue[1].y +
             'L' + pQue[2].x + ',' + pQue[2].y +
             'L' + pQue[3].x + ',' + pQue[3].y +
             'Z');
+        this.c.attr('fill', bkg);
     };
     /**
      * 选项与节点属性的映射
@@ -3210,7 +3257,7 @@ var NodeAudit = /** @class */ (function (_super) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
 /**
  * 2018年3月26日 星期一
  * 会签
@@ -3236,12 +3283,13 @@ var NodeSign = /** @class */ (function (_super) {
         this.xRate = 0.20;
     };
     NodeSign.prototype._whenCreatorEvt = function () {
-        var pQue = this.opt2Attr();
+        var pQue = this.opt2Attr(), opt = this.opt, bkg = opt.bkg || '#88EEEA';
         this.c = this.paper.path('M' + pQue[0].x + ',' + pQue[0].y +
             'L' + pQue[1].x + ',' + pQue[1].y +
             'L' + pQue[2].x + ',' + pQue[2].y +
             'L' + pQue[3].x + ',' + pQue[3].y +
             'Z');
+        this.c.attr('fill', bkg);
     };
     /**
      * 选项与节点属性的映射
@@ -3279,7 +3327,7 @@ var NodeSign = /** @class */ (function (_super) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
 /**
  * 2018年3月26日 星期一
  * 条件判断节点
@@ -3304,12 +3352,13 @@ var NodeCond = /** @class */ (function (_super) {
         this.NodeType = 'cond';
     };
     NodeCond.prototype._whenCreatorEvt = function () {
-        var pQue = this.opt2Attr();
+        var pQue = this.opt2Attr(), opt = this.opt, bkg = opt.bkg || '#88EEEA';
         this.c = this.paper.path('M' + pQue[0].x + ',' + pQue[0].y +
             'L' + pQue[1].x + ',' + pQue[1].y +
             'L' + pQue[2].x + ',' + pQue[2].y +
             'L' + pQue[3].x + ',' + pQue[3].y +
             'Z');
+        this.c.attr('fill', bkg);
     };
     /**
      * 选项与节点属性的映射
@@ -3347,7 +3396,7 @@ var NodeCond = /** @class */ (function (_super) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
 /**
  * 2018年3月26日 星期一
  * 子流程
@@ -3376,8 +3425,9 @@ var NodeSubFlow = /** @class */ (function (_super) {
      * 生成器处理事件
      */
     NodeSubFlow.prototype._whenCreatorEvt = function () {
-        var attrs = this.opt2Attr(), attr = attrs.cAttr, lLine = attrs.lLine, rLine = attrs.rLine;
+        var attrs = this.opt2Attr(), attr = attrs.cAttr, lLine = attrs.lLine, rLine = attrs.rLine, opt = this.opt, bkg = opt.bkg || '#88EEEA';
         this.c = this.paper.rect(attr.x, attr.y, attr.w, attr.h);
+        this.c.attr('fill', bkg);
         this.inlineEle = [
             this.paper.path('M' + lLine[0].x + ',' + lLine[0].y +
                 'L' + lLine[1].x + ',' + lLine[1].y),
@@ -3414,7 +3464,7 @@ var NodeSubFlow = /** @class */ (function (_super) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -3440,8 +3490,9 @@ var NodeParallel = /** @class */ (function (_super) {
         this.xRate = 0.20;
     };
     NodeParallel.prototype._whenCreatorEvt = function () {
-        var attrs = this.opt2Attr();
+        var attrs = this.opt2Attr(), opt = this.opt, bkg = opt.bkg || '#88EEEA';
         this.c = this.paper.path(this._ps2Path(attrs.cAttr, true));
+        this.c.attr('fill', bkg);
         this.inlineEle = this.paper.path(this._ps2Path(attrs.inLine));
     };
     /**
@@ -3486,7 +3537,7 @@ var NodeParallel = /** @class */ (function (_super) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
 /**
  * 2018年3月26日 星期一
  * 合并
@@ -3512,9 +3563,9 @@ var NodeMerge = /** @class */ (function (_super) {
         this.xRate = 0.20;
     };
     NodeMerge.prototype._whenCreatorEvt = function () {
-        var attrs = this.opt2Attr();
-        console.log(attrs);
+        var attrs = this.opt2Attr(), opt = this.opt, bkg = opt.bkg || '#88EEEA';
         this.c = this.paper.path(this._ps2Path(attrs.cAttr, true));
+        this.c.attr('fill', bkg);
         this.inlinesEle = [
             this.paper.path(this._ps2Path(attrs.vLine)),
             this.paper.path(this._ps2Path(attrs.hLine))
@@ -3559,6 +3610,181 @@ var NodeMerge = /** @class */ (function (_super) {
     return NodeMerge;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
 /* harmony default export */ __webpack_exports__["a"] = (NodeMerge);
+
+
+/***/ }),
+/* 23 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+/**
+ * 2018年3月26日 星期一
+ * 结束
+ */
+
+var NodeEnd = /** @class */ (function (_super) {
+    __extends(NodeEnd, _super);
+    function NodeEnd() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    NodeEnd.prototype._onInit = function () {
+        this.NodeType = 'end';
+    };
+    /**
+     * 生成器处理事件
+     */
+    NodeEnd.prototype._whenCreatorEvt = function () {
+        var opt = this.opt, bkg = opt.bkg || '#2EF25F';
+        this.c = this.paper.ellipse(opt.cx, opt.cy, opt.w / 2, opt.h / 2);
+        this.c.attr('fill', bkg);
+    };
+    return NodeEnd;
+}(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
+/* harmony default export */ __webpack_exports__["a"] = (NodeEnd);
+
+
+/***/ }),
+/* 24 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+/**
+ * 2018年3月26日 星期一
+ * 直线
+ */
+
+var NodeLn = /** @class */ (function (_super) {
+    __extends(NodeLn, _super);
+    function NodeLn() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    NodeLn.prototype._onInit = function () {
+        this.NodeType = 'line';
+    };
+    NodeLn.prototype._whenCreatorEvt = function () {
+        var opt = this.opt, bkg = opt.bkg || 'rgb(3, 84, 41)';
+        this.c = this.paper.path(this._ps2Path(this.opt2Attr()));
+        this.c.attr('fill', bkg);
+    };
+    /**
+     * 生成器
+     */
+    NodeLn.prototype.opt2Attr = function (nOpt) {
+        var opt = nOpt ? nOpt : this.opt, P1 = opt.P1, P2 = opt.P2, r = opt.r || this.getLen() * 0.2;
+        var atan = Math.atan2(P1.y - P2.y, P2.x - P1.x) * (180 / Math.PI);
+        var centerX = P2.x - r * Math.cos(atan * (Math.PI / 180));
+        var centerY = P2.y + r * Math.sin(atan * (Math.PI / 180));
+        var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
+        var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
+        var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
+        var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
+        return [
+            P1,
+            P2,
+            { x: x2, y: y2 },
+            { x: x3, y: y3 },
+            P2
+        ];
+    };
+    /**
+     * 获取两点间的距离
+     */
+    NodeLn.prototype.getLen = function (nOpt) {
+        var opt = nOpt ? nOpt : this.opt, P1 = opt.P1, P2 = opt.P2;
+        return this.getPLen(P1, P2);
+    };
+    return NodeLn;
+}(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
+/* harmony default export */ __webpack_exports__["a"] = (NodeLn);
+
+
+/***/ }),
+/* 25 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+/**
+ * 2018年3月26日 星期一
+ * 折线
+ */
+
+var NodeLnPoly = /** @class */ (function (_super) {
+    __extends(NodeLnPoly, _super);
+    function NodeLnPoly() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    NodeLnPoly.prototype._onInit = function () {
+        this.NodeType = 'polyln';
+    };
+    NodeLnPoly.prototype._whenCreatorEvt = function () {
+        console.log(this.opt2Attr());
+        this.c = this.paper.path(this._ps2Path(this.opt2Attr()));
+    };
+    NodeLnPoly.prototype.opt2Attr = function (nOpt) {
+        var opt = nOpt ? nOpt : this.opt, P1 = opt.P1, P2 = opt.P2, h = opt.h || 4, rX = opt.rX || 0.35, l = this.getLen(), r = opt.r || (l * (1 - rX) * 0.2);
+        var nP1 = { x: P1.x + l * rX, y: P1.y + h };
+        // 箭头计算
+        var atan = Math.atan2(nP1.y - P2.y, P2.x - nP1.x) * (180 / Math.PI);
+        var centerX = P2.x - r * Math.cos(atan * (Math.PI / 180));
+        var centerY = P2.y + r * Math.sin(atan * (Math.PI / 180));
+        var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
+        var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
+        var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
+        var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
+        return [
+            P1,
+            { x: P1.x + l * rX, y: P1.y },
+            nP1,
+            nP1,
+            P2,
+            { x: x2, y: y2 },
+            { x: x3, y: y3 },
+            P2
+        ];
+    };
+    /**
+     * 获取两点间的距离
+     */
+    NodeLnPoly.prototype.getLen = function (nOpt) {
+        var opt = nOpt ? nOpt : this.opt, P1 = opt.P1, P2 = opt.P2;
+        return this.getPLen(P1, P2);
+    };
+    return NodeLnPoly;
+}(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
+/* harmony default export */ __webpack_exports__["a"] = (NodeLnPoly);
 
 
 /***/ })

@@ -15,7 +15,9 @@ export default class NodeBegin extends NodeAbstract{
      * 生成器处理事件
      */
     protected _whenCreatorEvt(){
-        var opt = this.opt
+        var opt = this.opt,
+            bkg = opt.bkg || '#851E07'
         this.c = this.paper.ellipse(opt.cx, opt.cy, opt.w/2, opt.h/2)
+        this.c.attr('fill', bkg)
     }
 }

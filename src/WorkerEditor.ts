@@ -15,6 +15,9 @@ import NodeCond from './node/NodeCond';
 import NodeSubFlow from './node/NodeSubFlow';
 import NodeParallel from './node/NodeParallel';
 import NodeMerge from './node/NodeMerge';
+import NodeEnd from './node/NodeEnd';
+import NodeLn from './node/NodeLn';
+import NodeLnPoly from './node/NodeLnPoly';
 
 // 通过数据 object 类型
 interface ItfMap {
@@ -196,6 +199,27 @@ export default class WorkerEditor{
         y += 20
         new NodeMerge(raphael, {cx: x, cy: y, w: 16, h: 12})
             .creator()
+        // 结束
+        y += 20
+        new NodeEnd(raphael, {cx: x, cy: y, w: 16, h: 12})
+            .creator()    
+        // 直线
+        y += 20
+        new NodeLn(raphael, {
+            P1: {x: x-5, y},
+            P2: {x: x+10, y}
+        })
+            .creator()
+
+        // 折线
+        y += 20
+        new NodeLnPoly(raphael, {
+            P1: {x: x-5, y},            
+            P2: {x: x+10, y: y + 4},
+            h: 4
+        })
+            .creator()
+
         // ~~ 历史代码
 
         // 开始

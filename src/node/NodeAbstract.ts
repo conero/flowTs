@@ -57,6 +57,10 @@ export default abstract class NodeAbstract{
      */
     protected _onInit(){}
     /**
+     * 节点拖动以后处理，调用拖动以后 [接口]
+     */
+    onDrag(){}
+    /**
      * 记录连接线
      * @param {stirng} type 连接线类型
      * @param {this}  $node 节点实例
@@ -111,5 +115,14 @@ export default abstract class NodeAbstract{
             }
         }
         return _struct
+    }
+    /**
+     * 获取两点间的距离
+     */
+    getPLen(P1: rSu.P, P2: rSu.P): number{
+        return Math.pow(
+            (Math.pow((P1.x - P2.x), 2) + Math.pow((P1.y - P2.y), 2)),
+            1/2
+        )
     }
 }

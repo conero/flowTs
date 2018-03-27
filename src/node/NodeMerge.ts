@@ -12,9 +12,11 @@ export default class NodeMerge extends NodeAbstract{
         this.xRate = 0.20        
     }
     protected _whenCreatorEvt(){
-        var attrs = this.opt2Attr()
-        console.log(attrs)
+        var attrs = this.opt2Attr(),
+            opt = this.opt,
+            bkg = opt.bkg || '#88EEEA'
         this.c = this.paper.path(this._ps2Path(attrs.cAttr, true))
+        this.c.attr('fill', bkg)
         this.inlinesEle = [
             this.paper.path(this._ps2Path(attrs.vLine)),
             this.paper.path(this._ps2Path(attrs.hLine))

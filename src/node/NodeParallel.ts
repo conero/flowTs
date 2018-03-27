@@ -11,9 +11,12 @@ export default class NodeParallel extends NodeAbstract{
         this.xRate = 0.20
     }
     protected _whenCreatorEvt(){
-        var attrs = this.opt2Attr()
+        var attrs = this.opt2Attr(),
+            opt = this.opt,
+            bkg = opt.bkg || '#88EEEA'
 
         this.c = this.paper.path(this._ps2Path(attrs.cAttr, true))
+        this.c.attr('fill', bkg)
         this.inlineEle = this.paper.path(this._ps2Path(attrs.inLine))
     }
     /**
