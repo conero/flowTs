@@ -61,6 +61,18 @@ class Util{
             }
         }        
     }
+    /**
+     * 字符首字母大写切换，test_case => TestCase, longtext => Longtext
+     * @param {string} str 
+     */
+    static ucFirst(str: string, delimter?: string): string{
+        delimter = delimter? delimter : '_'
+        var strQue: string[] = str.split(delimter)
+        strQue.forEach((v: string, idx: number) => {
+            strQue[idx] = v.substr(0, 1).toUpperCase() + v.substr(1)
+        })
+        return strQue.join('')
+    }
 }
 
 export {Util}

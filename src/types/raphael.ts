@@ -41,8 +41,9 @@ interface RaphaelElement {
     data(key: string, value: any): RaphaelElement;
     dblclick(handler: Function): RaphaelElement;
     // 2018年3月27日 星期二 ，更加实际情况修改 
-    drag(onmove: (dx: number, dy: number, x?: number, y?: number, event?: DragEvent) =>{ }, onstart: (x: number, y: number, event: DragEvent) =>{ }, onend: (DragEvent: any) =>{ }, mcontext?: any, scontext?: any, econtext?: any): RaphaelElement;
-    // drag(onmove: (dx: number, dy: number, x: number, y: number, event: DragEvent) =>{ }, onstart: (x: number, y: number, event: DragEvent) =>{ }, onend: (DragEvent: any) =>{ }, mcontext?: any, scontext?: any, econtext?: any): RaphaelElement;
+    // drag(onmove: (dx: number, dy: number, x?: number, y?: number, event?: DragEvent) =>{ }, onstart?: (x: number, y: number, event: DragEvent) =>{ }, onend?: (DragEvent: any) =>{ }, mcontext?: any, scontext?: any, econtext?: any): RaphaelElement;
+    drag(onmove: (dx: number, dy: number, x?: number, y?: number, event?: DragEvent) => any, onstart?: (x: number, y: number, event: DragEvent) => any, onend?: (DragEvent: any) => any, mcontext?: any, scontext?: any, econtext?: any): RaphaelElement;
+    drag(onmove: (dx: number, dy: number, x: number, y: number, event: DragEvent) =>{ }, onstart: (x: number, y: number, event: DragEvent) =>{ }, onend: (DragEvent: any) =>{ }, mcontext?: any, scontext?: any, econtext?: any): RaphaelElement;
     getBBox(isWithoutTransform?: boolean): BoundingBox;
     glow(glow?: { width?: number; fill?: boolean; opacity?: number; offsetx?: number; offsety?: number; color?: string; }): RaphaelSet;
     hide(): RaphaelElement;

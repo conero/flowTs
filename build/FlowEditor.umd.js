@@ -84,6 +84,13 @@ return /******/ (function(modules) { // webpackBootstrap
  */
 ///<reference path="../../index.d.ts"/>
 ///<reference path="../types/raphael.ts"/>
+/**
+ *
+ *
+ * @export
+ * @abstract
+ * @class NodeAbstract
+ */
 var NodeAbstract = /** @class */ (function () {
     function NodeAbstract(paper, opt) {
         this.paper = paper;
@@ -103,9 +110,10 @@ var NodeAbstract = /** @class */ (function () {
      */
     NodeAbstract.prototype.creator = function (opt) {
         this._whenCreatorEvt();
+        return this;
     };
     /**
-     * 点连线
+     * 点连线装换为path字符串
      * @param {array} pQue
      * @param {bool} isClose
      * @returns {string}
@@ -119,6 +127,27 @@ var NodeAbstract = /** @class */ (function () {
             path += 'Z';
         }
         return path;
+    };
+    /**
+     * 点连线转换为字符串数组
+     * @param {array} pQue
+     * @param {bool} isClose
+     * @returns {string}
+     */
+    NodeAbstract.prototype._ps2PathAttr = function (pQue, isClose) {
+        var pArr = [];
+        for (var i = 0; i < pQue.length; i++) {
+            var cPArr = ['L'];
+            if (pArr.length == 0) {
+                cPArr[0] = 'M';
+            }
+            cPArr.push(pQue[i].x, pQue[i].y);
+            pArr.push(cPArr);
+        }
+        if (isClose) {
+            pArr.push(['Z']);
+        }
+        return pArr;
     };
     /**
      * 创建事件时，处理事件
@@ -181,7 +210,7 @@ var NodeAbstract = /** @class */ (function () {
                 attr: this.c.attr() // 容器属性值
             }
         };
-        if (this.label) {
+        if (this.label) { // 节点标签
             _struct.label = {
                 attr: this.label.attr()
             };
@@ -193,6 +222,40 @@ var NodeAbstract = /** @class */ (function () {
      */
     NodeAbstract.prototype.getPLen = function (P1, P2) {
         return Math.pow((Math.pow((P1.x - P2.x), 2) + Math.pow((P1.y - P2.y), 2)), 1 / 2);
+    };
+    /**
+     * 更新属性
+     * @param nOpt
+     */
+    NodeAbstract.prototype._updAttr = function (nOpt) {
+        for (var key in nOpt) {
+            if ('undefined' != typeof this.opt[key]) {
+                this.opt[key] = nOpt[key];
+            }
+        }
+        return this;
+    };
+    /**
+     * 节点删除
+     * @returns {boolean}
+     */
+    NodeAbstract.prototype.delete = function () {
+        return false;
+    };
+    /**
+     * 节点可移动处理
+     * @returns
+     * @memberof NodeAbstract
+     */
+    NodeAbstract.prototype.moveable = function () {
+        return this;
+    };
+    /**
+     * 更新属性
+     * @param nOpt
+     */
+    NodeAbstract.prototype.updAttr = function (nOpt) {
+        return this;
     };
     return NodeAbstract;
 }());
@@ -264,7 +327,7 @@ var NodeBase = /** @class */ (function () {
                 attr: this.c.attr() // 容器属性值
             }
         };
-        if (this.label) {
+        if (this.label) { // 节点标签
             _struct.label = {
                 attr: this.label.attr()
             };
@@ -281,287 +344,75 @@ var NodeBase = /** @class */ (function () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeBase__ = __webpack_require__(1);
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-/**
- * 2018年1月5日 星期五
- * 判断处理节点
- */
-
-var NodeJudge = /** @class */ (function (_super) {
-    __extends(NodeJudge, _super);
-    /**
-     *
-     * @param {*} instance Raphael 实例
-     */
-    function NodeJudge(instance) {
-        var _this = _super.call(this) || this;
-        _this.NodeType = 'judge';
-        _this.instance = instance;
-        _this.opt = {}; // 配置信息数据
-        return _this;
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Util; });
+var Util = /** @class */ (function () {
+    function Util() {
     }
     /**
-     * 仅仅生成容器并且返回对象
-     * @param {number} cx
-     * @param {number} cy
-     * @param {number} w
-     * @param {number} h
-     * @returns RaphaelElement
+     * 对象复制
+     * @param {object} t1
      */
-    NodeJudge.prototype.onlyCell = function (cx, cy, w, h) {
-        this.opt = { cx: cx, cy: cy, w: w, h: h };
-        // 容器        
-        var ap = this.getAp();
-        var bp = this.getBp();
-        var cp = this.getCp();
-        var dp = this.getDp();
-        return this.instance.path('M' + ap.x + ',' + ap.y +
-            'L' + bp.x + ',' + bp.y +
-            'L' + cp.x + ',' + cp.y +
-            'L' + dp.x + ',' + dp.y +
-            'Z');
+    Util.clone = function (t1) {
+        t1 = 'object' == typeof t1 ? t1 : {};
+        var obj = {};
+        return $.extend(true, obj, t1);
     };
     /**
-     * @param {object} opt / [cx, cy, w, h, text]
+     * 数据合并相同的元素
+     * @param {*} array
      */
-    NodeJudge.prototype.create = function (opt) {
-        this.opt = opt;
-        this.minWidth = opt.w;
-        // 容器        
-        var ap = this.getAp();
-        var bp = this.getBp();
-        var cp = this.getCp();
-        var dp = this.getDp();
-        this.c = this.instance.path('M' + ap.x + ',' + ap.y +
-            'L' + bp.x + ',' + bp.y +
-            'L' + cp.x + ',' + cp.y +
-            'L' + dp.x + ',' + dp.y +
-            'Z');
-        // 标签
-        var label;
-        if (opt.text) {
-            label = this.instance.text(opt.cx, opt.cy, opt.text);
-        }
-        else {
-            label = this.instance.text(opt.cx, opt.cy);
-        }
-        this.label = label;
-        this.resizeByText();
-    };
-    /**
-     * 根据文本宽度自动适应文本的宽度
-     */
-    NodeJudge.prototype.resizeByText = function () {
-        if (this.label) {
-            var box = this.label.getBBox();
-            var width = Math.ceil(box.width);
-            var w = this.c.attr('w');
-            if (width < this.minWidth && w < this.minWidth) {
-                return;
+    Util.ArrayMergeSameValue = function (array) {
+        if ('object' == typeof array && array.length && array.length > 1) {
+            var valueMap = {};
+            var newArray = [];
+            for (var i = 0; i < array.length; i++) {
+                if (valueMap[array[i]]) {
+                    continue;
+                }
+                newArray.push(array[i]);
+                valueMap[array[i]] = true;
             }
-            // 保持最小宽度
-            if (width < this.minWidth) {
-                width = this.minWidth;
+            array = newArray;
+        }
+        return array;
+    };
+    /**
+     * @param {array|object} obj
+     * @param {function} callback (k, v)
+     */
+    Util.each = function (obj, callback) {
+        if ('object' == typeof obj) {
+            if ($.isArray(obj)) {
+                for (var i = 0; i < obj.length; i++) {
+                    if (false === callback(i, obj[i])) {
+                        break;
+                    }
+                }
             }
             else {
-                width += 25;
-            }
-            this.opt.w = width;
-            this.resizeByOpt();
-        }
-    };
-    /**
-     * 根据 opt 值的改变重调整容器形状大小
-     */
-    NodeJudge.prototype.resizeByOpt = function () {
-        var ap = this.getAp();
-        var bp = this.getBp();
-        var cp = this.getCp();
-        var dp = this.getDp();
-        this.c.attr('path', [
-            ['M', ap.x, ap.y],
-            ['L', bp.x, bp.y],
-            ['L', cp.x, cp.y],
-            ['L', dp.x, dp.y],
-            ['Z']
-        ]);
-    };
-    // 按照 A 点移动
-    NodeJudge.prototype.move = function (x, y) {
-        var ctP = this.getCpByAp(x, y);
-        var bP = this.getBp(ctP.x, ctP.y);
-        var cP = this.getCp(ctP.x, ctP.y);
-        var dP = this.getDp(ctP.x, ctP.y);
-        // 容器移动
-        this.c.attr('path', [
-            ['M', x, y],
-            ['L', bP.x, bP.y],
-            ['L', cP.x, cP.y],
-            ['L', dP.x, dP.y],
-            ['Z']
-        ]);
-        // 数据选项值更新
-        this.opt.cx = ctP.x;
-        this.opt.cy = ctP.y;
-        // 文本移动
-        this.label.attr(ctP);
-    };
-    // 直线同步移动
-    NodeJudge.prototype.ToSyncLine = function (x, y) {
-        var _this = this;
-        var ctP = this.getCpByAp(x, y);
-        this.syncLineMove(function (lnC, type, $ln) {
-            var position = $ln.position;
-            var methodName;
-            if (type == 'from') {
-                methodName = 'get' + position.from + 'p';
-                var p1 = _this[methodName](ctP.x, ctP.y);
-                var $fPath = lnC.attr('path');
-                $fPath[0] = ['M', p1.x, p1.y];
-                lnC.attr('path', $fPath);
-            }
-            else if (type == 'to') {
-                methodName = 'get' + position.to + 'p';
-                var p2 = _this[methodName](ctP.x, ctP.y);
-                var $tPath = lnC.attr('path');
-                $tPath[$tPath.length - 1] = ['L', p2.x, p2.y];
-                lnC.attr('path', $tPath);
-            }
-        });
-    };
-    // 箭头同步器
-    NodeJudge.prototype.ToSyncArrow = function (x, y) {
-        var _this = this;
-        var ctP = this.getCpByAp(x, y);
-        this.syncLineMove(function (lnC, type, $ln) {
-            var position = $ln.position;
-            var methodName;
-            if (type == 'from') {
-                methodName = 'get' + position.from + 'p';
-                var p1 = _this[methodName](ctP.x, ctP.y);
-                $ln.updatePath([p1.x, p1.y]);
-            }
-            else if (type == 'to') {
-                methodName = 'get' + position.to + 'p';
-                var p2 = _this[methodName](ctP.x, ctP.y);
-                $ln.updatePath(null, [p2.x, p2.y]);
-            }
-        });
-    };
-    // 获取连线的起点节点
-    NodeJudge.prototype.getStlnP = function (position) {
-        // var position = 'D'
-        position = position ? position : 'D';
-        var methodName = 'get' + position + 'p';
-        // var p = this.getDp()
-        var p = this[methodName]();
-        // 起点重合
-        if (this.isCoincidence(p, 'from')) {
-            p = this.getCp();
-            position = 'C';
-        }
-        var nP = { x: p.x, y: p.y, position: position };
-        return nP;
-    };
-    // 获取连线的终点节点
-    NodeJudge.prototype.getEnlnP = function (position) {
-        position = position ? position : 'B';
-        // var p = this.getBp()
-        var methodName = 'get' + position + 'p';
-        var p = this[methodName]();
-        p.position = position;
-        return p;
-    };
-    /**
-     * 根据 A 点获取中心点
-     */
-    NodeJudge.prototype.getCpByAp = function (x, y) {
-        var opt = this.opt;
-        x += opt.w / 2;
-        return { x: x, y: y };
-    };
-    // A 点
-    NodeJudge.prototype.getAp = function (x, y) {
-        var opt = this.opt;
-        x = x ? x : opt.cx;
-        y = y ? y : opt.cy;
-        x -= (opt.w / 2);
-        return { x: x, y: y };
-    };
-    NodeJudge.prototype.getBp = function (x, y) {
-        var opt = this.opt;
-        x = x ? x : opt.cx;
-        y = y ? y : opt.cy;
-        y -= (opt.h / 2);
-        return { x: x, y: y };
-    };
-    NodeJudge.prototype.getCp = function (x, y) {
-        var opt = this.opt;
-        x = x ? x : opt.cx;
-        y = y ? y : opt.cy;
-        x += (opt.w / 2);
-        return { x: x, y: y };
-    };
-    NodeJudge.prototype.getDp = function (x, y) {
-        var opt = this.opt;
-        x = x ? x : opt.cx;
-        y = y ? y : opt.cy;
-        y += (opt.h / 2);
-        return { x: x, y: y };
-    };
-    /**
-     * 是否为重合点
-     * @param {object} p {x,y}
-     * @param {string} type [from/to]
-     * @returns {boolean}
-     */
-    NodeJudge.prototype.isCoincidence = function (p, type) {
-        var successMK = false;
-        if (p && 'object' == typeof p &&
-            'undefined' != typeof p.x && 'undefined' != typeof p.y) {
-            // 起点
-            if ('from' == type) {
-                if (this.fromLine.length > 0) {
-                    for (var i = 0; i < this.fromLine.length; i++) {
-                        var $line = this.fromLine[i];
-                        var path = $line.c.attr('path');
-                        var pathArr = path[0];
-                        if (pathArr[1] == p.x && pathArr[2] == p.y) {
-                            successMK = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            else if ('to' == type) {
-                if (this.toLine.length > 0) {
-                    for (var j = 0; j < this.toLine.length; j++) {
-                        var $line = this.toLine[j];
-                        var path = $line.c.attr('path');
-                        var pathArr = path[path.length - 1];
-                        if (pathArr[1] == p.x && pathArr[2] == p.y) {
-                            successMK = true;
-                            break;
-                        }
+                for (var k in obj) {
+                    if (false === callback(k, obj[k])) {
+                        break;
                     }
                 }
             }
         }
-        return successMK;
     };
-    return NodeJudge;
-}(__WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* default */]));
-/* harmony default export */ __webpack_exports__["a"] = (NodeJudge);
+    /**
+     * 字符首字母大写切换，test_case => TestCase, longtext => Longtext
+     * @param {string} str
+     */
+    Util.ucFirst = function (str, delimter) {
+        delimter = delimter ? delimter : '_';
+        var strQue = str.split(delimter);
+        strQue.forEach(function (v, idx) {
+            strQue[idx] = v.substr(0, 1).toUpperCase() + v.substr(1);
+        });
+        return strQue.join('');
+    };
+    return Util;
+}());
+
 
 
 /***/ }),
@@ -596,20 +447,20 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeJudge__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__flow__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__version__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeBegin__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_NodeTask__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_NodeAudit__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__node_NodeSign__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__node_NodeCond__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__node_NodeSubFlow__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__node_NodeParallel__ = __webpack_require__(22);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__node_NodeMerge__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__node_NodeEnd__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__node_NodeLn__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__node_NodeLnPoly__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__flow__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__version__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_NodeBegin__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeTask__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_NodeAudit__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_NodeSign__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__node_NodeCond__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__node_NodeSubFlow__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__node_NodeParallel__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__node_NodeMerge__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__node_NodeEnd__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__node_NodeLn__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__node_NodeLnPoly__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__util__ = __webpack_require__(2);
 ///<reference path='../index.d.ts' />
 /**
  * 2018年3月1日 星期四
@@ -684,7 +535,7 @@ var WorkerEditor = /** @class */ (function () {
         this._rIdx = 0; // 内部索引，用于生成代码
         this._code2EidDick = {}; // 内部代码与元素id的映射字段
         this._LineDragingP = null; // RaphaelElement 直线正在拖动记录点
-        this.flow = new __WEBPACK_IMPORTED_MODULE_2__flow__["a" /* Flow */](this.raphael); // 工作流程按钮
+        this.flow = new __WEBPACK_IMPORTED_MODULE_1__flow__["a" /* Flow */](this.raphael); // 工作流程按钮
         // 内部缓存数组件容器： 节点、连接线、独立文本
         this.nodeQueues = []; // 运行节点数
         this.lineQueues = []; // 连线记录器
@@ -735,206 +586,174 @@ var WorkerEditor = /** @class */ (function () {
         // 容器集
         $tool.containerIst = raphael.rect(ctX, ctY, ctW, ctH);
         $tool.containerIst.attr('fill', '#ffffff'); // 容器底色
+        var nodeIstQue = [], ist;
         // 开始
         x += 20, y += 50;
-        new __WEBPACK_IMPORTED_MODULE_4__node_NodeBegin__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
+        ist = new __WEBPACK_IMPORTED_MODULE_3__node_NodeBegin__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
             .creator();
+        nodeIstQue.push(ist);
         // 任务
         y += 20;
-        new __WEBPACK_IMPORTED_MODULE_5__node_NodeTask__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
+        ist = new __WEBPACK_IMPORTED_MODULE_4__node_NodeTask__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
             .creator();
+        nodeIstQue.push(ist);
         // 审核
         y += 20;
-        new __WEBPACK_IMPORTED_MODULE_6__node_NodeAudit__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
+        ist = new __WEBPACK_IMPORTED_MODULE_5__node_NodeAudit__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
             .creator();
+        nodeIstQue.push(ist);
         // 会签
         y += 20;
-        new __WEBPACK_IMPORTED_MODULE_7__node_NodeSign__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
+        ist = new __WEBPACK_IMPORTED_MODULE_6__node_NodeSign__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
             .creator();
+        nodeIstQue.push(ist);
         // 判断
         y += 20;
-        new __WEBPACK_IMPORTED_MODULE_8__node_NodeCond__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
+        ist = new __WEBPACK_IMPORTED_MODULE_7__node_NodeCond__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
             .creator();
+        nodeIstQue.push(ist);
         // 子流程
         y += 20;
-        new __WEBPACK_IMPORTED_MODULE_9__node_NodeSubFlow__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
+        ist = new __WEBPACK_IMPORTED_MODULE_8__node_NodeSubFlow__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
             .creator();
+        nodeIstQue.push(ist);
         // 并行
         y += 30;
-        new __WEBPACK_IMPORTED_MODULE_10__node_NodeParallel__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
+        ist = new __WEBPACK_IMPORTED_MODULE_9__node_NodeParallel__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
             .creator();
+        nodeIstQue.push(ist);
         // 合并
         y += 20;
-        new __WEBPACK_IMPORTED_MODULE_11__node_NodeMerge__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
+        ist = new __WEBPACK_IMPORTED_MODULE_10__node_NodeMerge__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
             .creator();
+        nodeIstQue.push(ist);
         // 结束
         y += 20;
-        new __WEBPACK_IMPORTED_MODULE_12__node_NodeEnd__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
+        ist = new __WEBPACK_IMPORTED_MODULE_11__node_NodeEnd__["a" /* default */](raphael, { cx: x, cy: y, w: 16, h: 12 })
             .creator();
+        nodeIstQue.push(ist);
         // 直线
         y += 20;
-        new __WEBPACK_IMPORTED_MODULE_13__node_NodeLn__["a" /* default */](raphael, {
+        ist = new __WEBPACK_IMPORTED_MODULE_12__node_NodeLn__["a" /* default */](raphael, {
             P1: { x: x - 5, y: y },
             P2: { x: x + 10, y: y }
         })
             .creator();
+        nodeIstQue.push(ist);
         // 折线
         y += 20;
-        new __WEBPACK_IMPORTED_MODULE_14__node_NodeLnPoly__["a" /* default */](raphael, {
+        ist = new __WEBPACK_IMPORTED_MODULE_13__node_NodeLnPoly__["a" /* default */](raphael, {
             P1: { x: x - 5, y: y },
             P2: { x: x + 10, y: y + 4 },
             h: 4
         })
             .creator();
-        // ~~ 历史代码
-        // 开始
-        x += 20, y += 50;
-        $tool.startIst = raphael.ellipse(x, y, 8, 6);
-        $tool.startIst.attr('fill', pkgClr.start);
-        $tool.startTxtIst = raphael.text(x + 30, y, Conf.start.text);
-        // 流程
-        y += 20;
-        $tool.operaIst = raphael.rect(x - 8, y, 16, 12);
-        $tool.operaIst.attr('fill', pkgClr.opera);
-        $tool.operaTxtIst = raphael.text(x + 30, y + 4, Conf.opera.text);
-        // 判断
-        y += 30;
-        $tool.judgeIst = (new __WEBPACK_IMPORTED_MODULE_1__node_NodeJudge__["a" /* default */](raphael)).onlyCell(x, y, 16, 12);
-        $tool.judgeIst.attr('fill', pkgClr.judge);
-        $tool.judgeTxtIst = raphael.text(x + 30, y, Conf.judge.text);
-        // 结束
-        y += 30;
-        $tool.endIst = raphael.ellipse(x, y, 8, 6);
-        $tool.endIst.attr('fill', pkgClr.end);
-        $tool.endTxtIst = raphael.text(x + 30, y, Conf.end.text);
-        // 箭头
-        y += 30;
-        $tool.arrowIst = this.flow.arrow([x - 5, y], [x + 10, y], 3);
-        $tool.arrowIst.c.attr('fill', pkgClr.arrow);
-        $tool.arrowTxtIst = raphael.text(x + 30, y, Conf.arrow.text);
-        // 文本框
-        y += 30;
-        $tool.textInst = this.raphael.text(x + 10, y, Conf.text.text);
-        this.$tool = $tool;
+        nodeIstQue.push(ist);
+        this.toolNodeIstQue = nodeIstQue;
         this._toolbarDragEvt();
     };
     /**
-     * 工具栏拖动处理
+     * 工具栏拖动处理事件
      */
     WorkerEditor.prototype._toolbarDragEvt = function () {
-        // console.log(this.$tool)
         var $this = this;
-        var pkgClr = this.config.pkgClr;
-        // 拖动处理    
-        var dragHandlerEvnt = function (node, type) {
-            $this.MagneticCore = null; // 移动工具栏时磁芯消失
-            var cDragDt = { dx: 0, dy: 0 };
-            node.drag(function (dx, dy) {
-                // console.log(type)
-                // console.log(dx, dy)
-                // cDragDt = {dx, dy}
-                dx += cDragDt.dx;
-                dy += cDragDt.dy;
-                var newElem = $this.getLastElem();
-                if (newElem) {
-                    newElem.move(dx, dy);
-                }
-            }, function () {
-                // cDragDt = {dx: 0, dy: 0}
-                var _x, _y;
-                if (2 == type) {
-                    _x = this.attr('x');
-                    _y = this.attr('y');
-                }
-                else if (3 == type) {
-                    var tpPath = this.attr('path');
-                    var tpPath0 = tpPath[0];
-                    _x = tpPath0[1];
-                    _y = tpPath0[2];
-                }
-                else {
-                    // console.log(this)
-                    _x = this.attr('cx');
-                    _y = this.attr('cy');
-                }
-                cDragDt.dx = _x + 5;
-                cDragDt.dy = _y + 10;
-                // cDragDt.x = _x
-                // cDragDt.y = _y
-                // console.log(cDragDt)
-                $this._createNode(cDragDt, type);
-            }, function () {
-                // if(cDragDt.dx < 75 || cDragDt.dy < 50){
-                //     return null
+        this.toolNodeIstQue.forEach(function (NodeIst) {
+            /**
+            // 回调函数保持
+            (function(ist: NodeAbstract){
+                var NodeType = ist.NodeType,
+                ndAst: NodeAbstract
+                ist.c.drag(
+                    function(dx: number, dy: number, x: number, y: number){
+                        //ndAst.opt
+                        console.log({cx: x, cy: y}, ndAst)
+                        ndAst.updAttr({cx: x, cy: y})
+                        return {}
+                    },
+                    function(x: number, y: number){
+                        ndAst = $this.newNode(NodeType, {cx: x, cy: y, w: 50, h:40})
+                            .creator()
+                            .moveable()
+                        return {}
+                    }
+                )
+            })(NodeIst)
+            **/
+            var ist = NodeIst;
+            var NodeType = ist.NodeType, ndAst, cloneIst;
+            ist.c.drag(function (dx, dy, x, y) {
+                //ndAst.opt
+                console.log(arguments);
+                // console.log(cloneIst)
+                // console.log({cx: x, cy: y}, ndAst)
+                // var newElem = $this.getLastElem()
+                // console.log(newElem)
+                // if(!ndAst){
+                //     ndAst = $this.newNode(NodeType, {cx: x, cy: y, w: 50, h:40})
+                //         .creator()
+                //         .moveable()
+                //     $this.nodeQueues.push(ndAst)
                 // }
-                // $this._createNode(cDragDt, type)
+                if (ndAst) {
+                    ndAst.updAttr({ cx: x, cy: y });
+                }
+            }, function (x, y) {
+                ndAst = $this.newNode(NodeType, { cx: x, cy: y, w: 50, h: 40 })
+                    .creator()
+                    .moveable();
+                $this.nodeQueues.push(ndAst);
+                // 克隆赋值
+                // cloneIst = this.clone()
+                console.log(this, '测试：start');
+            }, function () {
+                console.log(this, '测试：end');
             });
-        };
-        // 开始
-        dragHandlerEvnt(this.$tool.startIst, Conf.start.type);
-        dragHandlerEvnt(this.$tool.startTxtIst, Conf.start.type);
-        // 流程
-        dragHandlerEvnt(this.$tool.operaIst, Conf.opera.type);
-        dragHandlerEvnt(this.$tool.operaTxtIst, Conf.opera.type);
-        // 判断
-        dragHandlerEvnt(this.$tool.judgeIst, Conf.judge.type);
-        dragHandlerEvnt(this.$tool.judgeTxtIst, Conf.judge.type);
-        // 结束
-        dragHandlerEvnt(this.$tool.endIst, Conf.end.type);
-        dragHandlerEvnt(this.$tool.endTxtIst, Conf.end.type);
-        // 特殊部件生成器
-        // dragHandlerEvnt(this.$tool.arrowIst, Conf.arrow.type)
-        // console.log(this.$tool.arrowIst)
-        // this.$tool.arrowIst.c.drag()
-        var arrowDragHandler = function (ist) {
-            var cDragDt = { x: 0, y: 0 };
-            var innerTmpArror = null;
-            ist.drag(function (x, y) {
-                x += cDragDt.x;
-                y += cDragDt.y;
-                if (innerTmpArror) {
-                    innerTmpArror.updatePath([x, y], [x + 50, y]);
-                }
-            }, function () {
-                if ('text' == ist.type) {
-                    cDragDt.x = ist.attr('x');
-                    cDragDt.y = ist.attr('y');
-                }
-                else {
-                    var pathA1 = ist.attr('path');
-                    pathA1 = pathA1[0];
-                    cDragDt.x = pathA1[1];
-                    cDragDt.y = pathA1[2];
-                }
-                // 生成连线
-                innerTmpArror = $this.flow.arrow([cDragDt.x, cDragDt.y], [cDragDt.x + 50, cDragDt.y], 5);
-                innerTmpArror.c.attr('fill', pkgClr.arrow);
-                $this._lineTragEvent(innerTmpArror);
-                $this.lineQueues.push(innerTmpArror);
-            }, function () {
-            });
-            // })()
-        };
-        arrowDragHandler(this.$tool.arrowIst.c);
-        arrowDragHandler(this.$tool.arrowTxtIst);
-        // 文字拖动
-        (function () {
-            var _dragDt = { x: 0, y: 0 };
-            var tmpTxtInst = null; // 临时文本
-            $this.$tool.textInst.drag(function (x, y) {
-                x += _dragDt.x;
-                y += _dragDt.y;
-                if (tmpTxtInst) {
-                    tmpTxtInst.attr({ x: x, y: y });
-                }
-            }, function () {
-                _dragDt.x = this.attr('x') + 5;
-                _dragDt.y = this.attr('y') + 5;
-                tmpTxtInst = $this.raphael.text(_dragDt.x, _dragDt.y, '文本框');
-                $this._textBindEvent(tmpTxtInst);
-                $this.textQueues.push(tmpTxtInst);
-            }, function () { });
-        })();
+        });
+    };
+    /**
+     * 实例化节点，用于参数示例话节点
+     */
+    // newNode(NodeType: string, nOpt: rSu.NodeOpt): any{
+    WorkerEditor.prototype.newNode = function (NodeType, nOpt) {
+        var name = __WEBPACK_IMPORTED_MODULE_14__util__["a" /* Util */].ucFirst(NodeType), paper = this.raphael;
+        var ist;
+        // var ist: any
+        switch (name) {
+            case 'Begin':
+                ist = new __WEBPACK_IMPORTED_MODULE_3__node_NodeBegin__["a" /* default */](paper, nOpt);
+                break;
+            case 'Task':
+                ist = new __WEBPACK_IMPORTED_MODULE_4__node_NodeTask__["a" /* default */](paper, nOpt);
+                break;
+            case 'Audit':
+                ist = new __WEBPACK_IMPORTED_MODULE_5__node_NodeAudit__["a" /* default */](paper, nOpt);
+                break;
+            case 'Sign':
+                ist = new __WEBPACK_IMPORTED_MODULE_6__node_NodeSign__["a" /* default */](paper, nOpt);
+                break;
+            case 'Cond':
+                ist = new __WEBPACK_IMPORTED_MODULE_7__node_NodeCond__["a" /* default */](paper, nOpt);
+                break;
+            case 'SubFlow':
+                ist = new __WEBPACK_IMPORTED_MODULE_8__node_NodeSubFlow__["a" /* default */](paper, nOpt);
+                break;
+            case 'Parallel':
+                ist = new __WEBPACK_IMPORTED_MODULE_9__node_NodeParallel__["a" /* default */](paper, nOpt);
+                break;
+            case 'Merge':
+                ist = new __WEBPACK_IMPORTED_MODULE_10__node_NodeMerge__["a" /* default */](paper, nOpt);
+                break;
+            case 'End':
+                ist = new __WEBPACK_IMPORTED_MODULE_11__node_NodeEnd__["a" /* default */](paper, nOpt);
+                break;
+            case 'Ln':
+                ist = new __WEBPACK_IMPORTED_MODULE_12__node_NodeLn__["a" /* default */](paper, nOpt);
+                break;
+            case 'LnPoly':
+                ist = new __WEBPACK_IMPORTED_MODULE_13__node_NodeLnPoly__["a" /* default */](paper, nOpt);
+                break;
+        }
+        return ist;
     };
     /**
      * 获取
@@ -1216,6 +1035,7 @@ var WorkerEditor = /** @class */ (function () {
         if (code && !id) {
             return this._code2EidDick[code] || null;
         }
+        // 通过id 获取 code
         else if (id && !code) {
             var dick = this._code2EidDick;
             for (var prefCode in dick) {
@@ -1239,7 +1059,7 @@ var WorkerEditor = /** @class */ (function () {
     WorkerEditor.prototype.setOption = function (option, code) {
         var isSuccess = false;
         if (option) {
-            if ('object' != typeof option) {
+            if ('object' != typeof option) { // 默认为文本，快速设置文本
                 option = { text: option };
             }
             if (!code) {
@@ -1399,7 +1219,7 @@ var WorkerEditor = /** @class */ (function () {
             for (var i = 0; i < nodes.length; i++) {
                 var node = nodes[i];
                 var cId = node.c.data('code');
-                if (refId == cId) {
+                if (refId == cId) { // 跳过自身检测
                     continue;
                 }
                 var typeLines = node[typeName];
@@ -1616,7 +1436,7 @@ var WorkerEditor = /** @class */ (function () {
                 nodeIst.c.attr('fill', pkgClr.end);
                 break;
         }
-        if (nodeIst) {
+        if (nodeIst) { // 保存节点实例
             var code = this._getOrderCode();
             nodeIst.c.data('code', code);
             this._code2EidDick[code] = nodeIst.c.id;
@@ -1630,7 +1450,7 @@ var WorkerEditor = /** @class */ (function () {
      * @param {NodeBase} nodeIst
      */
     WorkerEditor.prototype._bindEvent = function (nodeIst) {
-        if (nodeIst) {
+        if (nodeIst) { // 保存节点实例
             var $this = this, config = this.config, pkgClr = config.pkgClr;
             // 节点拖动
             (function () {
@@ -1714,7 +1534,7 @@ var WorkerEditor = /** @class */ (function () {
                         ax += aCDt.ax;
                         ay += aCDt.ay;
                         var hasIntersectElem = $this.getIntersectElem({ x: ax, y: ay });
-                        if (hasIntersectElem) {
+                        if (hasIntersectElem) { // 碰撞时，使用连接端点
                             $this.removeIntersectMk();
                             hasIntersectElem.c.attr('fill', '#FF0000');
                             hasIntersectElem._IntersectMk = true;
@@ -1824,8 +1644,9 @@ var WorkerEditor = /** @class */ (function () {
      * @param {NodeBase} nodeIst
      */
     WorkerEditor.prototype.onNodeClick = function (nodeIst) { };
+    // toolNodeIstQue: any[]     // 工具栏部件节点队列
     // 静态属性
-    WorkerEditor.version = __WEBPACK_IMPORTED_MODULE_3__version__["a" /* LibVersion */];
+    WorkerEditor.version = __WEBPACK_IMPORTED_MODULE_2__version__["a" /* LibVersion */];
     return WorkerEditor;
 }());
 /* harmony default export */ __webpack_exports__["default"] = (WorkerEditor);
@@ -2104,8 +1925,8 @@ process.umask = function() { return 0; };
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Flow; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_NodeEndpoint__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeOperation__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_NodeJudge__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_NodeLine__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_NodeJudge__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_NodeLine__ = __webpack_require__(12);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeArrow__ = __webpack_require__(13);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_NodeBow__ = __webpack_require__(14);
 /* unused harmony reexport NodeLine */
@@ -2694,7 +2515,296 @@ var NodeOperation = /** @class */ (function (_super) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeBase__ = __webpack_require__(1);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+/**
+ * 2018年1月5日 星期五
+ * 判断处理节点
+ */
+
+var NodeJudge = /** @class */ (function (_super) {
+    __extends(NodeJudge, _super);
+    /**
+     *
+     * @param {*} instance Raphael 实例
+     */
+    function NodeJudge(instance) {
+        var _this = _super.call(this) || this;
+        _this.NodeType = 'judge';
+        _this.instance = instance;
+        _this.opt = {}; // 配置信息数据
+        return _this;
+    }
+    /**
+     * 仅仅生成容器并且返回对象
+     * @param {number} cx
+     * @param {number} cy
+     * @param {number} w
+     * @param {number} h
+     * @returns RaphaelElement
+     */
+    NodeJudge.prototype.onlyCell = function (cx, cy, w, h) {
+        this.opt = { cx: cx, cy: cy, w: w, h: h };
+        // 容器        
+        var ap = this.getAp();
+        var bp = this.getBp();
+        var cp = this.getCp();
+        var dp = this.getDp();
+        return this.instance.path('M' + ap.x + ',' + ap.y +
+            'L' + bp.x + ',' + bp.y +
+            'L' + cp.x + ',' + cp.y +
+            'L' + dp.x + ',' + dp.y +
+            'Z');
+    };
+    /**
+     * @param {object} opt / [cx, cy, w, h, text]
+     */
+    NodeJudge.prototype.create = function (opt) {
+        this.opt = opt;
+        this.minWidth = opt.w;
+        // 容器        
+        var ap = this.getAp();
+        var bp = this.getBp();
+        var cp = this.getCp();
+        var dp = this.getDp();
+        this.c = this.instance.path('M' + ap.x + ',' + ap.y +
+            'L' + bp.x + ',' + bp.y +
+            'L' + cp.x + ',' + cp.y +
+            'L' + dp.x + ',' + dp.y +
+            'Z');
+        // 标签
+        var label;
+        if (opt.text) {
+            label = this.instance.text(opt.cx, opt.cy, opt.text);
+        }
+        else {
+            label = this.instance.text(opt.cx, opt.cy);
+        }
+        this.label = label;
+        this.resizeByText();
+    };
+    /**
+     * 根据文本宽度自动适应文本的宽度
+     */
+    NodeJudge.prototype.resizeByText = function () {
+        if (this.label) {
+            var box = this.label.getBBox();
+            var width = Math.ceil(box.width);
+            var w = this.c.attr('w');
+            if (width < this.minWidth && w < this.minWidth) {
+                return;
+            }
+            // 保持最小宽度
+            if (width < this.minWidth) {
+                width = this.minWidth;
+            }
+            else {
+                width += 25;
+            }
+            this.opt.w = width;
+            this.resizeByOpt();
+        }
+    };
+    /**
+     * 根据 opt 值的改变重调整容器形状大小
+     */
+    NodeJudge.prototype.resizeByOpt = function () {
+        var ap = this.getAp();
+        var bp = this.getBp();
+        var cp = this.getCp();
+        var dp = this.getDp();
+        this.c.attr('path', [
+            ['M', ap.x, ap.y],
+            ['L', bp.x, bp.y],
+            ['L', cp.x, cp.y],
+            ['L', dp.x, dp.y],
+            ['Z']
+        ]);
+    };
+    // 按照 A 点移动
+    NodeJudge.prototype.move = function (x, y) {
+        var ctP = this.getCpByAp(x, y);
+        var bP = this.getBp(ctP.x, ctP.y);
+        var cP = this.getCp(ctP.x, ctP.y);
+        var dP = this.getDp(ctP.x, ctP.y);
+        // 容器移动
+        this.c.attr('path', [
+            ['M', x, y],
+            ['L', bP.x, bP.y],
+            ['L', cP.x, cP.y],
+            ['L', dP.x, dP.y],
+            ['Z']
+        ]);
+        // 数据选项值更新
+        this.opt.cx = ctP.x;
+        this.opt.cy = ctP.y;
+        // 文本移动
+        this.label.attr(ctP);
+    };
+    // 直线同步移动
+    NodeJudge.prototype.ToSyncLine = function (x, y) {
+        var _this = this;
+        var ctP = this.getCpByAp(x, y);
+        this.syncLineMove(function (lnC, type, $ln) {
+            var position = $ln.position;
+            var methodName;
+            if (type == 'from') {
+                methodName = 'get' + position.from + 'p';
+                var p1 = _this[methodName](ctP.x, ctP.y);
+                var $fPath = lnC.attr('path');
+                $fPath[0] = ['M', p1.x, p1.y];
+                lnC.attr('path', $fPath);
+            }
+            else if (type == 'to') {
+                methodName = 'get' + position.to + 'p';
+                var p2 = _this[methodName](ctP.x, ctP.y);
+                var $tPath = lnC.attr('path');
+                $tPath[$tPath.length - 1] = ['L', p2.x, p2.y];
+                lnC.attr('path', $tPath);
+            }
+        });
+    };
+    // 箭头同步器
+    NodeJudge.prototype.ToSyncArrow = function (x, y) {
+        var _this = this;
+        var ctP = this.getCpByAp(x, y);
+        this.syncLineMove(function (lnC, type, $ln) {
+            var position = $ln.position;
+            var methodName;
+            if (type == 'from') {
+                methodName = 'get' + position.from + 'p';
+                var p1 = _this[methodName](ctP.x, ctP.y);
+                $ln.updatePath([p1.x, p1.y]);
+            }
+            else if (type == 'to') {
+                methodName = 'get' + position.to + 'p';
+                var p2 = _this[methodName](ctP.x, ctP.y);
+                $ln.updatePath(null, [p2.x, p2.y]);
+            }
+        });
+    };
+    // 获取连线的起点节点
+    NodeJudge.prototype.getStlnP = function (position) {
+        // var position = 'D'
+        position = position ? position : 'D';
+        var methodName = 'get' + position + 'p';
+        // var p = this.getDp()
+        var p = this[methodName]();
+        // 起点重合
+        if (this.isCoincidence(p, 'from')) {
+            p = this.getCp();
+            position = 'C';
+        }
+        var nP = { x: p.x, y: p.y, position: position };
+        return nP;
+    };
+    // 获取连线的终点节点
+    NodeJudge.prototype.getEnlnP = function (position) {
+        position = position ? position : 'B';
+        // var p = this.getBp()
+        var methodName = 'get' + position + 'p';
+        var p = this[methodName]();
+        p.position = position;
+        return p;
+    };
+    /**
+     * 根据 A 点获取中心点
+     */
+    NodeJudge.prototype.getCpByAp = function (x, y) {
+        var opt = this.opt;
+        x += opt.w / 2;
+        return { x: x, y: y };
+    };
+    // A 点
+    NodeJudge.prototype.getAp = function (x, y) {
+        var opt = this.opt;
+        x = x ? x : opt.cx;
+        y = y ? y : opt.cy;
+        x -= (opt.w / 2);
+        return { x: x, y: y };
+    };
+    NodeJudge.prototype.getBp = function (x, y) {
+        var opt = this.opt;
+        x = x ? x : opt.cx;
+        y = y ? y : opt.cy;
+        y -= (opt.h / 2);
+        return { x: x, y: y };
+    };
+    NodeJudge.prototype.getCp = function (x, y) {
+        var opt = this.opt;
+        x = x ? x : opt.cx;
+        y = y ? y : opt.cy;
+        x += (opt.w / 2);
+        return { x: x, y: y };
+    };
+    NodeJudge.prototype.getDp = function (x, y) {
+        var opt = this.opt;
+        x = x ? x : opt.cx;
+        y = y ? y : opt.cy;
+        y += (opt.h / 2);
+        return { x: x, y: y };
+    };
+    /**
+     * 是否为重合点
+     * @param {object} p {x,y}
+     * @param {string} type [from/to]
+     * @returns {boolean}
+     */
+    NodeJudge.prototype.isCoincidence = function (p, type) {
+        var successMK = false;
+        if (p && 'object' == typeof p &&
+            'undefined' != typeof p.x && 'undefined' != typeof p.y) {
+            // 起点
+            if ('from' == type) {
+                if (this.fromLine.length > 0) {
+                    for (var i = 0; i < this.fromLine.length; i++) {
+                        var $line = this.fromLine[i];
+                        var path = $line.c.attr('path');
+                        var pathArr = path[0];
+                        if (pathArr[1] == p.x && pathArr[2] == p.y) {
+                            successMK = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            // 终点
+            else if ('to' == type) {
+                if (this.toLine.length > 0) {
+                    for (var j = 0; j < this.toLine.length; j++) {
+                        var $line = this.toLine[j];
+                        var path = $line.c.attr('path');
+                        var pathArr = path[path.length - 1];
+                        if (pathArr[1] == p.x && pathArr[2] == p.y) {
+                            successMK = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return successMK;
+    };
+    return NodeJudge;
+}(__WEBPACK_IMPORTED_MODULE_0__NodeBase__["a" /* default */]));
+/* harmony default export */ __webpack_exports__["a"] = (NodeJudge);
+
+
+/***/ }),
+/* 12 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(2);
 /**
  * 2018年1月5日 星期五
  * 连接类型： 连线
@@ -2762,70 +2872,6 @@ var NodeLine = /** @class */ (function () {
     return NodeLine;
 }());
 /* harmony default export */ __webpack_exports__["a"] = (NodeLine);
-
-
-/***/ }),
-/* 12 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Util; });
-var Util = /** @class */ (function () {
-    function Util() {
-    }
-    /**
-     * 对象复制
-     * @param {object} t1
-     */
-    Util.clone = function (t1) {
-        t1 = 'object' == typeof t1 ? t1 : {};
-        var obj = {};
-        return $.extend(true, obj, t1);
-    };
-    /**
-     * 数据合并相同的元素
-     * @param {*} array
-     */
-    Util.ArrayMergeSameValue = function (array) {
-        if ('object' == typeof array && array.length && array.length > 1) {
-            var valueMap = {};
-            var newArray = [];
-            for (var i = 0; i < array.length; i++) {
-                if (valueMap[array[i]]) {
-                    continue;
-                }
-                newArray.push(array[i]);
-                valueMap[array[i]] = true;
-            }
-            array = newArray;
-        }
-        return array;
-    };
-    /**
-     * @param {array|object} obj
-     * @param {function} callback (k, v)
-     */
-    Util.each = function (obj, callback) {
-        if ('object' == typeof obj) {
-            if ($.isArray(obj)) {
-                for (var i = 0; i < obj.length; i++) {
-                    if (false === callback(i, obj[i])) {
-                        break;
-                    }
-                }
-            }
-            else {
-                for (var k in obj) {
-                    if (false === callback(k, obj[k])) {
-                        break;
-                    }
-                }
-            }
-        }
-    };
-    return Util;
-}());
-
 
 
 /***/ }),
@@ -3085,7 +3131,7 @@ var NodeBow = /** @class */ (function () {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.0.4", "release": "20180327", "author": "Joshua Conero" };
+var LibVersion = { "version": "2.0.5", "release": "20180328", "author": "Joshua Conero" };
 
 
 /***/ }),
@@ -3125,6 +3171,35 @@ var NodeBegin = /** @class */ (function (_super) {
         var opt = this.opt, bkg = opt.bkg || '#851E07';
         this.c = this.paper.ellipse(opt.cx, opt.cy, opt.w / 2, opt.h / 2);
         this.c.attr('fill', bkg);
+    };
+    /**
+     * 更新属性
+     * @param nOpt
+     */
+    NodeBegin.prototype.updAttr = function (nOpt) {
+        var opt = this._updAttr(nOpt)
+            .opt;
+        this.c.attr({
+            cx: opt.cx,
+            cy: opt.cy,
+            rx: opt.w / 2,
+            ry: opt.h / 2
+        });
+        return this;
+    };
+    /**
+     * 节点可移动
+     * @returns
+     * @memberof NodeAudit
+     */
+    NodeBegin.prototype.moveable = function () {
+        var $this = this;
+        this.c.undrag();
+        this.c.drag(function (dx, dy, x, y) {
+            $this.updAttr({ cx: x, cy: y });
+            return {};
+        });
+        return $this;
     };
     return NodeBegin;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
@@ -3178,17 +3253,35 @@ var NodeTask = /** @class */ (function (_super) {
         };
     };
     /**
-     * 拖动处理事件
+     * 更新属性
+     * @param nOpt
      */
-    NodeTask.prototype.drag = function () {
+    NodeTask.prototype.updAttr = function (nOpt) {
+        this._updAttr(nOpt);
+        var opt = this.opt2Attr();
+        var cAttr = {
+            x: opt.x,
+            y: opt.y,
+            width: opt.w,
+            height: opt.h
+        };
+        this.c.attr(cAttr);
+    };
+    /**
+     * 拖动处理事件，移动
+     */
+    NodeTask.prototype.moveable = function () {
         var $this = this;
-        this.c.drag(function (dx, dy) {
+        this.c.undrag();
+        this.c.drag(function (dx, dy, x, y) {
+            $this.updAttr({ cx: x, cy: y });
             return {};
         }, function (x, y) {
-            return {};
+            return { x: x, y: y };
         }, function () {
             return {};
         });
+        return this;
     };
     return NodeTask;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
@@ -3227,11 +3320,7 @@ var NodeAudit = /** @class */ (function (_super) {
     };
     NodeAudit.prototype._whenCreatorEvt = function () {
         var pQue = this.opt2Attr(), nOpt = this.opt, bkg = nOpt.bkg || '#88EEEA';
-        this.c = this.paper.path('M' + pQue[0].x + ',' + pQue[0].y +
-            'L' + pQue[1].x + ',' + pQue[1].y +
-            'L' + pQue[2].x + ',' + pQue[2].y +
-            'L' + pQue[3].x + ',' + pQue[3].y +
-            'Z');
+        this.c = this.paper.path(this._ps2Path(pQue, true));
         this.c.attr('fill', bkg);
     };
     /**
@@ -3259,6 +3348,29 @@ var NodeAudit = /** @class */ (function (_super) {
                 y: cy + h / 2
             }
         ];
+    };
+    /**
+     * 更新属性
+     * @param nOpt
+     */
+    NodeAudit.prototype.updAttr = function (nOpt) {
+        this._updAttr(nOpt);
+        var opt = this.opt2Attr();
+        this.c.attr('path', this._ps2PathAttr(opt, true));
+    };
+    /**
+     * 节点可移动
+     * @returns
+     * @memberof NodeAudit
+     */
+    NodeAudit.prototype.moveable = function () {
+        var $this = this;
+        this.c.undrag();
+        this.c.drag(function (dx, dy, x, y) {
+            $this.updAttr({ cx: x, cy: y });
+            return {};
+        });
+        return $this;
     };
     return NodeAudit;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
@@ -3297,11 +3409,7 @@ var NodeSign = /** @class */ (function (_super) {
     };
     NodeSign.prototype._whenCreatorEvt = function () {
         var pQue = this.opt2Attr(), opt = this.opt, bkg = opt.bkg || '#88EEEA';
-        this.c = this.paper.path('M' + pQue[0].x + ',' + pQue[0].y +
-            'L' + pQue[1].x + ',' + pQue[1].y +
-            'L' + pQue[2].x + ',' + pQue[2].y +
-            'L' + pQue[3].x + ',' + pQue[3].y +
-            'Z');
+        this.c = this.paper.path(this._ps2Path(pQue, true));
         this.c.attr('fill', bkg);
     };
     /**
@@ -3329,6 +3437,29 @@ var NodeSign = /** @class */ (function (_super) {
                 y: cy + h / 2
             }
         ];
+    };
+    /**
+     * 更新属性
+     * @param nOpt
+     */
+    NodeSign.prototype.updAttr = function (nOpt) {
+        this._updAttr(nOpt);
+        var opt = this.opt2Attr();
+        this.c.attr('path', this._ps2PathAttr(opt, true));
+    };
+    /**
+     * 节点可移动
+     * @returns
+     * @memberof NodeAudit
+     */
+    NodeSign.prototype.moveable = function () {
+        var $this = this;
+        this.c.undrag();
+        this.c.drag(function (dx, dy, x, y) {
+            $this.updAttr({ cx: x, cy: y });
+            return {};
+        });
+        return $this;
     };
     return NodeSign;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
@@ -3366,11 +3497,7 @@ var NodeCond = /** @class */ (function (_super) {
     };
     NodeCond.prototype._whenCreatorEvt = function () {
         var pQue = this.opt2Attr(), opt = this.opt, bkg = opt.bkg || '#88EEEA';
-        this.c = this.paper.path('M' + pQue[0].x + ',' + pQue[0].y +
-            'L' + pQue[1].x + ',' + pQue[1].y +
-            'L' + pQue[2].x + ',' + pQue[2].y +
-            'L' + pQue[3].x + ',' + pQue[3].y +
-            'Z');
+        this.c = this.paper.path(this._ps2Path(pQue, true));
         this.c.attr('fill', bkg);
     };
     /**
@@ -3398,6 +3525,29 @@ var NodeCond = /** @class */ (function (_super) {
                 y: cy
             }
         ];
+    };
+    /**
+     * 更新属性
+     * @param nOpt
+     */
+    NodeCond.prototype.updAttr = function (nOpt) {
+        this._updAttr(nOpt);
+        var opt = this.opt2Attr();
+        this.c.attr('path', this._ps2PathAttr(opt, true));
+    };
+    /**
+     * 节点可移动
+     * @returns
+     * @memberof NodeAudit
+     */
+    NodeCond.prototype.moveable = function () {
+        var $this = this;
+        this.c.undrag();
+        this.c.drag(function (dx, dy, x, y) {
+            $this.updAttr({ cx: x, cy: y });
+            return {};
+        });
+        return $this;
     };
     return NodeCond;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
@@ -3431,21 +3581,19 @@ var NodeSubFlow = /** @class */ (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     NodeSubFlow.prototype._onInit = function () {
-        this.NodeType = 'subflow';
+        this.NodeType = 'sub_flow';
         this.xRate = 0.15;
     };
     /**
      * 生成器处理事件
      */
     NodeSubFlow.prototype._whenCreatorEvt = function () {
-        var attrs = this.opt2Attr(), attr = attrs.cAttr, lLine = attrs.lLine, rLine = attrs.rLine, opt = this.opt, bkg = opt.bkg || '#88EEEA';
-        this.c = this.paper.rect(attr.x, attr.y, attr.w, attr.h);
+        var _a = this.opt2Attr(), cAttr = _a.cAttr, lLine = _a.lLine, rLine = _a.rLine, opt = this.opt, bkg = opt.bkg || '#88EEEA';
+        this.c = this.paper.rect(cAttr.x, cAttr.y, cAttr.w, cAttr.h);
         this.c.attr('fill', bkg);
         this.inlineEle = [
-            this.paper.path('M' + lLine[0].x + ',' + lLine[0].y +
-                'L' + lLine[1].x + ',' + lLine[1].y),
-            this.paper.path('M' + rLine[0].x + ',' + rLine[0].y +
-                'L' + rLine[1].x + ',' + rLine[1].y)
+            this.paper.path(this._ps2Path(lLine)),
+            this.paper.path(this._ps2Path(rLine))
         ];
     };
     /**
@@ -3466,6 +3614,33 @@ var NodeSubFlow = /** @class */ (function (_super) {
                 { x: x + w - w * xRate, y: y + h }
             ]
         };
+    };
+    /**
+     * 更新属性
+     * @param nOpt
+     */
+    NodeSubFlow.prototype.updAttr = function (nOpt) {
+        this._updAttr(nOpt);
+        var _a = this.opt2Attr(), cAttr = _a.cAttr, lLine = _a.lLine, rLine = _a.rLine;
+        this.c.attr({
+            x: cAttr.x, y: cAttr.y, width: cAttr.w, height: cAttr.h
+        });
+        this.inlineEle[0].attr('path', this._ps2PathAttr(lLine));
+        this.inlineEle[1].attr('path', this._ps2PathAttr(rLine));
+    };
+    /**
+     * 节点可移动
+     * @returns
+     * @memberof NodeAudit
+     */
+    NodeSubFlow.prototype.moveable = function () {
+        var $this = this;
+        this.c.undrag();
+        this.c.drag(function (dx, dy, x, y) {
+            $this.updAttr({ cx: x, cy: y });
+            return {};
+        });
+        return $this;
     };
     return NodeSubFlow;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
@@ -3539,6 +3714,30 @@ var NodeParallel = /** @class */ (function (_super) {
                 { x: x + rW / 2 + rW * 0.1, y: y }
             ]
         };
+    };
+    /**
+     * 更新属性
+     * @param nOpt
+     */
+    NodeParallel.prototype.updAttr = function (nOpt) {
+        this._updAttr(nOpt);
+        var _a = this.opt2Attr(), cAttr = _a.cAttr, inLine = _a.inLine;
+        this.c.attr('path', this._ps2PathAttr(cAttr, true));
+        this.inlineEle.attr('path', this._ps2PathAttr(inLine));
+    };
+    /**
+     * 节点可移动
+     * @returns
+     * @memberof NodeAudit
+     */
+    NodeParallel.prototype.moveable = function () {
+        var $this = this;
+        this.c.undrag();
+        this.c.drag(function (dx, dy, x, y) {
+            $this.updAttr({ cx: x, cy: y });
+            return {};
+        });
+        return $this;
     };
     return NodeParallel;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
@@ -3620,6 +3819,31 @@ var NodeMerge = /** @class */ (function (_super) {
             ]
         };
     };
+    /**
+     * 更新属性
+     * @param nOpt
+     */
+    NodeMerge.prototype.updAttr = function (nOpt) {
+        this._updAttr(nOpt);
+        var _a = this.opt2Attr(), cAttr = _a.cAttr, vLine = _a.vLine, hLine = _a.hLine;
+        this.c.attr('path', this._ps2PathAttr(cAttr, true));
+        this.inlinesEle[0].attr('path', this._ps2PathAttr(vLine));
+        this.inlinesEle[1].attr('path', this._ps2PathAttr(hLine));
+    };
+    /**
+     * 节点可移动
+     * @returns
+     * @memberof NodeAudit
+     */
+    NodeMerge.prototype.moveable = function () {
+        var $this = this;
+        this.c.undrag();
+        this.c.drag(function (dx, dy, x, y) {
+            $this.updAttr({ cx: x, cy: y });
+            return {};
+        });
+        return $this;
+    };
     return NodeMerge;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
 /* harmony default export */ __webpack_exports__["a"] = (NodeMerge);
@@ -3662,6 +3886,34 @@ var NodeEnd = /** @class */ (function (_super) {
         this.c = this.paper.ellipse(opt.cx, opt.cy, opt.w / 2, opt.h / 2);
         this.c.attr('fill', bkg);
     };
+    /**
+     * 更新属性
+     * @param nOpt
+     */
+    NodeEnd.prototype.updAttr = function (nOpt) {
+        var opt = this._updAttr(nOpt)
+            .opt;
+        this.c.attr({
+            cx: opt.cx,
+            cy: opt.cy,
+            rx: opt.w / 2,
+            ry: opt.h / 2
+        });
+    };
+    /**
+     * 节点可移动
+     * @returns
+     * @memberof NodeAudit
+     */
+    NodeEnd.prototype.moveable = function () {
+        var $this = this;
+        this.c.undrag();
+        this.c.drag(function (dx, dy, x, y) {
+            $this.updAttr({ cx: x, cy: y });
+            return {};
+        });
+        return $this;
+    };
     return NodeEnd;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
 /* harmony default export */ __webpack_exports__["a"] = (NodeEnd);
@@ -3694,7 +3946,7 @@ var NodeLn = /** @class */ (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     NodeLn.prototype._onInit = function () {
-        this.NodeType = 'line';
+        this.NodeType = 'ln';
     };
     NodeLn.prototype._whenCreatorEvt = function () {
         var opt = this.opt, bkg = opt.bkg || 'rgb(3, 84, 41)';
@@ -3760,10 +4012,9 @@ var NodeLnPoly = /** @class */ (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     NodeLnPoly.prototype._onInit = function () {
-        this.NodeType = 'polyln';
+        this.NodeType = 'ln_poly';
     };
     NodeLnPoly.prototype._whenCreatorEvt = function () {
-        console.log(this.opt2Attr());
         this.c = this.paper.path(this._ps2Path(this.opt2Attr()));
     };
     NodeLnPoly.prototype.opt2Attr = function (nOpt) {

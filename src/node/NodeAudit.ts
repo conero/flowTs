@@ -4,7 +4,6 @@
  */
 
 import NodeAbstract from "./NodeAbstract";
-
 export default class NodeAudit extends NodeAbstract{
     xRate: number           // 移除边框百分比
     protected _onInit(){
@@ -16,13 +15,7 @@ export default class NodeAudit extends NodeAbstract{
             nOpt = this.opt,
             bkg = nOpt.bkg || '#88EEEA'
 
-        this.c = this.paper.path(
-            'M' + pQue[0].x + ',' + pQue[0].y + 
-            'L' + pQue[1].x + ',' + pQue[1].y + 
-            'L' + pQue[2].x + ',' + pQue[2].y + 
-            'L' + pQue[3].x + ',' + pQue[3].y +
-            'Z'
-        )
+        this.c = this.paper.path(this._ps2Path(pQue, true))
         this.c.attr('fill', bkg)
     }
     /**
@@ -56,5 +49,30 @@ export default class NodeAudit extends NodeAbstract{
                 y: cy + h/2
             }
         ]
+    }
+    /**
+     * 更新属性
+     * @param nOpt 
+     */
+    updAttr(nOpt: rSu.NodeOpt){
+        this._updAttr(nOpt)
+        var opt = this.opt2Attr()
+        this.c.attr('path', this._ps2PathAttr(opt, true))
+    }
+    /**
+     * 节点可移动
+     * @returns 
+     * @memberof NodeAudit
+     */
+    moveable(){
+        var $this = this;
+        this.c.undrag()
+        this.c.drag(
+            function(dx: number, dy: number, x: number, y: number){
+                $this.updAttr({cx: x, cy: y})
+                return {}
+            }
+        )
+        return $this
     }
 }

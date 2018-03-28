@@ -18,6 +18,8 @@ import NodeMerge from './node/NodeMerge';
 import NodeEnd from './node/NodeEnd';
 import NodeLn from './node/NodeLn';
 import NodeLnPoly from './node/NodeLnPoly';
+import NodeAbstract from './node/NodeAbstract';
+import { Util } from './util';
 
 // 通过数据 object 类型
 interface ItfMap {
@@ -90,6 +92,8 @@ export default class WorkerEditor{
     tempNodes: any
     MagneticCore: any
     $tool: any
+    protected toolNodeIstQue: any[]     // 工具栏部件节点队列
+    // toolNodeIstQue: any[]     // 工具栏部件节点队列
     // 静态属性
     static version: VersionStruct = LibVersion
 
@@ -145,7 +149,7 @@ export default class WorkerEditor{
     /**
      * 工具集按钮栏
      */
-    _toolbar(){
+    private _toolbar(){
         // 工具栏参数信息
         var $tool: Dance.Tool = {}  
         var raphael = this.raphael
@@ -164,236 +168,189 @@ export default class WorkerEditor{
         $tool.containerIst = raphael.rect(ctX, ctY, ctW, ctH)
         $tool.containerIst.attr('fill', '#ffffff')      // 容器底色
 
+        var nodeIstQue: any[] = [],
+            ist: NodeAbstract
+
         // 开始
         x += 20, y += 50
-        new NodeBegin(raphael, {cx: x, cy: y, w: 16, h: 12})
+        ist = new NodeBegin(raphael, {cx: x, cy: y, w: 16, h: 12})
             .creator()
+        nodeIstQue.push(ist)
 
         // 任务
         y += 20
-        new NodeTask(raphael, {cx: x, cy: y, w: 16, h: 12})
+        ist = new NodeTask(raphael, {cx: x, cy: y, w: 16, h: 12})
             .creator()
+        nodeIstQue.push(ist)
 
         // 审核
         y += 20
-        new NodeAudit(raphael, {cx: x, cy: y, w: 16, h: 12})
+        ist = new NodeAudit(raphael, {cx: x, cy: y, w: 16, h: 12})
             .creator()
+        nodeIstQue.push(ist)
         // 会签
         y += 20
-        new NodeSign(raphael, {cx: x, cy: y, w: 16, h: 12})
+        ist = new NodeSign(raphael, {cx: x, cy: y, w: 16, h: 12})
             .creator()
+        nodeIstQue.push(ist)
         // 判断
         y += 20
-        new NodeCond(raphael, {cx: x, cy: y, w: 16, h: 12})
+        ist = new NodeCond(raphael, {cx: x, cy: y, w: 16, h: 12})
             .creator()
+        nodeIstQue.push(ist)
 
         // 子流程
         y += 20
-        new NodeSubFlow(raphael, {cx: x, cy: y, w: 16, h: 12})
+        ist = new NodeSubFlow(raphael, {cx: x, cy: y, w: 16, h: 12})
             .creator()
+        nodeIstQue.push(ist)            
         // 并行
         y += 30
-        new NodeParallel(raphael, {cx: x, cy: y, w: 16, h: 12})
+        ist = new NodeParallel(raphael, {cx: x, cy: y, w: 16, h: 12})
             .creator()
+        nodeIstQue.push(ist)
         // 合并
         y += 20
-        new NodeMerge(raphael, {cx: x, cy: y, w: 16, h: 12})
+        ist = new NodeMerge(raphael, {cx: x, cy: y, w: 16, h: 12})
             .creator()
+        nodeIstQue.push(ist)
         // 结束
         y += 20
-        new NodeEnd(raphael, {cx: x, cy: y, w: 16, h: 12})
+        ist = new NodeEnd(raphael, {cx: x, cy: y, w: 16, h: 12})
             .creator()    
+        nodeIstQue.push(ist)            
         // 直线
         y += 20
-        new NodeLn(raphael, {
+        ist = new NodeLn(raphael, {
             P1: {x: x-5, y},
             P2: {x: x+10, y}
         })
             .creator()
+        nodeIstQue.push(ist)            
 
         // 折线
         y += 20
-        new NodeLnPoly(raphael, {
+        ist = new NodeLnPoly(raphael, {
             P1: {x: x-5, y},            
             P2: {x: x+10, y: y + 4},
             h: 4
         })
             .creator()
-
-        // ~~ 历史代码
-
-        // 开始
-        x += 20, y += 50
-        $tool.startIst = raphael.ellipse(x, y, 8, 6)
-        $tool.startIst.attr('fill', pkgClr.start)
-        $tool.startTxtIst = raphael.text(x+30, y, Conf.start.text)
-
-        // 流程
-        y += 20
-        $tool.operaIst = raphael.rect(x-8, y, 16, 12)
-        $tool.operaIst.attr('fill', pkgClr.opera)
-        $tool.operaTxtIst = raphael.text(x+30, y+4, Conf.opera.text)
-
-        // 判断
-        y += 30
-        $tool.judgeIst = (new Judge(raphael)).onlyCell(x, y, 16, 12)
-        $tool.judgeIst.attr('fill', pkgClr.judge)
-        $tool.judgeTxtIst = raphael.text(x+30, y, Conf.judge.text)
-
-        // 结束
-        y += 30
-        $tool.endIst = raphael.ellipse(x, y, 8, 6)
-        $tool.endIst.attr('fill', pkgClr.end)
-        $tool.endTxtIst = raphael.text(x+30, y, Conf.end.text)
-
-        // 箭头
-        y += 30
-        $tool.arrowIst = this.flow.arrow([x-5,y], [x+10, y], 3)
-        $tool.arrowIst.c.attr('fill', pkgClr.arrow)
-        $tool.arrowTxtIst = raphael.text(x+30, y, Conf.arrow.text)
-
-
-        // 文本框
-        y += 30
-        $tool.textInst = this.raphael.text(x+10, y, Conf.text.text)
-
-        this.$tool = $tool
+        nodeIstQue.push(ist)
+        this.toolNodeIstQue = nodeIstQue
         this._toolbarDragEvt()
     }
     /**
-     * 工具栏拖动处理
+     * 工具栏拖动处理事件
      */
-    _toolbarDragEvt(){
-        // console.log(this.$tool)
-        var $this = this
-        var pkgClr = this.config.pkgClr
-        // 拖动处理    
-        var dragHandlerEvnt = function(node: any, type: any){
-            $this.MagneticCore = null           // 移动工具栏时磁芯消失
-            var cDragDt = {dx: 0, dy: 0}
-            node.drag(
-                function(dx: number, dy: number){   // moving
-                    // console.log(type)
-                    // console.log(dx, dy)
-                    // cDragDt = {dx, dy}
-                    dx += cDragDt.dx
-                    dy += cDragDt.dy
-                    var newElem = $this.getLastElem()
-                    if(newElem){
-                        newElem.move(dx, dy)
+    private _toolbarDragEvt(){
+        var $this = this;
+        this.toolNodeIstQue.forEach((NodeIst: NodeAbstract)=>{
+            /**
+            // 回调函数保持
+            (function(ist: NodeAbstract){
+                var NodeType = ist.NodeType,
+                ndAst: NodeAbstract
+                ist.c.drag(
+                    function(dx: number, dy: number, x: number, y: number){
+                        //ndAst.opt
+                        console.log({cx: x, cy: y}, ndAst)
+                        ndAst.updAttr({cx: x, cy: y})
+                        return {}
+                    },
+                    function(x: number, y: number){
+                        ndAst = $this.newNode(NodeType, {cx: x, cy: y, w: 50, h:40})
+                            .creator()
+                            .moveable()
+                        return {}
                     }
-                },
-                function(){         // start
-                    // cDragDt = {dx: 0, dy: 0}
-                    var _x, _y
-                    if(2 == type){
-                        _x = this.attr('x')
-                        _y = this.attr('y')
-                    }else if(3 == type){
-                        var tpPath = this.attr('path')
-                        var tpPath0 = tpPath[0]
-                        _x = tpPath0[1]
-                        _y = tpPath0[2]
-                    }else{
-                        // console.log(this)
-                        _x = this.attr('cx')
-                        _y = this.attr('cy')
-                    }
-                    
-                    cDragDt.dx = _x + 5
-                    cDragDt.dy = _y + 10
-
-                    // cDragDt.x = _x
-                    // cDragDt.y = _y
-                    // console.log(cDragDt)
-                    $this._createNode(cDragDt, type)
-                },
-                function(){         // end
-                    // if(cDragDt.dx < 75 || cDragDt.dy < 50){
-                    //     return null
+                )
+            })(NodeIst)
+            **/
+            
+            var ist = NodeIst
+            var NodeType = ist.NodeType,
+                ndAst: NodeAbstract,
+                cloneIst: NodeAbstract
+            ist.c.drag(
+                function(dx: number, dy: number, x: number, y: number): any{
+                    //ndAst.opt
+                    console.log(arguments)
+                    // console.log(cloneIst)
+                    // console.log({cx: x, cy: y}, ndAst)
+                    // var newElem = $this.getLastElem()
+                    // console.log(newElem)
+                    // if(!ndAst){
+                    //     ndAst = $this.newNode(NodeType, {cx: x, cy: y, w: 50, h:40})
+                    //         .creator()
+                    //         .moveable()
+                    //     $this.nodeQueues.push(ndAst)
                     // }
-                    // $this._createNode(cDragDt, type)
+                    if(ndAst){
+                        ndAst.updAttr({cx: x, cy: y})
+                    }                    
+                },
+                function(x: number, y: number): any{
+                    ndAst = $this.newNode(NodeType, {cx: x, cy: y, w: 50, h:40})
+                        .creator()
+                        .moveable()
+                    $this.nodeQueues.push(ndAst)
+                    
+                    // 克隆赋值
+                    // cloneIst = this.clone()
+                    console.log(this, '测试：start')
+                },
+                function(): any{
+                    console.log(this, '测试：end')
                 }
             )
+        })
+    }
+    /**
+     * 实例化节点，用于参数示例话节点
+     */
+    // newNode(NodeType: string, nOpt: rSu.NodeOpt): any{
+    newNode(NodeType: string, nOpt: rSu.NodeOpt): NodeAbstract{
+        var name = Util.ucFirst(NodeType),
+            paper = this.raphael
+        var ist: NodeAbstract
+        // var ist: any
+        switch(name){
+            case 'Begin':
+                ist = new NodeBegin(paper, nOpt)
+                break
+            case 'Task':
+                ist = new NodeTask(paper, nOpt)
+                break
+            case 'Audit':
+                ist = new NodeAudit(paper, nOpt)
+                break
+            case 'Sign':
+                ist = new NodeSign(paper, nOpt)
+                break
+            case 'Cond':
+                ist = new NodeCond(paper, nOpt)
+                break
+            case 'SubFlow':
+                ist = new NodeSubFlow(paper, nOpt)
+                break
+            case 'Parallel':
+                ist = new NodeParallel(paper, nOpt)
+                break
+            case 'Merge':
+                ist = new NodeMerge(paper, nOpt)
+                break
+            case 'End':
+                ist = new NodeEnd(paper, nOpt)
+                break
+            case 'Ln':
+                ist = new NodeLn(paper, nOpt)
+                break
+            case 'LnPoly':
+                ist = new NodeLnPoly(paper, nOpt)
+                break
         }
-        // 开始
-        dragHandlerEvnt(this.$tool.startIst, Conf.start.type)
-        dragHandlerEvnt(this.$tool.startTxtIst, Conf.start.type)
-
-        // 流程
-        dragHandlerEvnt(this.$tool.operaIst, Conf.opera.type)
-        dragHandlerEvnt(this.$tool.operaTxtIst, Conf.opera.type)
-
-        // 判断
-        dragHandlerEvnt(this.$tool.judgeIst, Conf.judge.type)
-        dragHandlerEvnt(this.$tool.judgeTxtIst, Conf.judge.type)
-
-        // 结束
-        dragHandlerEvnt(this.$tool.endIst, Conf.end.type)
-        dragHandlerEvnt(this.$tool.endTxtIst, Conf.end.type)
-
-        // 特殊部件生成器
-        // dragHandlerEvnt(this.$tool.arrowIst, Conf.arrow.type)
-        // console.log(this.$tool.arrowIst)
-        // this.$tool.arrowIst.c.drag()
-        var arrowDragHandler = function(ist: any){
-            var cDragDt = {x: 0, y: 0};
-            var innerTmpArror: any = null
-            ist.drag(
-                function(x: number, y: number){
-                    x += cDragDt.x
-                    y += cDragDt.y
-                    if(innerTmpArror){
-                        innerTmpArror.updatePath([x, y], [x + 50, y])
-                    }
-                },
-                function(){
-                    if('text' == ist.type){
-                        cDragDt.x = ist.attr('x')                        
-                        cDragDt.y = ist.attr('y')                        
-                    }
-                    else{
-                        var pathA1 = ist.attr('path')
-                        pathA1 = pathA1[0]
-                        cDragDt.x = pathA1[1]
-                        cDragDt.y = pathA1[2]
-                    }
-                    // 生成连线
-                    innerTmpArror = $this.flow.arrow([cDragDt.x, cDragDt.y], [cDragDt.x + 50, cDragDt.y], 5)
-                    innerTmpArror.c.attr('fill', pkgClr.arrow);
-                    $this._lineTragEvent(innerTmpArror)                    
-                    $this.lineQueues.push(innerTmpArror)
-                },
-                function(){
-                }
-            )
-            // })()
-        }
-        arrowDragHandler(this.$tool.arrowIst.c)
-        arrowDragHandler(this.$tool.arrowTxtIst);
-
-        // 文字拖动
-        (function(){
-            var _dragDt = {x: 0, y:0}
-            var tmpTxtInst: any = null   // 临时文本
-            $this.$tool.textInst.drag(
-                function(x: number, y: number){
-                    x += _dragDt.x
-                    y += _dragDt.y
-                    if(tmpTxtInst){
-                        tmpTxtInst.attr({x, y})
-                    }
-                },
-                function(){
-                    _dragDt.x = this.attr('x') + 5
-                    _dragDt.y = this.attr('y') + 5
-                    tmpTxtInst = $this.raphael.text(_dragDt.x, _dragDt.y, '文本框')
-                    $this._textBindEvent(tmpTxtInst)
-                    $this.textQueues.push(tmpTxtInst)
-                },
-                function(){}
-            )
-        })()
+        return ist
     }
     /**
      * 获取

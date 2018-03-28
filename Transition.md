@@ -13,3 +13,6 @@
     - NodeEnd 结束
     - NodePolyLn 折线
     - NodeLn 直线
+
+## 基本算法或概念
+- 基于节点中心点移动算法    

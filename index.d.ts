@@ -76,6 +76,11 @@ declare namespace rSu{
         bkg?: string            // 底色
         [k: string]: any        // 支持其他，用于实现特殊节点和直线
     }
+    // 基础字典
+    export interface bsMap{
+        [k: string]: any
+        [i: number]: any
+    }
 }
 
 // 图标界面 --------------------------------------------------------------------||

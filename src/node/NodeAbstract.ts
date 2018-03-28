@@ -4,7 +4,13 @@
  */
 ///<reference path="../../index.d.ts"/>
 ///<reference path="../types/raphael.ts"/>
-
+/**
+ * 
+ * 
+ * @export
+ * @abstract
+ * @class NodeAbstract
+ */
 export default abstract class NodeAbstract{
     fromLine: NodeAbstract[]    // 起点连线
     toLine: NodeAbstract[]      // 终点连线
@@ -31,9 +37,10 @@ export default abstract class NodeAbstract{
      */
     creator(opt?: rSu.NodeOpt){
         this._whenCreatorEvt()
+        return this
     }
     /**
-     * 点连线
+     * 点连线装换为path字符串
      * @param {array} pQue 
      * @param {bool} isClose 
      * @returns {string}
@@ -47,6 +54,27 @@ export default abstract class NodeAbstract{
             path += 'Z'
         }        
         return path
+    }
+    /**
+     * 点连线转换为字符串数组
+     * @param {array} pQue 
+     * @param {bool} isClose 
+     * @returns {string}
+     */
+    protected _ps2PathAttr(pQue: rSu.P[], isClose?: boolean){
+        var pArr: any[] = []
+        for(var i=0; i<pQue.length; i++){
+            var cPArr: any[] = ['L']
+            if(pArr.length == 0){
+                cPArr[0] = 'M'
+            }
+            cPArr.push(pQue[i].x, pQue[i].y)
+            pArr.push(cPArr)
+        }
+        if(isClose){
+            pArr.push(['Z'])
+        }        
+        return pArr
     }
     /**
      * 创建事件时，处理事件
@@ -124,5 +152,39 @@ export default abstract class NodeAbstract{
             (Math.pow((P1.x - P2.x), 2) + Math.pow((P1.y - P2.y), 2)),
             1/2
         )
+    }
+    /**
+     * 更新属性
+     * @param nOpt 
+     */
+    protected _updAttr(nOpt: rSu.NodeOpt){
+        for(var key in nOpt){
+            if('undefined' != typeof this.opt[key]){
+                this.opt[key] = nOpt[key]
+            }
+        }
+        return this
+    }
+    /**
+     * 节点删除
+     * @returns {boolean}
+     */
+    delete(): boolean{
+        return false
+    }
+    /**
+     * 节点可移动处理
+     * @returns 
+     * @memberof NodeAbstract
+     */
+    moveable(){
+        return this
+    }
+    /**
+     * 更新属性
+     * @param nOpt 
+     */
+    updAttr(nOpt: rSu.NodeOpt): any{
+        return this
     }
 }

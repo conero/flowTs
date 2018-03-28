@@ -5,7 +5,7 @@
 import NodeAbstract from "./NodeAbstract"
 export default class NodeLn extends NodeAbstract{
     protected _onInit(){
-        this.NodeType = 'line'
+        this.NodeType = 'ln'
     }
     protected _whenCreatorEvt(){
         var opt = this.opt,

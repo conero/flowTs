@@ -8,31 +8,22 @@ export default class NodeSubFlow extends NodeAbstract{
     xRate: number                   // x 主偏移量
     inlineEle: RaphaelElement[]   // 内部连线线段元素
     protected _onInit(){
-        this.NodeType = 'subflow'
+        this.NodeType = 'sub_flow'
         this.xRate = 0.15
     }
     /**
      * 生成器处理事件
      */
     protected _whenCreatorEvt(){
-        var attrs = this.opt2Attr(),
-            attr = attrs.cAttr,
-            lLine = attrs.lLine,
-            rLine = attrs.rLine,
+        var {cAttr, lLine, rLine} = this.opt2Attr(),
             opt = this.opt,
             bkg = opt.bkg || '#88EEEA'
 
-        this.c = this.paper.rect(attr.x, attr.y, attr.w, attr.h)
+        this.c = this.paper.rect(cAttr.x, cAttr.y, cAttr.w, cAttr.h)
         this.c.attr('fill', bkg)
         this.inlineEle = [
-            this.paper.path(
-                'M' + lLine[0].x + ',' + lLine[0].y + 
-                'L' + lLine[1].x + ',' + lLine[1].y
-            ),
-            this.paper.path(
-                'M' + rLine[0].x + ',' + rLine[0].y + 
-                'L' + rLine[1].x + ',' + rLine[1].y 
-            )
+            this.paper.path(this._ps2Path(lLine)),
+            this.paper.path(this._ps2Path(rLine))
         ]
     }
     /**
@@ -59,5 +50,34 @@ export default class NodeSubFlow extends NodeAbstract{
                 {x: x + w - w*xRate, y: y + h}
             ]
         }
+    }
+    /**
+     * 更新属性
+     * @param nOpt 
+     */
+    updAttr(nOpt: rSu.NodeOpt){
+        this._updAttr(nOpt)
+        var {cAttr, lLine, rLine} = this.opt2Attr()
+        this.c.attr({
+            x: cAttr.x, y: cAttr.y, width: cAttr.w, height: cAttr.h
+        })
+        this.inlineEle[0].attr('path', this._ps2PathAttr(lLine))
+        this.inlineEle[1].attr('path', this._ps2PathAttr(rLine))
+    }
+    /**
+     * 节点可移动
+     * @returns 
+     * @memberof NodeAudit
+     */
+    moveable(){
+        var $this = this;
+        this.c.undrag()
+        this.c.drag(
+            function(dx: number, dy: number, x: number, y: number){
+                $this.updAttr({cx: x, cy: y})
+                return {}
+            }
+        )
+        return $this
     }
 }

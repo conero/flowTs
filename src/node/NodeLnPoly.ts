@@ -5,10 +5,9 @@
 import NodeAbstract from "./NodeAbstract"
 export default class NodeLnPoly extends NodeAbstract{
     protected _onInit(){
-        this.NodeType = 'polyln'
+        this.NodeType = 'ln_poly'
     }
     protected _whenCreatorEvt(){
-        console.log(this.opt2Attr())
         this.c = this.paper.path(this._ps2Path(this.opt2Attr()))
     }
     opt2Attr(nOpt?: rSu.NodeOpt){

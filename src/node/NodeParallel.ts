@@ -58,4 +58,30 @@ export default class NodeParallel extends NodeAbstract{
             ]
         }            
     }
+    /**
+     * 更新属性
+     * @param nOpt 
+     */
+    updAttr(nOpt: rSu.NodeOpt){
+        this._updAttr(nOpt)
+        var {cAttr, inLine} = this.opt2Attr()
+        this.c.attr('path', this._ps2PathAttr(cAttr, true))
+        this.inlineEle.attr('path', this._ps2PathAttr(inLine))
+    }
+    /**
+     * 节点可移动
+     * @returns 
+     * @memberof NodeAudit
+     */
+    moveable(){
+        var $this = this;
+        this.c.undrag()
+        this.c.drag(
+            function(dx: number, dy: number, x: number, y: number){
+                $this.updAttr({cx: x, cy: y})
+                return {}
+            }
+        )
+        return $this
+    }
 }

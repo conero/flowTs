@@ -33,20 +33,38 @@ export default class NodeTask extends NodeAbstract{
         }
     }
     /**
-     * 拖动处理事件
+     * 更新属性
+     * @param nOpt 
      */
-    drag(){
+    updAttr(nOpt: rSu.NodeOpt){
+        this._updAttr(nOpt)
+        var opt = this.opt2Attr()
+        var cAttr: rSu.bsMap = {
+            x: opt.x,
+            y: opt.y,
+            width: opt.w,
+            height: opt.h
+        }
+        this.c.attr(cAttr)
+    }
+    /**
+     * 拖动处理事件，移动
+     */
+    moveable(){
         var $this = this;
+        this.c.undrag()
         this.c.drag(
-            function(dx: number, dy: number){
+            function(dx: number, dy: number, x: number, y: number){
+                $this.updAttr({cx: x, cy: y})
                 return {}
             },
             function(x ,y){
-                return {}
+                return {x, y}
             },
             function(){
                 return {}
             }
         )
+        return this
     }
 }
