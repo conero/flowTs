@@ -2,7 +2,7 @@
  * 2018年1月5日 星期五
  * 连接类型： 连线
  */
-import {Util} from './util'
+import {Util} from '../util'
 class NodeLine{
     /**
      * 

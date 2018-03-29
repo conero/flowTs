@@ -93,6 +93,7 @@ module.exports = $queue
 
     .js('browser.workerflow', 'workflow')   // 别名编译， 实际用于 zonmaker 框架的工作流库  
 
+    /*
     // 别名编译， 实际用于 zonmaker 框架的工作流库  AMD
     .js('browser.workerflow.umd', 'workflow.umd', (opt) => {
         opt.output.libraryTarget = 'umd'
@@ -107,6 +108,22 @@ module.exports = $queue
             newOpt.output.filename = '../../zmapp/ZonMaker/public/libs/workflow/workflow.'+(isProdEv? 'min.':'')+'js'
             $queue.addOpt(newOpt)
         }
+    })
+    */
+
+    // 别名编译， 实际用于 zonmaker 框架的工作流库  AMD
+    // 仅仅从 WorkerEditor 页面中编译
+    .js('browser.FlowEditor.umd', 'FlowEditor.umd', (opt) => {
+        opt.output.libraryTarget = 'umd'
+        opt.externals = {
+            'raphael': 'raphael'
+        }
+        // 本地测试使用，深复制
+        var newOptStr = JSON.stringify(opt)
+        // var newOpt = Object.assign({}, opt)
+        var newOpt = JSON.parse(newOptStr)
+        newOpt.output.filename = '../../zmapp/ZonMaker/public/libs/workflow/workflow.'+(isProdEv? 'min.':'')+'js'
+        $queue.addOpt(newOpt)
     })
 
     .js('tree')

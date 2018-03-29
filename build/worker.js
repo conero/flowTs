@@ -3164,7 +3164,11 @@ var WorkerEditor = function () {
             this._toolbar();
         }
         if (this.config.stepCfg) {
-            this.loadStep(this.config.stepCfg);
+            try {
+                this.loadStep(this.config.stepCfg);
+            } catch (error) {
+                console.log(error);
+            }
         }
     }
     /**
@@ -4304,7 +4308,7 @@ exports.default = WorkerEditor;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = { "version": "1.1.7", "release": "20180315", "author": "Joshua Conero" };
+exports.default = { "version": "1.1.8", "release": "20180321", "author": "Joshua Conero" };
 
 /***/ })
 /******/ ]);

@@ -2,7 +2,7 @@
  * 2018年1月5日 星期五
  * 端点处理
  */
-import {Util} from './util'
+import {Util} from '../util'
 import NodeBase from './NodeBase'
 
 class NodeEndpoint extends NodeBase{

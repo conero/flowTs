@@ -1,6 +1,10 @@
 ## 更新日志
 
 > ***V1.1.x/alpha-date*** alpha 类型模板
+- ***V1.1.8/20180321***
+- WorkerJs
+    - Node 目录结构更改
+    
 - ***V1.1.7/20180314***
 - WorkerJs
     - src/WorkerEditor.js 工作流编辑器

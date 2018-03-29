@@ -3,12 +3,12 @@
  * 工作流引擎, 基于 raphaelJs, 只用于绘制容器以及，拖动事件的相关算法
  */
 import {Util} from './util'
-import NodeEndpoint from './NodeEndpoint'
-import NodeOperation from './NodeOperation'
-import NodeJudge from './NodeJudge'
-import NodeLine from './NodeLine'
-import NodeArrow from './NodeArrow'
-import NodeBow from './NodeBow'
+import NodeEndpoint from './node/NodeEndpoint'
+import NodeOperation from './node/NodeOperation'
+import NodeJudge from './node/NodeJudge'
+import NodeLine from './node/NodeLine'
+import NodeArrow from './node/NodeArrow'
+import NodeBow from './node/NodeBow'
 
 class Flow{
     /**

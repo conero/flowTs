@@ -4,9 +4,9 @@
  */
 
 import {Util} from './util'
-import NodeOperation from './NodeOperation'
-import NodeLine from './NodeLine'
-import NodeArrow from './NodeArrow'
+import NodeOperation from './node/NodeOperation'
+import NodeLine from './node/NodeLine'
+import NodeArrow from './node/NodeArrow'
 
 class TreeContainer{
     /**

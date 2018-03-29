@@ -3,7 +3,7 @@
  * worker 工作流编辑器
  */
 import H from './helper'            // 助手方法
-import Judge from './NodeJudge'
+import Judge from './node/NodeJudge'
 import {Flow} from './flow'
 
 
@@ -71,7 +71,11 @@ class WorkerEditor{
             this._toolbar()
         }
         if(this.config.stepCfg){
-            this.loadStep(this.config.stepCfg)
+            try {
+                this.loadStep(this.config.stepCfg)
+            } catch (error) {
+                console.log(error)
+            }
         }
     }
     /**
@@ -315,11 +319,7 @@ class WorkerEditor{
             }
         }
         // 临时节点
-        var tempNodes = this.tempNodes
-        for(var j=0; j<tempNodes.length; j++){
-            var tNode = tempNodes[j]
-            tNode.remove()
-        }
+        this.removeTempNodes()
         // 直线选中删除
         var lines = this.lineQueues
         for(var k=0; k<lines.length; k++){
@@ -328,8 +328,23 @@ class WorkerEditor{
                 line.selectEdMk = false
             }
         }
+        // 移除配置属性
         this.removeIntersectMk()
+        // 删除文本选中状态
+        this._removeTxtSelect()
         this.tempNodes = []
+    }
+    /**
+     * 删除临时节点
+     * @returns {this}
+     */
+    removeTempNodes(){
+        // 临时节点
+        var tempNodes = this.tempNodes
+        for(var j=0; j<tempNodes.length; j++){
+            var tNode = tempNodes[j]
+            tNode.remove()
+        }
     }
     /**
      * 删除节点, 为空是删除当前选中的节点
@@ -457,6 +472,61 @@ class WorkerEditor{
             }
         }
         return isSuccess
+    }
+    /**
+     * 删除所有对象
+     * @returns {this}
+     */
+    removeAll(){        
+        this.removeAllText()
+        this.removeAllLine()
+        this.removeAllNode()
+        return this
+    }
+    /**
+     * 删除所有节点
+     * @returns {this}
+     */
+    removeAllNode(){
+        this.removeBBox()
+        var nodes = this.nodeQueues
+        for(var i=0; i<nodes.length; i++){
+            var node = nodes[i]
+            if(node.label){
+                node.label.remove()
+            }
+            node.c.remove()
+        }
+        this.nodeQueues = []
+        return this
+    }
+    /**
+     * 删除所有直线
+     * @returns {this}
+     */
+    removeAllLine(){
+        this.removeBBox()
+        var lines = this.lineQueues
+        for(var i=0; i<lines.length; i++){
+            var line = lines[i]
+            line.c.remove()
+        }
+        this.lineQueues = []
+        return this
+    }
+    /**
+     * 删除所有文本
+     * @returns {this}
+     */
+    removeAllText(){
+        this.removeBBox()
+        var texts = this.textQueues
+        for(var i=0; i<texts.length; i++){
+            var text = texts[i]
+            text.remove()
+        }
+        this.textQueues = []
+        return this
     }
     /**
      * 通过节点代码获取节点
@@ -1133,7 +1203,8 @@ class WorkerEditor{
         textElem.click(function(){
             // this.attr('font-size', '100rem')
             // this.attr('font-size', '1.23em')
-            $this._removeTxtSelect()
+            // $this._removeTxtSelect()
+            $this.removeBBox()
             this.attr(Conf.text.selected)
             this.data('selectMk', true)
         })

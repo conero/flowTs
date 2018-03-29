@@ -399,12 +399,12 @@ process.umask = function() { return 0; };
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Flow; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeEndpoint__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__NodeOperation__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__NodeJudge__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeLine__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__NodeArrow__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__NodeBow__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeEndpoint__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_NodeOperation__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_NodeJudge__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeLine__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_NodeArrow__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_NodeBow__ = __webpack_require__(12);
 /* unused harmony reexport NodeLine */
 /* unused harmony reexport NodeArrow */
 /* unused harmony reexport NodeEndpoint */
@@ -437,7 +437,7 @@ class Flow{
      * @param {string|null} 文本框
      */
     endpoint(cx, cy, r, text){
-        var nd = new __WEBPACK_IMPORTED_MODULE_1__NodeEndpoint__["a" /* default */](this.paper)
+        var nd = new __WEBPACK_IMPORTED_MODULE_1__node_NodeEndpoint__["a" /* default */](this.paper)
         nd.create(cx, cy, r, text)
         return nd
     }
@@ -445,7 +445,7 @@ class Flow{
      * 判断节点
      */
     judge(x, y, w, h, text){
-        var nd = new __WEBPACK_IMPORTED_MODULE_3__NodeJudge__["a" /* default */](this.paper)
+        var nd = new __WEBPACK_IMPORTED_MODULE_3__node_NodeJudge__["a" /* default */](this.paper)
         nd.create(x, y, w, h, text)
         return nd
     }
@@ -453,7 +453,7 @@ class Flow{
      * 操作节点
      */
     operation(x, y, w, h, text){
-        var nd = new __WEBPACK_IMPORTED_MODULE_2__NodeOperation__["a" /* default */](this.paper)
+        var nd = new __WEBPACK_IMPORTED_MODULE_2__node_NodeOperation__["a" /* default */](this.paper)
         nd.create(x, y, w, h, text)
         return nd
     }
@@ -463,7 +463,7 @@ class Flow{
      * @param {*} p2 
      */
     line(p1, p2){
-        var nd = new __WEBPACK_IMPORTED_MODULE_4__NodeLine__["a" /* default */](this.paper)
+        var nd = new __WEBPACK_IMPORTED_MODULE_4__node_NodeLine__["a" /* default */](this.paper)
         nd.create(p1, p2)
         return nd
     }
@@ -472,7 +472,7 @@ class Flow{
      * @param {object} opt
      */
     rightAngleLine(opt){
-        var nd = new __WEBPACK_IMPORTED_MODULE_4__NodeLine__["a" /* default */](this.paper)
+        var nd = new __WEBPACK_IMPORTED_MODULE_4__node_NodeLine__["a" /* default */](this.paper)
         nd.RightAngle(opt)
         return nd
     }
@@ -483,7 +483,7 @@ class Flow{
      * @param {number} r
      */
     arrow(p1, p2, r){
-        var nd = new __WEBPACK_IMPORTED_MODULE_5__NodeArrow__["a" /* default */](this.paper)
+        var nd = new __WEBPACK_IMPORTED_MODULE_5__node_NodeArrow__["a" /* default */](this.paper)
         nd.create(p1, p2, r)
         return nd
     }
@@ -492,7 +492,7 @@ class Flow{
      * @param {object} opt 
      */
     bow(opt){
-        var nd = new __WEBPACK_IMPORTED_MODULE_6__NodeBow__["a" /* default */](this.paper)
+        var nd = new __WEBPACK_IMPORTED_MODULE_6__node_NodeBow__["a" /* default */](this.paper)
         nd.create(opt)
         return nd
     }
@@ -504,19 +504,19 @@ class Flow{
         var $node = null
         switch(type){
             case 'endpoint': 
-                $node = new __WEBPACK_IMPORTED_MODULE_1__NodeEndpoint__["a" /* default */](this.paper)
+                $node = new __WEBPACK_IMPORTED_MODULE_1__node_NodeEndpoint__["a" /* default */](this.paper)
                 break
             case 'judge': 
-                $node = new __WEBPACK_IMPORTED_MODULE_3__NodeJudge__["a" /* default */](this.paper)
+                $node = new __WEBPACK_IMPORTED_MODULE_3__node_NodeJudge__["a" /* default */](this.paper)
                 break
             case 'operation': 
-                $node = new __WEBPACK_IMPORTED_MODULE_2__NodeOperation__["a" /* default */](this.paper)
+                $node = new __WEBPACK_IMPORTED_MODULE_2__node_NodeOperation__["a" /* default */](this.paper)
                 break
             case 'line': 
-                $node = new __WEBPACK_IMPORTED_MODULE_4__NodeLine__["a" /* default */](this.paper)
+                $node = new __WEBPACK_IMPORTED_MODULE_4__node_NodeLine__["a" /* default */](this.paper)
                 break
             case 'arrow': 
-                $node = new __WEBPACK_IMPORTED_MODULE_5__NodeArrow__["a" /* default */](this.paper)
+                $node = new __WEBPACK_IMPORTED_MODULE_5__node_NodeArrow__["a" /* default */](this.paper)
                 break
         }
         return $node
@@ -2665,7 +2665,7 @@ class NodeBow{
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeJudge__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeJudge__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__flow__ = __webpack_require__(3);
 /**
  * 2018年3月1日 星期四
@@ -2740,7 +2740,11 @@ class WorkerEditor{
             this._toolbar()
         }
         if(this.config.stepCfg){
-            this.loadStep(this.config.stepCfg)
+            try {
+                this.loadStep(this.config.stepCfg)
+            } catch (error) {
+                console.log(error)
+            }
         }
     }
     /**
@@ -2798,7 +2802,7 @@ class WorkerEditor{
 
         // 判断
         y += 30
-        $tool.judgeIst = (new __WEBPACK_IMPORTED_MODULE_1__NodeJudge__["a" /* default */](raphael)).onlyCell(x, y, 16, 12)
+        $tool.judgeIst = (new __WEBPACK_IMPORTED_MODULE_1__node_NodeJudge__["a" /* default */](raphael)).onlyCell(x, y, 16, 12)
         $tool.judgeIst.attr('fill', pkgClr.judge)
         $tool.judgeTxtIst = raphael.text(x+30, y, Conf.judge.text)
 
@@ -2984,11 +2988,7 @@ class WorkerEditor{
             }
         }
         // 临时节点
-        var tempNodes = this.tempNodes
-        for(var j=0; j<tempNodes.length; j++){
-            var tNode = tempNodes[j]
-            tNode.remove()
-        }
+        this.removeTempNodes()
         // 直线选中删除
         var lines = this.lineQueues
         for(var k=0; k<lines.length; k++){
@@ -2997,8 +2997,23 @@ class WorkerEditor{
                 line.selectEdMk = false
             }
         }
+        // 移除配置属性
         this.removeIntersectMk()
+        // 删除文本选中状态
+        this._removeTxtSelect()
         this.tempNodes = []
+    }
+    /**
+     * 删除临时节点
+     * @returns {this}
+     */
+    removeTempNodes(){
+        // 临时节点
+        var tempNodes = this.tempNodes
+        for(var j=0; j<tempNodes.length; j++){
+            var tNode = tempNodes[j]
+            tNode.remove()
+        }
     }
     /**
      * 删除节点, 为空是删除当前选中的节点
@@ -3126,6 +3141,61 @@ class WorkerEditor{
             }
         }
         return isSuccess
+    }
+    /**
+     * 删除所有对象
+     * @returns {this}
+     */
+    removeAll(){        
+        this.removeAllText()
+        this.removeAllLine()
+        this.removeAllNode()
+        return this
+    }
+    /**
+     * 删除所有节点
+     * @returns {this}
+     */
+    removeAllNode(){
+        this.removeBBox()
+        var nodes = this.nodeQueues
+        for(var i=0; i<nodes.length; i++){
+            var node = nodes[i]
+            if(node.label){
+                node.label.remove()
+            }
+            node.c.remove()
+        }
+        this.nodeQueues = []
+        return this
+    }
+    /**
+     * 删除所有直线
+     * @returns {this}
+     */
+    removeAllLine(){
+        this.removeBBox()
+        var lines = this.lineQueues
+        for(var i=0; i<lines.length; i++){
+            var line = lines[i]
+            line.c.remove()
+        }
+        this.lineQueues = []
+        return this
+    }
+    /**
+     * 删除所有文本
+     * @returns {this}
+     */
+    removeAllText(){
+        this.removeBBox()
+        var texts = this.textQueues
+        for(var i=0; i<texts.length; i++){
+            var text = texts[i]
+            text.remove()
+        }
+        this.textQueues = []
+        return this
     }
     /**
      * 通过节点代码获取节点
@@ -3802,7 +3872,8 @@ class WorkerEditor{
         textElem.click(function(){
             // this.attr('font-size', '100rem')
             // this.attr('font-size', '1.23em')
-            $this._removeTxtSelect()
+            // $this._removeTxtSelect()
+            $this.removeBBox()
             this.attr(Conf.text.selected)
             this.data('selectMk', true)
         })
@@ -3834,7 +3905,7 @@ class WorkerEditor{
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony default export */ __webpack_exports__["a"] = ({"version":"1.1.6","release":"20180314","author":"Joshua Conero"});
+/* harmony default export */ __webpack_exports__["a"] = ({"version":"1.1.8","release":"20180321","author":"Joshua Conero"});
 
 /***/ })
 /******/ ]);
