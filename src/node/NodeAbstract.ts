@@ -1,3 +1,5 @@
+import { Util } from "../util";
+
 /**
  * 2018年3月26日 星期一
  * 抽象节点
@@ -5,8 +7,6 @@
 ///<reference path="../../index.d.ts"/>
 ///<reference path="../types/raphael.ts"/>
 /**
- * 
- * 
  * @export
  * @abstract
  * @class NodeAbstract
@@ -19,6 +19,12 @@ export default abstract class NodeAbstract{
     label?: RaphaelElement      // 标签元素
     c?: RaphaelElement          // 容器元素
     paper: RaphaelPaper         // Raphael 绘制对象器
+
+    // 审核、合并
+    xRate?: number           // 移除边框百分比
+    inlinesEle?: RaphaelElement[]    // 合并
+    inlineEle?: RaphaelElement // 并行
+
     constructor(paper: RaphaelPaper, opt?: rSu.NodeOpt){
         this.paper = paper
         // 连接线起点获取终点
@@ -171,6 +177,48 @@ export default abstract class NodeAbstract{
      */
     delete(): boolean{
         return false
+    }
+    /**
+     * 隐藏
+     */
+    hide(): rSu.Node{
+        if(this.c){
+            this.c.hide()
+        }
+        if(this.label){
+            this.label.hide()
+        }
+        // 内部元素
+        if(this.inlinesEle){
+            this.inlinesEle.forEach((nd) => {
+                nd.hide()
+            })
+        }
+        if(this.inlineEle){
+            this.inlineEle.hide()
+        }
+        return this
+    }
+    /**
+     * 显示
+     */
+    show(): rSu.Node{
+        if(this.c){
+            this.c.show()
+        }
+        if(this.label){
+            this.label.show()
+        }
+        // 内部元素
+        if(this.inlinesEle){
+            this.inlinesEle.forEach((nd) => {
+                nd.show()
+            })
+        }
+        if(this.inlineEle){
+            this.inlineEle.show()
+        }
+        return this
     }
     /**
      * 节点可移动处理

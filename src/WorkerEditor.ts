@@ -4,8 +4,6 @@
  * worker 工作流编辑器
  */
 import H from './helper'            // 助手方法
-import Judge from './node/NodeJudge'
-import {Flow} from './flow'
 import {VersionStruct, LibVersion} from '../version'
 import NodeBegin from './node/NodeBegin';
 import NodeTask from './node/NodeTask';
@@ -20,6 +18,7 @@ import NodeLn from './node/NodeLn';
 import NodeLnPoly from './node/NodeLnPoly';
 import NodeAbstract from './node/NodeAbstract';
 import { Util } from './util';
+import ToolBar from './ToolBar';
 
 // 通过数据 object 类型
 interface ItfMap {
@@ -92,6 +91,8 @@ export default class WorkerEditor{
     tempNodes: any
     MagneticCore: any
     $tool: any
+    toolbarCtrl?: rSu.ToolBar       // 工具栏控制器
+    
     protected toolNodeIstQue: any[]     // 工具栏部件节点队列
     // toolNodeIstQue: any[]     // 工具栏部件节点队列
     // 静态属性
@@ -108,20 +109,16 @@ export default class WorkerEditor{
         this._rIdx = 0                          // 内部索引，用于生成代码
         this._code2EidDick = {}                 // 内部代码与元素id的映射字段
         this._LineDragingP = null               // RaphaelElement 直线正在拖动记录点
-        this.flow = new Flow(this.raphael)      // 工作流程按钮
         // 内部缓存数组件容器： 节点、连接线、独立文本
         this.nodeQueues = []                         // 运行节点数
         this.lineQueues = []                    // 连线记录器
         this.textQueues = []
         this.tempNodes = []                     // 临时节点集
-        this.MagneticCore = null                // 连线磁化中心点，用于节点关联，单状态的结构 data: {type: from/to}
-        // 工具栏显示控制
-        if(!this.config.noToolBar){
-            this._toolbar()
-        }
+        this.MagneticCore = null                // 连线磁化中心点，用于节点关联，单状态的结构 data: {type: from/to}        
+        this._cerateToolBar()
         if(this.config.stepCfg){
             try {
-                this.loadStep(this.config.stepCfg)
+                // this.loadStep(this.config.stepCfg)
             } catch (error) {
                 console.log(error)
             }
@@ -145,6 +142,16 @@ export default class WorkerEditor{
         this.config.listener = this.config.listener || {}   // 监听事件
 
         this.config.noToolBar = this.config.noToolBar || false
+    }
+    /**
+     * 工具栏处理器
+     */
+    private _cerateToolBar(): any{
+        // 工具栏显示控制
+        if(this.config.noToolBar){
+            return null
+        }
+        this.toolbarCtrl = new ToolBar(this.raphael, this.config)
     }
     /**
      * 工具集按钮栏
@@ -391,7 +398,6 @@ export default class WorkerEditor{
         // 移除配置属性
         this.removeIntersectMk()
         // 删除文本选中状态
-        this._removeTxtSelect()
         this.tempNodes = []
     }
     /**
@@ -832,457 +838,7 @@ export default class WorkerEditor{
         }
         return code
     }
-    /**
-     * 获取碰撞的元素
-     * @param {object} point {x, y} 坐标点
-     * @returns {RapaelElement|null}
-     */
-    getIntersectElem(point: rSu.P){
-        var itsctEl = null
-        if('object' == typeof point){
-            var nodes = this.nodeQueues
-            for(var i=0; i<nodes.length; i++){
-                var node = nodes[i]
-                var type = node.NodeType
-                if('endpnt' == type){
-                    var $c = node.c
-                    var cx = $c.attr('cx'),
-                        cy = $c.attr('cy'),
-                        rx = $c.attr('rx'),
-                        ry = $c.attr('ry')
-                    if(
-                        // x
-                        (point.x >= (cx - rx) && point.x <= (cx + rx))
-                        // y
-                        && 
-                        (point.y >= (cy - ry) && point.y <= (cy + ry))
-                    ){
-                        itsctEl = node
-                        break
-                    }        
-                }
-                else if('opera' == type){
-                    var $c = node.c,
-                        x = $c.attr('x'),
-                        y = $c.attr('y'),
-                        w = $c.attr('width'),
-                        h = $c.attr('height')
-                    if(
-                        // x
-                        (point.x >= x && point.x <= (x + w))
-                        // y
-                        && 
-                        (point.y >= y && point.y <= (y + h))
-                    ){
-                        itsctEl = node
-                        break
-                    }   
-                }
-                else if('judge' == type){
-                    var $opt = node.opt,
-                        cx = $opt.cx,
-                        cy = $opt.cy,
-                        h = $opt.h,
-                        w = $opt.w
-                    if(
-                        // x
-                        (point.x >= (cx - w/2) && point.x <= (cx + w/2))
-                        // y
-                        && 
-                        (point.y >= (cy - h/2) && point.y <= (cy + h/2))
-                    ){
-                        itsctEl = node
-                        break
-                    }    
-                }
-                //console.log(node)
-            }
-        }
-        return itsctEl
-    }
-    /**
-     * 加载流程数据,用于修改时加载历史数据
-     * @param {object|null} steps 
-     */
-    loadStep(steps: any){
-        if('object' == typeof steps){
-            // 连接性先关联信息: {id:{}}
-            var lineCntMapInfo: ItfMap = {},
-                pkgClr = this.config.pkgClr
-            // 记录连线端点信息                
-            var recordLMapFn = (_from: string, _to: string) =>{
-                if(_from.indexOf(',') == -1){
-                    var _toQus = _to.indexOf(',') == -1? [_to]: _to.split(',')
-                    for(var x1=0; x1<_toQus.length; x1++){
-                        var ftK = _from + '__' + _toQus[x1]
-                        if(!lineCntMapInfo[ftK]){
-                            lineCntMapInfo[ftK] = true
-                        }
-                    }
-                }
-                else if(_to.indexOf(',') == -1){
-                    var _fromQus = _from.indexOf(',') == -1? [_from]: _from.split(',')
-                    for(var x2=0; x2<_fromQus.length; x2++){
-                        var ftK = _fromQus[x2] + '__' + _to
-                        if(!lineCntMapInfo[ftK]){
-                            lineCntMapInfo[ftK] = true
-                        }
-                    }
-                }
-            }
-            // 遍历节点
-            for(var i = 0;i <steps.length; i++){
-                var step = steps[i]
-                var _struct = step._struct,
-                    opt = _struct.opt,
-                    config = this.config,
-                    pkgClr = config.pkgClr
-                var type = step.type
-                var nodeIst = null
-                if(1 == type || 9 == type){
-                    nodeIst = this.flow.endpoint(opt.cx, opt.cy, opt.r, opt.text)
-                    if(1 == type){
-                        nodeIst.c.attr('fill', pkgClr.start)
-                    }else{
-                        nodeIst.c.attr('fill', pkgClr.end)
-                    }
-                }
-                else if(2 == type){
-                    nodeIst = this.flow.operation(opt.cx, opt.cy, opt.w, opt.h, opt.text)
-                    nodeIst.c.attr('fill', pkgClr.opera)
-                }
-                else if(3 == type){
-                    nodeIst = this.flow.judge(opt.cx, opt.cy, opt.w, opt.h, opt.text)
-                    nodeIst.c.attr('fill', pkgClr.judge)
-                }
-                if(nodeIst){
-                    var code = step.code || nodeIst.c.data('code')
-                    var instId = nodeIst.c.id
-                    if(!code){
-                        code = this._getOrderCode()
-                    }
-                    nodeIst.c.data('code', code)
-                    this._code2EidDick[code] = instId
-                    nodeIst.c.data('type', type)
-                    this._bindEvent(nodeIst)
-                    this.nodeQueues.push(nodeIst)
-                    
-                    // 连线缓存器
-                    var prev = step.prev || null    // to
-                    if(prev){
-                        recordLMapFn(prev, code)
-                    }
-                    var next = step.next || null    // from
-                    if(next){
-                        recordLMapFn(code, next)
-                    }
-
-                    // lineCntMapInfo[instId] = lineCntMapInfo[instId] || {}                    
-                    // var prev = step.prev || null    // to
-                    // if(prev){
-                    //     var prevQu = lineCntMapInfo[instId].to || []
-                    //     if(prev.indexOf(',') > -1){
-                    //         prevQu = [].concat(prevQu, prev.split(','))
-                    //     }else{
-                    //         prevQu.push(prev)
-                    //     }
-                    //     lineCntMapInfo[instId].to = prevQu
-                    // }
-                    // var next = step.next || null    // from
-                    // if(next){
-                    //     var nextQu = lineCntMapInfo[instId].from || []
-                    //     if(next.indexOf(',') > -1){
-                    //         nextQu = [].concat(nextQu, next.split(','))
-                    //     }else{
-                    //         nextQu.push(next)
-                    //     }
-                    //     lineCntMapInfo[instId].from = nextQu
-                    // }
-                }
-            }
-            // console.log(lineCntMapInfo)
-
-            for(var lnstr in lineCntMapInfo){
-                var lnstrQus = lnstr.split('__')
-                var fCodeNd = this.getNodeByCode(lnstrQus[0])
-                var tCodeNd = this.getNodeByCode(lnstrQus[1])
-                //console.log(fCodeNd, tCodeNd)
-                var p1 = fCodeNd.getStlnP()
-                var p2 = tCodeNd.getEnlnP()
-                // console.log(p1, p2)
-                var innerTmpArror = this.flow.arrow([p1.x, p1.y], [p2.x, p2.y], 5)
-                // 连线实体关联，起点
-                if(!innerTmpArror.position){
-                    innerTmpArror.position = {}
-                }
-                innerTmpArror.position['from'] = p1.position
-                fCodeNd.recordLine('from', innerTmpArror)
-                tCodeNd.recordLine('to', innerTmpArror)
-                innerTmpArror.position['to'] = p2.position
-
-                innerTmpArror.c.attr('fill', pkgClr.arrow)                            
-                this._lineTragEvent(innerTmpArror)
-                this.lineQueues.push(innerTmpArror)
-            }
-        }
-        // console.log(this._code2EidDick)
-        // console.log(steps)
-        // console.log(lineCntMapInfo)
-        //console.log(this.getFlowStep())
-        return this
-    }
-    /**
-     * 创建节点数
-     * @param {object} cDragDt 当前节点拖动的参数
-     * @param {number|string} type 节点类型
-     */
-    _createNode(tbDragDt: any, type: any){
-        var $this = this,
-            nodeIst = null,
-            config = this.config,
-            pkgClr = config.pkgClr
-        switch(type){
-            case 1:
-                nodeIst = this.flow.endpoint(tbDragDt.dx, tbDragDt.dy, 10, '开始')
-                nodeIst.c.attr('fill', pkgClr.start)
-                break;
-            case 2:
-                nodeIst = this.flow.operation(tbDragDt.dx, tbDragDt.dy, 50, 40, '操作流程')
-                nodeIst.c.attr('fill', pkgClr.opera)
-                break;  
-            case 3:
-                nodeIst = this.flow.judge(tbDragDt.dx, tbDragDt.dy, 50, 40, '流程判断')
-                nodeIst.c.attr('fill', pkgClr.judge)
-                break;
-            case 9:
-                nodeIst = this.flow.endpoint(tbDragDt.dx, tbDragDt.dy, 10, '结束')
-                nodeIst.c.attr('fill', pkgClr.end)
-                break;                          
-        }
-        if(nodeIst){    // 保存节点实例
-            var code = this._getOrderCode()
-            nodeIst.c.data('code', code)
-            this._code2EidDick[code] = nodeIst.c.id
-            nodeIst.c.data('type', type)
-            this._bindEvent(nodeIst)
-            this.nodeQueues.push(nodeIst)
-        }
-    }
-    /**
-     * 节点绑定事件
-     * @param {NodeBase} nodeIst 
-     */
-    _bindEvent(nodeIst: any){
-        if(nodeIst){    // 保存节点实例
-            var $this = this,
-            config = this.config,
-            pkgClr = config.pkgClr
-            ;
-            // 节点拖动
-           (function(){
-               var cDragDt = {x: 0, y: 0}
-               nodeIst.c.drag(
-                   function(dx: number, dy: number){
-                       dx += cDragDt.x
-                       dy += cDragDt.y
-                       nodeIst.move(dx, dy)
-                       nodeIst.ToSyncArrow(dx, dy)
-                   },
-                   function(){
-                       var _x, _y
-                       if('ellipse' == this.type){
-                           _x = this.attr('cx')
-                           _y = this.attr('cy')
-                       }
-                       else if('rect' == this.type){
-                           _x = this.attr('x')
-                           _y = this.attr('y')
-                       }
-                       else if('path' == this.type){
-                           var _path = this.attr('path')
-                           var sP1 = _path[0]
-                           _x = sP1[1]
-                           _y = sP1[2]
-                       }
-
-                       cDragDt.x = _x
-                       cDragDt.y = _y
-                       // console.log(cDragDt)
-                   },
-                   function(){
-                       cDragDt = {x:0, y:0}
-                   }
-               )
-               // console.log(nodeIst)
-               // console.log(nodeIst.c)
-           })()
-
-           // 节点点击处理
-           nodeIst.c.click(function(){
-               $this.removeBBox()
-               // if(nodeIst.bBox){
-               //     nodeIst.bBox.remove()
-               // }
-               var bt = this.getBBox()
-               var dt = 5
-               nodeIst.bBox = nodeIst.instance.rect(bt.x-dt, bt.y-dt, bt.width+dt*2, bt.height+dt*2)
-               nodeIst.bBox.attr({
-                   'stroke': pkgClr.NodeBox
-               })
-               $this.onNodeClick(nodeIst)
-           })
-       }
-    }
-    /**
-     * 直线拖动
-     * @param {RapaelElement} lineInst 
-     */
-    _lineTragEvent(lineInst: any){
-        if(!lineInst || 'object' != typeof lineInst){
-            return false
-        }
-        var $this = this;
-        (function(TmpArrIst){
-            TmpArrIst.c.click(function(){     
-                $this.removeBBox()  // 移除当前的节点的外部边框
-                // 选中标识符号
-                TmpArrIst.selectEdMk = true   
-
-                var opt = TmpArrIst.opt 
-                var color = '#000000'
-                var pR = 3      // 半径                        
-                // console.log('*', innerTmpArror)
-                // console.log(innerTmpArror.c.id, 'click')
-                // 起始节点
-                var arrowLineP1 = $this.raphael.circle(opt.p1[0], opt.p1[1], pR)
-                arrowLineP1.attr('fill', color);                        
-
-                // 结束节点
-                var arrowLineP2 = $this.raphael.circle(opt.p2[0], opt.p2[1], pR)
-                arrowLineP2.attr('fill', color)
-
-                // tsc isEnd 可选参数
-                var lineEndPointMoveEvt = function(LIst: any, isEnd?: any){
-                    var aCDt = {ax: 0, ay: 0}
-                    // console.log(arrowLineP1)
-                    LIst.drag(
-                        function(ax: number, ay: number){
-                            ax += aCDt.ax
-                            ay += aCDt.ay
-                            var hasIntersectElem = $this.getIntersectElem({x: ax, y:ay})
-                            if(hasIntersectElem){   // 碰撞时，使用连接端点
-                                $this.removeIntersectMk()
-                                hasIntersectElem.c.attr('fill', '#FF0000')                                            
-                                hasIntersectElem._IntersectMk = true
-                                var CntLinePnt
-                                if(isEnd){
-                                    CntLinePnt = hasIntersectElem.getEnlnP()
-                                }
-                                else{
-                                    CntLinePnt = hasIntersectElem.getStlnP()
-                                }
-                                // console.log(CntLinePnt, hasIntersectElem)
-                                ax = CntLinePnt.x
-                                ay = CntLinePnt.y
-                                // 关联
-                                var position = isEnd? 'to':'from'
-                                $this.removeConLine(TmpArrIst, position)
-                                hasIntersectElem.recordLine(position, TmpArrIst)
-                                if(!TmpArrIst.position){
-                                    TmpArrIst.position = {}
-                                }
-                                TmpArrIst.position[position] = CntLinePnt.position
-                            }
-                            //console.log(hasIntersectElem)
-                            var mmgntcIst = this    // 磁芯点
-                            // var id = this.id
-                            if(isEnd){
-                                TmpArrIst.updatePath(null, [ax, ay])
-                                mmgntcIst.data('type', 'to')
-                                // TmpArrIst.position.to = id
-                            }
-                            else{
-                                TmpArrIst.updatePath([ax, ay])
-                                mmgntcIst.data('type', 'from')
-                                // TmpArrIst.position.from = id
-                            }
-                            $this.MagneticCore = mmgntcIst  // 保存正在移动的磁芯点
-                            this.attr({
-                                cx: ax,
-                                cy: ay
-                            }) 
-                        },
-                        function(){
-                            aCDt.ax = this.attr('cx')
-                            aCDt.ay = this.attr('cy')
-                        },
-                        function(){
-                            // if(aCDt.ax < 75 || aCDt.ay < 50){
-                            //     return null
-                            // }
-                            // LIst.updatePath([aCDt.ax, aCDt.ay])
-                            // arrowLineP1.attr({
-                            //     x: aCDt.ax,
-                            //     y: aCDt.ay
-                            // })
-                            $this.MagneticCore = null           // 拖动完成以后
-                        }
-                    )
-                }
-
-                lineEndPointMoveEvt(arrowLineP1)
-                lineEndPointMoveEvt(arrowLineP2, true)
-                // 临时数据节点
-                $this.tempNodes.push(arrowLineP1, arrowLineP2)
-            })
-        })(lineInst)
-        return true
-    }
-    /**
-     * 文本拖动，独立文本
-     * @param {RapaelElement} textElem 
-     */
-    _textBindEvent(textElem: any){
-        var $this = this;
-        // 拖动
-        (function(textIst){
-            var _dragDt = {x:0, y:0}
-            textIst.drag(
-                function(x: number, y: number){
-                    x += _dragDt.x
-                    y += _dragDt.y
-                    textIst.attr({x, y})
-                },
-                function(){
-                    _dragDt.x = textIst.attr('x')
-                    _dragDt.y = textIst.attr('y')
-                },
-                function(){}
-            )
-        })(textElem);
-        // 点击处理
-        textElem.click(function(){
-            // this.attr('font-size', '100rem')
-            // this.attr('font-size', '1.23em')
-            // $this._removeTxtSelect()
-            $this.removeBBox()
-            this.attr(Conf.text.selected)
-            this.data('selectMk', true)
-        })
-    }
-    /**
-     * 移除文本选中状态
-     */
-    _removeTxtSelect(){
-        var texts = this.textQueues
-        for(var i=0; i<texts.length; i++){
-            var text = texts[i]
-            if(text.data('selectMk')){
-                text.attr(Conf.text.defAtrr)
-                text.data('selectMk', false)
-            }
-        }
-    }
+   
     /**
      * 事件处理接口
      * @param {NodeBase} nodeIst 

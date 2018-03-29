@@ -125,7 +125,7 @@ class Config{
         }
         return this
     }
-    js(name){
+    js(name, target){
         /*
         if('object' == typeof name){
             for(var i=0; i<name.length; i++){
@@ -147,10 +147,12 @@ class Config{
             }
             return this
         }
+        target = target ? target : name
+        target = target.indexOf('{}') > -1? target.replace('{}', '_cro-') : '_cro-' + target
         this.jsFileList.push({
             entry: './test/flow/'+name+'.js',
             output: {
-                filename: './test/flow/_cro-'+name+'.js'
+                filename: './test/flow/'+target+'.js'
             },
             module: {
                 rules: [

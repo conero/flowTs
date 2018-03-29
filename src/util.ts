@@ -73,6 +73,16 @@ class Util{
         })
         return strQue.join('')
     }
+    /**
+     * 判断是否是数组
+     * @param {*} value 
+     */
+    static isArray(value: any): boolean{
+        if('object' == typeof value){
+            return value instanceof Array
+        }
+        return false
+    }
 }
 
 export {Util}

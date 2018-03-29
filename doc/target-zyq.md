@@ -5,7 +5,7 @@
 <img src="./image/start.png" style="width:40px;height:40px" />开始 :  只显示，不可操作
 
 <img src="./image/task.png" style="width:40px;height:40px" />任务:  按住鼠标左键, 可拖到画布中
-
+*** 取消[默认不显示] ***
 <img src="./image/audit.png" style="width:width:40px;height:40px" />审核 :  按住鼠标左键, 可拖到画布中
 
 <img src="./image/allsign.png" style="width:40px;height:40px" />会签 :  按住鼠标左键, 可拖到画布中

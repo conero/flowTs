@@ -6,9 +6,6 @@ const {Config} = require('../webpack.setup')
 module.exports = new Config({
         baseDir: 'flow/'
     })
-    // .js('base')
-    // .js('line')
-    // .js('dysteps')
-    // .js('self')
-    .js('editor')   // 编辑器
+    .js('editor', 'js/{}editor')   // 编辑器
+    .js('melemhtml', 'js/{}melemhtml')   // 编辑器
     .getJsFileList()

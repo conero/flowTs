@@ -6,7 +6,7 @@
 import NodeAbstract from "./NodeAbstract"
 export default class NodeSubFlow extends NodeAbstract{
     xRate: number                   // x 主偏移量
-    inlineEle: RaphaelElement[]   // 内部连线线段元素
+    inlinesEle: RaphaelElement[]   // 内部连线线段元素
     protected _onInit(){
         this.NodeType = 'sub_flow'
         this.xRate = 0.15
@@ -21,7 +21,7 @@ export default class NodeSubFlow extends NodeAbstract{
 
         this.c = this.paper.rect(cAttr.x, cAttr.y, cAttr.w, cAttr.h)
         this.c.attr('fill', bkg)
-        this.inlineEle = [
+        this.inlinesEle = [
             this.paper.path(this._ps2Path(lLine)),
             this.paper.path(this._ps2Path(rLine))
         ]
@@ -61,8 +61,8 @@ export default class NodeSubFlow extends NodeAbstract{
         this.c.attr({
             x: cAttr.x, y: cAttr.y, width: cAttr.w, height: cAttr.h
         })
-        this.inlineEle[0].attr('path', this._ps2PathAttr(lLine))
-        this.inlineEle[1].attr('path', this._ps2PathAttr(rLine))
+        this.inlinesEle[0].attr('path', this._ps2PathAttr(lLine))
+        this.inlinesEle[1].attr('path', this._ps2PathAttr(rLine))
     }
     /**
      * 节点可移动

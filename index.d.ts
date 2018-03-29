@@ -2,7 +2,7 @@
  * 2018年3月24日 星期六
  * 库 类型申明
  */
-
+///<reference path="./src/types/raphael.ts"/>
 
 // 工作流数据结构 -------------------------------------------------------------------->
 
@@ -80,6 +80,44 @@ declare namespace rSu{
     export interface bsMap{
         [k: string]: any
         [i: number]: any
+    }
+    // 节点信息 -> class
+    export interface Node{
+        //--------> 属性
+        fromLine: Node[]    // 起点连线
+        toLine: Node[]      // 终点连线
+        NodeType: string            // 节点类型
+        opt: rSu.NodeOpt            // 节点选项
+        label?: RaphaelElement      // 标签元素
+        paper: RaphaelPaper         // Raphael 绘制对象器
+
+        // 审核、合并
+        xRate?: number           // 移除边框百分比
+        inlinesEle?: RaphaelElement[]    // 合并
+        inlineEle?: RaphaelElement       // 并行
+
+        //--------> 方法
+        // NodeAbstract => NodeAbstract
+        // 节点生成器，外部可访问接口
+        creator(opt?: rSu.NodeOpt): Node
+        onDrag(): any
+        // 获取两点间的距离
+        getPLen(P1: rSu.P, P2: rSu.P): number
+        delete(): boolean
+        hide(): Node
+        show(): Node
+        moveable(): Node
+        updAttr(nOpt?: rSu.NodeOpt): Node
+    }
+    // 节点队列 -> class
+    export interface NodeQue{
+        paper: RaphaelPaper
+        make(NodeType: string, nOpt: rSu.NodeOpt): rSu.Node
+    }
+    // 工具栏
+    export interface ToolBar{
+        paper: RaphaelPaper
+        option?: rSu.bsMap
     }
 }
 
