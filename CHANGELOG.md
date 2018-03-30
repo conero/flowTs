@@ -4,6 +4,31 @@
 > ***V2.0.x/alpha-date*** alpha 类型模板
 
 - ***V2.0.7/20180330***
+    - (+) src/ObjX.ts ObjX 做为 Object 类型的扩展，提供函数式简短调用
+    - (优化) WorkerEditor.ts 工作流编辑器
+        - (+) 新增接口 ***removeAllSeled*** 删除节点选择状态
+        - (+) 新增接口 ***allSeled*** 节点全选    
+        - 移除 ***Node*** ，引入 ***NodeQue*** 以替换管理
+        - 删除 ***v1.1.x*** 版本中遗留代码
+        - 经过 ***rSu.ToolBar/工具栏*** 独立化以后，调整界面中程序属性，以及删除类中独立的工具栏生成方法
+    - (优化) ToolBar.ts  工具栏
+        - (+) 新增方法 ***connSizeNode*** 由于节点收缩引入的位置改变
+        - 引入指定 ***配置属性*** 来自 ***WorkerEditor*** 参数中的 config.toolBar 
+        - 采用新的算法实现 工具栏，移除原方法 ***_create*** ，使节点可伸缩
+        - 工具栏划分为 ***_headBar/头部*** , ***nodeBar/节点*** , ***connBar/连线***
+    - (优化) NodeAbstract.ts 抽象节点        
+        - (+) select 节点选择，实现节点边框加八点式坐标算法，坐标点用于实现新的连线算法
+        - (+) removeBox 移除选中边框
+        - (优化) 将节点中普通 ***moveable*** 方式放到该类中统一管理
+        - (Future) 实现节点放大/缩小算法 ***zoomOut*** / ***zoomIn***
+    - (优化) 节点
+        - 删除部分 ***moveable*** 方法，调整 ***updAttr*** 方法统一返回 ***this***
+    - index.d.ts 
+        - (+) 添加接口 ***rSu.MapRElm*** RaphaelElement  object 对象
+        - (+) 添加接口 ***rSu.mapNode*** Node object 对象
+        - (+) 添加接口 ***rSu.ObjX*** ObjX object 对象
+        - 完善 ***rSu.ToolBar*** 工具栏类属性
+
 
 - ***V2.0.6/20180329***
     - (+) src/NodeQue.ts 新增 ***节点队列*** 用于管理节点
