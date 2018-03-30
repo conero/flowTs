@@ -63,21 +63,6 @@ export default class NodeSubFlow extends NodeAbstract{
         })
         this.inlinesEle[0].attr('path', this._ps2PathAttr(lLine))
         this.inlinesEle[1].attr('path', this._ps2PathAttr(rLine))
-    }
-    /**
-     * 节点可移动
-     * @returns 
-     * @memberof NodeAudit
-     */
-    moveable(){
-        var $this = this;
-        this.c.undrag()
-        this.c.drag(
-            function(dx: number, dy: number, x: number, y: number){
-                $this.updAttr({cx: x, cy: y})
-                return {}
-            }
-        )
-        return $this
+        return this
     }
 }

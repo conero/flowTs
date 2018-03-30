@@ -42,6 +42,15 @@ export default class NodeLn extends NodeAbstract{
         ]
     }
     /**
+     * 更新属性
+     * @param nOpt 
+     */
+    updAttr(nOpt: rSu.NodeOpt){
+        this._updAttr(nOpt)
+        this.c.attr('path', this._ps2PathAttr(this.opt2Attr()))
+        return this
+    }
+    /**
      * 获取两点间的距离
      */
     getLen(nOpt?: rSu.NodeOpt): number{

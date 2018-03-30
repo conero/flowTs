@@ -5,20 +5,9 @@
  */
 import H from './helper'            // 助手方法
 import {VersionStruct, LibVersion} from '../version'
-import NodeBegin from './node/NodeBegin';
-import NodeTask from './node/NodeTask';
-import NodeAudit from './node/NodeAudit';
-import NodeSign from './node/NodeSign';
-import NodeCond from './node/NodeCond';
-import NodeSubFlow from './node/NodeSubFlow';
-import NodeParallel from './node/NodeParallel';
-import NodeMerge from './node/NodeMerge';
-import NodeEnd from './node/NodeEnd';
-import NodeLn from './node/NodeLn';
-import NodeLnPoly from './node/NodeLnPoly';
-import NodeAbstract from './node/NodeAbstract';
 import { Util } from './util';
 import ToolBar from './ToolBar';
+import { NodeQue } from './NodeQue';
 
 // 通过数据 object 类型
 interface ItfMap {
@@ -78,7 +67,7 @@ const Conf = {
 export default class WorkerEditor{
     // config: object
     config: any
-    raphael: any
+    paper: RaphaelPaper
     _rIdx: number
     _code2EidDick: {
         [k: string]: string
@@ -94,6 +83,7 @@ export default class WorkerEditor{
     toolbarCtrl?: rSu.ToolBar       // 工具栏控制器
     
     protected toolNodeIstQue: any[]     // 工具栏部件节点队列
+    private ndMer: rSu.NodeQue
     // toolNodeIstQue: any[]     // 工具栏部件节点队列
     // 静态属性
     static version: VersionStruct = LibVersion
@@ -101,9 +91,10 @@ export default class WorkerEditor{
     /**
      * @param {object} config 数据配置项
      */
-    constructor(config: any){
+    constructor(config: any){        
         this.config = config            // 系统配置参数
-        this.raphael = H.createInstance(config) // Raphael 对象        
+        this.paper = H.createInstance(config) // Raphael 对象        
+        this.ndMer = new NodeQue(this.paper)
         // 配置参数处理
         this._configMergeToDefule()
         this._rIdx = 0                          // 内部索引，用于生成代码
@@ -151,214 +142,85 @@ export default class WorkerEditor{
         if(this.config.noToolBar){
             return null
         }
-        this.toolbarCtrl = new ToolBar(this.raphael, this.config)
-    }
-    /**
-     * 工具集按钮栏
-     */
-    private _toolbar(){
-        // 工具栏参数信息
-        var $tool: Dance.Tool = {}  
-        var raphael = this.raphael
-        var ctX = 5, 
-            ctY = 5,
-            ctW = 75,
-            ctH = 300,
-            x = ctX, y = ctY,            // 当前坐在的位置坐标
-            config = this.config,
-            pkgClr = config.pkgClr
-        
-        // 拖动处理            
-        // var dragHandlerEvnt = function(){}
+        this.toolbarCtrl = new ToolBar(this.paper, this.config)
+        //console.log(this.toolbarCtrl)
 
-        // 容器集
-        $tool.containerIst = raphael.rect(ctX, ctY, ctW, ctH)
-        $tool.containerIst.attr('fill', '#ffffff')      // 容器底色
-
-        var nodeIstQue: any[] = [],
-            ist: NodeAbstract
-
-        // 开始
-        x += 20, y += 50
-        ist = new NodeBegin(raphael, {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        nodeIstQue.push(ist)
-
-        // 任务
-        y += 20
-        ist = new NodeTask(raphael, {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        nodeIstQue.push(ist)
-
-        // 审核
-        y += 20
-        ist = new NodeAudit(raphael, {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        nodeIstQue.push(ist)
-        // 会签
-        y += 20
-        ist = new NodeSign(raphael, {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        nodeIstQue.push(ist)
-        // 判断
-        y += 20
-        ist = new NodeCond(raphael, {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        nodeIstQue.push(ist)
-
-        // 子流程
-        y += 20
-        ist = new NodeSubFlow(raphael, {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        nodeIstQue.push(ist)            
-        // 并行
-        y += 30
-        ist = new NodeParallel(raphael, {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        nodeIstQue.push(ist)
-        // 合并
-        y += 20
-        ist = new NodeMerge(raphael, {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        nodeIstQue.push(ist)
-        // 结束
-        y += 20
-        ist = new NodeEnd(raphael, {cx: x, cy: y, w: 16, h: 12})
-            .creator()    
-        nodeIstQue.push(ist)            
-        // 直线
-        y += 20
-        ist = new NodeLn(raphael, {
-            P1: {x: x-5, y},
-            P2: {x: x+10, y}
-        })
-            .creator()
-        nodeIstQue.push(ist)            
-
-        // 折线
-        y += 20
-        ist = new NodeLnPoly(raphael, {
-            P1: {x: x-5, y},            
-            P2: {x: x+10, y: y + 4},
-            h: 4
-        })
-            .creator()
-        nodeIstQue.push(ist)
-        this.toolNodeIstQue = nodeIstQue
-        this._toolbarDragEvt()
-    }
-    /**
-     * 工具栏拖动处理事件
-     */
-    private _toolbarDragEvt(){
-        var $this = this;
-        this.toolNodeIstQue.forEach((NodeIst: NodeAbstract)=>{
-            /**
-            // 回调函数保持
-            (function(ist: NodeAbstract){
-                var NodeType = ist.NodeType,
-                ndAst: NodeAbstract
-                ist.c.drag(
-                    function(dx: number, dy: number, x: number, y: number){
-                        //ndAst.opt
-                        console.log({cx: x, cy: y}, ndAst)
-                        ndAst.updAttr({cx: x, cy: y})
-                        return {}
-                    },
-                    function(x: number, y: number){
-                        ndAst = $this.newNode(NodeType, {cx: x, cy: y, w: 50, h:40})
-                            .creator()
-                            .moveable()
-                        return {}
-                    }
-                )
-            })(NodeIst)
-            **/
+        // 事件绑定处理
+        var $this = this,
+            {tBodyNds, cBodyNds} = $this.toolbarCtrl
             
-            var ist = NodeIst
-            var NodeType = ist.NodeType,
-                ndAst: NodeAbstract,
-                cloneIst: NodeAbstract
-            ist.c.drag(
-                function(dx: number, dy: number, x: number, y: number): any{
-                    //ndAst.opt
-                    console.log(arguments)
-                    // console.log(cloneIst)
-                    // console.log({cx: x, cy: y}, ndAst)
-                    // var newElem = $this.getLastElem()
-                    // console.log(newElem)
-                    // if(!ndAst){
-                    //     ndAst = $this.newNode(NodeType, {cx: x, cy: y, w: 50, h:40})
-                    //         .creator()
-                    //         .moveable()
-                    //     $this.nodeQueues.push(ndAst)
-                    // }
-                    if(ndAst){
-                        ndAst.updAttr({cx: x, cy: y})
-                    }                    
-                },
-                function(x: number, y: number): any{
-                    ndAst = $this.newNode(NodeType, {cx: x, cy: y, w: 50, h:40})
-                        .creator()
-                        .moveable()
-                    $this.nodeQueues.push(ndAst)
-                    
-                    // 克隆赋值
-                    // cloneIst = this.clone()
-                    console.log(this, '测试：start')
-                },
-                function(): any{
-                    console.log(this, '测试：end')
-                }
-            )
+        // 节点拖动处理事件
+        Util.each(tBodyNds, (key: string, nd: rSu.Node) => {
+            // 开始和结束不支持拖动
+            // if(key == 'begin' || key == 'end'){
+            //     return null
+            // }
+            let ndAst: rSu.Node,
+                tP: rSu.P = {x: 0, y:0}
+            nd.c.drag(function(dx: number, dy: number): any{
+                dx += tP.x
+                dy += tP.y
+                if(ndAst){
+                    ndAst.updAttr({cx: dx, cy: dy})
+                }                    
+            },
+            function(): any{
+                let {cx, cy} = nd.opt
+                tP.x = cx
+                tP.y = cy
+                cx += 25
+                ndAst = $this.ndMer.make(key, {cx, cy, w: 50, h:40})
+                    .creator()
+                    .moveable()
+                $this._nodeBindEvt(ndAst)
+                $this.nodeQueues.push(ndAst)
+
+            },
+            function(): any{
+                console.log(this, '测试：end')
+            })
         })
+
     }
     /**
-     * 实例化节点，用于参数示例话节点
+     * 节点事件绑定
+     * @param {rSu.Node} node 输入为空时绑定所有值
      */
-    // newNode(NodeType: string, nOpt: rSu.NodeOpt): any{
-    newNode(NodeType: string, nOpt: rSu.NodeOpt): NodeAbstract{
-        var name = Util.ucFirst(NodeType),
-            paper = this.raphael
-        var ist: NodeAbstract
-        // var ist: any
-        switch(name){
-            case 'Begin':
-                ist = new NodeBegin(paper, nOpt)
-                break
-            case 'Task':
-                ist = new NodeTask(paper, nOpt)
-                break
-            case 'Audit':
-                ist = new NodeAudit(paper, nOpt)
-                break
-            case 'Sign':
-                ist = new NodeSign(paper, nOpt)
-                break
-            case 'Cond':
-                ist = new NodeCond(paper, nOpt)
-                break
-            case 'SubFlow':
-                ist = new NodeSubFlow(paper, nOpt)
-                break
-            case 'Parallel':
-                ist = new NodeParallel(paper, nOpt)
-                break
-            case 'Merge':
-                ist = new NodeMerge(paper, nOpt)
-                break
-            case 'End':
-                ist = new NodeEnd(paper, nOpt)
-                break
-            case 'Ln':
-                ist = new NodeLn(paper, nOpt)
-                break
-            case 'LnPoly':
-                ist = new NodeLnPoly(paper, nOpt)
-                break
+    private _nodeBindEvt(node?: rSu.Node){
+        var $this = this;
+        if(node){
+            node.c.click(function(){
+                $this.removeAllSeled()
+                node.select()
+            })
+        }else{
+            this.nodeQueues.forEach((nd: rSu.Node) => {
+                nd.c.click(function(){
+                    $this.removeAllSeled()
+                    nd.select()
+                })
+            });
         }
-        return ist
     }
+    /**
+     * 移除所有选中中元素
+     */
+    removeAllSeled(){
+        this.nodeQueues.forEach((nd: rSu.Node) => {
+            if(nd.isSelEd){
+                nd.removeBox()
+            }
+        });
+    }
+    /**
+     * 全选
+     */
+    allSelect(){
+        this.nodeQueues.forEach((nd: rSu.Node) => {
+            nd.select()
+        })
+    }
+
     /**
      * 获取
      */
@@ -422,7 +284,7 @@ export default class WorkerEditor{
         }
         if(code){
             var node = 'object' == typeof code? code : 
-                (this._code2EidDick[code]? this.raphael.getById(this._code2EidDick[code]):this.raphael.getById(code))
+                (this._code2EidDick[code]? this.paper.getById(this._code2EidDick[code]):this.paper.getById(code))
             if('object' == typeof node){
                 // 删除实体数据
                 var id = node.id    // id 数据
@@ -694,7 +556,7 @@ export default class WorkerEditor{
             code = this.getSelected()
         }
         if(code){
-            var node = 'object' == typeof code? code : this.raphael.getById(code)
+            var node = 'object' == typeof code? code : this.paper.getById(code)
             if('object' == typeof node){
                 // 删除实体数据
                 var id = node.id    // id 数据

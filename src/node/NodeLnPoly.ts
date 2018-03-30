@@ -53,4 +53,13 @@ export default class NodeLnPoly extends NodeAbstract{
             P2: rSu.P = opt.P2
         return this.getPLen(P1, P2)
     }
+    /**
+     * 更新属性
+     * @param nOpt 
+     */
+    updAttr(nOpt: rSu.NodeOpt){
+        this._updAttr(nOpt)
+        this.c.attr('path', this._ps2PathAttr(this.opt2Attr()))
+        return this
+    }
 }

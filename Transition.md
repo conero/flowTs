@@ -16,3 +16,16 @@
 
 ## 基本算法或概念
 - 基于节点中心点移动算法    
+
+## workerflow 配置参数
+```js
+    new workerflow(config)
+    config = {
+        // 工具栏相关配置
+        toolBar: {
+            title: 'string  默认: 工具栏',
+            aUpSrc: '箭头向下图片地址：默认 arrow_up.png',
+            aDownSrc: '箭头向上图片地址：默认 arrow_down.png'
+        }
+    }
+```

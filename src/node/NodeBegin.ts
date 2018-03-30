@@ -7,7 +7,7 @@
 ///<reference path="../../index.d.ts"/>
 
 import NodeAbstract from "./NodeAbstract"
-export default class NodeBegin extends NodeAbstract{
+export default class NodeBegin extends NodeAbstract{    
     protected _onInit(){
         this.NodeType = 'begin'
     }
@@ -34,21 +34,5 @@ export default class NodeBegin extends NodeAbstract{
             ry: opt.h/2
         })
         return this
-    }
-    /**
-     * 节点可移动
-     * @returns 
-     * @memberof NodeAudit
-     */
-    moveable(){
-        var $this = this;
-        this.c.undrag()
-        this.c.drag(
-            function(dx: number, dy: number, x: number, y: number){
-                $this.updAttr({cx: x, cy: y})
-                return {}
-            }
-        )
-        return $this
     }
 }

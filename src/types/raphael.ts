@@ -210,6 +210,7 @@ interface RaphaelPaper {
     ellipse(x: number, y: number, rx: number, ry: number): RaphaelElement;
     forEach(callback: (el: RaphaelElement) => boolean, thisArg?: any): RaphaelPaper;
     getById(id: number): RaphaelElement;
+    getById(id: string): RaphaelElement;
     getElementByPoint(x: number, y: number): RaphaelElement;
     getElementsByPoint(x: number, y: number): RaphaelSet;
     getFont(family: string, weight?: string, style?: string, stretch?: string): RaphaelFont;

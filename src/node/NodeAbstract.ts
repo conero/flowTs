@@ -19,13 +19,17 @@ export default abstract class NodeAbstract{
     label?: RaphaelElement      // 标签元素
     c?: RaphaelElement          // 容器元素
     paper: RaphaelPaper         // Raphael 绘制对象器
+    isSelEd: boolean            // 选中标记
 
     // 审核、合并
     xRate?: number           // 移除边框百分比
     inlinesEle?: RaphaelElement[]    // 合并
     inlineEle?: RaphaelElement // 并行
+    tRElem: rSu.MapRElm        // 临时类集合
 
     constructor(paper: RaphaelPaper, opt?: rSu.NodeOpt){
+        this.tRElem = {}
+        this.isSelEd = false
         this.paper = paper
         // 连接线起点获取终点
         this.fromLine = []
@@ -181,7 +185,7 @@ export default abstract class NodeAbstract{
     /**
      * 隐藏
      */
-    hide(): rSu.Node{
+    hide(){
         if(this.c){
             this.c.hide()
         }
@@ -202,7 +206,7 @@ export default abstract class NodeAbstract{
     /**
      * 显示
      */
-    show(): rSu.Node{
+    show(){
         if(this.c){
             this.c.show()
         }
@@ -226,7 +230,22 @@ export default abstract class NodeAbstract{
      * @memberof NodeAbstract
      */
     moveable(){
-        return this
+        var $this = this;
+        this.c.undrag()
+        var tP = {cx: 0, cy: 0}
+        this.c.drag(
+            function(dx: number, dy: number){
+                dx += tP.cx
+                dy += tP.cy
+                $this.updAttr({cx: dx, cy: dy})
+                $this.select()
+            },
+            function(){
+                let {cx, cy} = $this.opt
+                tP = {cx, cy}
+            }
+        )
+        return $this
     }
     /**
      * 更新属性
@@ -235,4 +254,72 @@ export default abstract class NodeAbstract{
     updAttr(nOpt: rSu.NodeOpt): any{
         return this
     }
+    /**
+     * 选中
+     */
+    select(){
+        let selMk = false,
+            {x, y, width, height} = this.c.getBBox(),
+            {paper} = this,
+            ist:RaphaelElement 
+        
+        this.removeBox()
+        this.isSelEd = true        
+        x -= 4, y -= 4
+        width += 8, height += 8
+        this.tRElem['box'] = paper.rect(x, y, width, height)
+            .attr({
+                'stroke': '#0033FF',
+                'stroke-width': '0.8'
+            })
+        // 顺时针： 
+        let mx = x + width/2, 
+            xx = x + width,
+            my = y + height/2,
+            xy = y + height,
+            ptQue: rSu.bsMap = {
+                a: {x, y},             // A
+                b: {x: mx, y},         // B
+                c: {x: xx, y},         // C
+                d: {x: xx, y: my},     // D
+                e: {x: xx, y: xy},     // E
+                f: {x: mx, y: xy},     // F
+                g: {x: x, y: xy},      // G
+                h: {x: x, y: my}       // H
+            }
+        for(var key in ptQue){
+            let {x, y} = ptQue[key]
+            this.tRElem['__p' + key] = paper.circle(x, y, 2)
+                .attr('fill', '#000000')
+        }
+        return this
+    }
+    /**
+     * 移除历史边框
+     */
+    removeBox(){
+        if(!this.tRElem){
+            this.tRElem = {}
+        }
+        // 移除原边框，重新获取
+        if(this.tRElem.box){
+            this.tRElem.box.remove()
+            delete this.tRElem.box
+        }
+        for(var key in this.tRElem){
+            if(key.indexOf('__p') > -1){
+                this.tRElem[key].remove()
+                delete this.tRElem[key]
+            }
+        }
+        return this
+    }
+    /**
+     * 放大
+     */
+    zoomOut(){}
+    /**
+     * 首先
+     */
+    zoomIn(){}
 }
