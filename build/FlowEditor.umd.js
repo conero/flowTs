@@ -778,6 +778,7 @@ var WorkerEditor = /** @class */ (function () {
      */
     function WorkerEditor(config) {
         this.nodeDick = {};
+        this.tmpNodeMap = {};
         this.config = config; // 系统配置参数
         this.paper = __WEBPACK_IMPORTED_MODULE_0__helper__["a" /* default */].createInstance(config); // Raphael 对象        
         this.ndMer = new __WEBPACK_IMPORTED_MODULE_4__NodeQue__["a" /* NodeQue */](this.paper);
@@ -830,7 +831,7 @@ var WorkerEditor = /** @class */ (function () {
         this.toolbarCtrl = new __WEBPACK_IMPORTED_MODULE_3__ToolBar__["a" /* default */](this.paper, this.config);
         //console.log(this.toolbarCtrl)
         // 事件绑定处理
-        var $this = this, _a = $this.toolbarCtrl, tBodyNds = _a.tBodyNds, cBodyNds = _a.cBodyNds;
+        var $this = this, _a = $this.toolbarCtrl, tBodyNds = _a.tBodyNds, cBodyNds = _a.cBodyNds, connElems = _a.connElems;
         // 节点拖动处理事件
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(tBodyNds, function (key, nd) {
             // 开始和结束不支持拖动
@@ -865,7 +866,16 @@ var WorkerEditor = /** @class */ (function () {
                 console.log(this, '测试：end');
             });
         });
-        // 连接线
+        // 连接线 -----------------
+        var lnCon = connElems.lnCon, lnPolyCon = connElems.lnPolyCon, _b = $this.toolbarCtrl.config, lnSeledBkg = _b.lnSeledBkg, lnDefBkg = _b.lnDefBkg;
+        // 内部属性标记
+        lnCon.data('con', 'ln');
+        lnPolyCon.data('con', 'lnPoly');
+        // 清空连线选择状态
+        this.lineCnMode = {
+            isSelEd: false,
+            type: null
+        };
         var clearAllLinkSeled = function () {
             __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(cBodyNds, function (key, nd) {
                 nd.isSelEd = false;
@@ -874,7 +884,10 @@ var WorkerEditor = /** @class */ (function () {
                 isSelEd: false,
                 type: null
             };
+            lnCon.attr('fill', lnDefBkg);
+            lnPolyCon.attr('fill', lnDefBkg);
         };
+        // 节点内部选择控制事件
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(cBodyNds, function (key, nd) {
             //console.log(key, nd)
             // 点击事件
@@ -887,16 +900,40 @@ var WorkerEditor = /** @class */ (function () {
                         isSelEd: true,
                         type: nd.NodeType
                     };
+                    if (nd.NodeType == 'ln') {
+                        lnCon.attr('fill', lnSeledBkg);
+                    }
+                    else {
+                        lnPolyCon.attr('fill', lnSeledBkg);
+                    }
                 }
             });
         });
+        // 基于 WorkerEditor 属性
+        var lnConClickEvt = function () {
+            // 选中
+            if (!$this.lineCnMode.isSelEd ||
+                ($this.lineCnMode.isSelEd && this.data('con') != $this.lineCnMode.type)) {
+                clearAllLinkSeled();
+                this.attr('fill', lnSeledBkg);
+                $this.lineCnMode = {
+                    isSelEd: true,
+                    type: this.data('con')
+                };
+            }
+            else {
+                clearAllLinkSeled();
+            }
+        };
+        lnCon.click(lnConClickEvt);
+        lnPolyCon.click(lnConClickEvt);
     };
     /**
      * 节点事件绑定
      * @param {rSu.Node} node 输入为空时绑定所有值
      */
     WorkerEditor.prototype._nodeBindEvt = function (node) {
-        var $this = this;
+        var $this = this, ndMer = this.ndMer;
         // 事件绑定处理
         var toBindNodeEvts = function (nd) {
             // 点击
@@ -904,9 +941,63 @@ var WorkerEditor = /** @class */ (function () {
                 $this.removeAllSeled();
                 nd.select();
             });
-            // 处理接口
+            // 处理接口            
             nd.onCreateBoxPnt = function (pnt) {
-                //console.log(pnt)
+                var tmpLnIst = $this.tmpNodeMap['connLnIst'] || null;
+                // 存在则清空以前未完成的
+                if (tmpLnIst) {
+                    tmpLnIst.delete();
+                    $this.tmpNodeMap['connLnIst'] = null;
+                }
+                // 开启连线模式时
+                if ($this.lineCnMode.isSelEd) {
+                    //console.log(pnt)
+                    var tmpP = { x: 0, y: 0 };
+                    pnt.drag(function (dx, dy) {
+                        if (!tmpLnIst) {
+                            console.log('选择框连线拖动出错！');
+                            return;
+                        }
+                        dx += tmpP.x;
+                        dy += tmpP.y;
+                        if ($this.lineCnMode.type == 'ln') {
+                            tmpLnIst.updAttr({
+                                P2: { x: dx, y: dy }
+                            });
+                        }
+                        else { }
+                    }, function () {
+                        tmpP.x = this.attr('cx');
+                        tmpP.y = this.attr('cy');
+                        // 存在则清空以前未完成的
+                        if (tmpLnIst) {
+                            console.log(tmpLnIst.NodeType, tmpLnIst);
+                            tmpLnIst.delete();
+                            $this.tmpNodeMap['connLnIst'] = null;
+                            // tmpLnIst = null
+                        }
+                        var newOpt = {}, lx = tmpP.x, ly = tmpP.y;
+                        if ($this.lineCnMode.type == 'ln') {
+                            newOpt = {
+                                P1: { x: lx, y: ly },
+                                P2: { x: lx + 10, y: ly + 5 }
+                            };
+                        }
+                        else {
+                            newOpt = {
+                                P1: { x: lx, y: ly },
+                                P2: { x: lx + 4, y: ly + 4 },
+                                h: 4
+                            };
+                        }
+                        tmpLnIst = ndMer.make($this.lineCnMode.type, newOpt)
+                            .creator();
+                        $this.tmpNodeMap['connLnIst'] = tmpLnIst;
+                    }, function () {
+                        //
+                        console.log('END');
+                    });
+                }
             };
         };
         if (node) {
@@ -964,6 +1055,16 @@ var WorkerEditor = /** @class */ (function () {
         }
     };
     /**
+     * 获取最新的节点
+     */
+    WorkerEditor.prototype.last = function () {
+        var lastNode = null;
+        for (var key in this.nodeDick) {
+            lastNode = this.nodeDick[key];
+        }
+        return lastNode;
+    };
+    /**
      * 删除节点
      */
     WorkerEditor.prototype.remove = function (code) {
@@ -975,6 +1076,12 @@ var WorkerEditor = /** @class */ (function () {
                 code = node.code;
                 node.delete();
                 delete _this.nodeDick[code];
+                isSuccess = true;
+                // 选择切换
+                var lastElem = _this.last();
+                if (lastElem) {
+                    lastElem.select();
+                }
             }
         };
         if (!code) {
@@ -984,6 +1091,37 @@ var WorkerEditor = /** @class */ (function () {
             removeNode(this.nodeDick[code]);
         }
         return isSuccess;
+    };
+    /**
+     * 循环获取节点， tab 节点选择切换
+     */
+    WorkerEditor.prototype.tab = function () {
+        var cSelEd = this.getSelected(), code = cSelEd ? cSelEd.code : null, findLastMk = false, // 找到最后一个
+        successMk = false; // 匹配到标志
+        for (var key in this.nodeDick) {
+            var nd = this.nodeDick[key];
+            if (!cSelEd) { // 没有的从第一个开始
+                nd.select();
+                successMk = true;
+                break;
+            }
+            else {
+                if (findLastMk) { // 正好遍历到
+                    this.removeAllSeled();
+                    nd.select();
+                    successMk = true;
+                    break;
+                }
+                else if (code == nd.code) {
+                    findLastMk = true;
+                }
+            }
+        }
+        // 没有找到时从新开始，且存在元素
+        if (findLastMk && !successMk) {
+            this.removeAllSeled();
+            this.tab();
+        }
     };
     /**
      * 节点复制
@@ -1007,6 +1145,9 @@ var WorkerEditor = /** @class */ (function () {
             newNode = this.ndMer.make(node.NodeType, newOpt)
                 .creator()
                 .moveable();
+            // 切换选中状态
+            this.removeAllSeled();
+            newNode.select();
             this._nodeBindEvt(newNode);
             var _index = this._getOrderCode();
             // 保存到字典中
@@ -1833,30 +1974,30 @@ var ToolBar = /** @class */ (function () {
         // y += 23
         ch = y;
         y += th2;
-        this.connElems['tBody'] = paper.rect(x, y, cw, 60)
-            .attr('fill', '#ffffff');
-        // .attr('fill', '#99CC99')
-        x = x + 20;
-        // 直线
-        y += 20;
-        // let conAttr: rSu.bsMap = {
-        //     'stroke-width': '0.8'
-        // }
-        this.connElems['lnCon'] = paper.rect(x - 20, y - 20, cw, 30);
+        var prevH = 60; // 预处理高度
+        this.config['lnSeledBkg'] = this.config['lnSeledBkg'] || '#CCFF99';
+        this.config['lnDefBkg'] = this.config['lnDefBkg'] || '#ffffff';
+        var lnDefBkg = this.config.lnDefBkg;
+        this.connElems['lnCon'] = paper.rect(x, y, cw, prevH / 2)
+            .attr('fill', lnDefBkg);
         // .attr(conAttr)
+        var ly = y + prevH / 4 * 0.7, lx = x + 20;
         ist = ndMer.make('ln', {
-            P1: { x: x - 5, y: y },
-            P2: { x: x + 10, y: y }
+            P1: { x: lx - 5, y: ly },
+            P2: { x: lx + 25, y: ly }
         })
             .creator();
         cBodyNds.ln = ist;
         // 折线
         y += 20;
-        this.connElems['lnPolyCon'] = paper.rect(x - 20, y - 10, cw, 30);
+        this.connElems['lnPolyCon'] = paper.rect(x, y, cw, prevH / 2)
+            .attr('fill', lnDefBkg);
         // .attr(conAttr)
+        ly = y + prevH / 4 * 0.7,
+            lx = x + 20;
         ist = ndMer.make('lnPoly', {
-            P1: { x: x - 5, y: y },
-            P2: { x: x + 10, y: y + 4 },
+            P1: { x: lx - 5, y: ly },
+            P2: { x: lx + 20, y: ly + 4 },
             h: 4
         })
             .creator();
@@ -1865,30 +2006,32 @@ var ToolBar = /** @class */ (function () {
         ch = y - ch;
         this.connElems['lnCon'].attr('height', ch / 2);
         this.connElems['lnPolyCon'].attr('height', ch / 2);
-        this.connElems['tBody'].attr('height', ch);
     };
     /**
      * 连线框占据节点框
      */
     ToolBar.prototype.connSizeNode = function (backMk) {
-        var _a = this.connElems, title = _a.title, icon = _a.icon, tBody = _a.tBody, _b = this.rData, cp = _b.cp, cw = _b.cw, th2 = _b.th2, ch = _b.ch, th0 = _b.th0, th1 = _b.th1, nh = _b.nh, x = cp.x, y = cp.y, _c = this.cBodyNds, ln = _c.ln, lnPoly = _c.lnPoly;
+        var _a = this.connElems, title = _a.title, icon = _a.icon, lnCon = _a.lnCon, lnPolyCon = _a.lnPolyCon, _b = this.rData, cp = _b.cp, cw = _b.cw, th2 = _b.th2, ch = _b.ch, th0 = _b.th0, th1 = _b.th1, nh = _b.nh, x = cp.x, y = cp.y, _c = this.cBodyNds, ln = _c.ln, lnPoly = _c.lnPoly;
         y += backMk ? th0 + th1 + nh : th0 + th1;
         title.attr('y', y);
         icon.attr('y', y + 1);
         y += th2;
-        x = x + 20;
-        tBody.attr('y', y);
+        var prevH = 60; // 预处理高度
+        lnCon.attr('y', y);
         // 直线
-        y += 20;
+        var ly = y + prevH / 4 * 0.7, lx = x + 20;
         ln.updAttr({
-            P1: { x: x - 5, y: y },
-            P2: { x: x + 10, y: y }
+            P1: { x: lx - 5, y: ly },
+            P2: { x: lx + 25, y: ly }
         });
         // 折线
         y += 20;
+        lnPolyCon.attr('y', y);
+        ly = y + prevH / 4 * 0.7,
+            lx = x + 20;
         lnPoly.updAttr({
-            P1: { x: x - 5, y: y },
-            P2: { x: x + 10, y: y + 4 },
+            P1: { x: lx - 5, y: ly },
+            P2: { x: lx + 20, y: ly + 4 },
             h: 4
         });
     };
@@ -1931,7 +2074,7 @@ var ToolBar = /** @class */ (function () {
      * @param {string} type 显示与隐藏， H/S
      */
     ToolBar.prototype.cToggle = function (type, includeTit) {
-        var cBodyNds = this.cBodyNds, connElems = this.connElems, tBody = connElems.tBody;
+        var cBodyNds = this.cBodyNds, connElems = this.connElems, lnCon = connElems.lnCon, lnPolyCon = connElems.lnPolyCon;
         if ('H' != type) {
             __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(cBodyNds, function (k, nd) {
                 nd.show();
@@ -1940,8 +2083,11 @@ var ToolBar = /** @class */ (function () {
                 connElems.title.show();
                 connElems.icon.show();
             }
-            if (tBody) {
-                tBody.show();
+            if (lnCon) {
+                lnCon.show();
+            }
+            if (lnPolyCon) {
+                lnPolyCon.show();
             }
         }
         else {
@@ -1952,8 +2098,11 @@ var ToolBar = /** @class */ (function () {
                 connElems.title.hide();
                 connElems.icon.hide();
             }
-            if (tBody) {
-                tBody.hide();
+            if (lnCon) {
+                lnCon.hide();
+            }
+            if (lnPolyCon) {
+                lnPolyCon.hide();
             }
         }
     };
@@ -2747,6 +2896,8 @@ var NodeLn = /** @class */ (function (_super) {
     }
     NodeLn.prototype._onInit = function () {
         this.NodeType = 'ln';
+        // 箭头最大长度
+        this.data('maxR', 5);
     };
     NodeLn.prototype._whenCreatorEvt = function () {
         var opt = this.opt, bkg = opt.bkg || 'rgb(3, 84, 41)';
@@ -2757,7 +2908,10 @@ var NodeLn = /** @class */ (function (_super) {
      * 生成器
      */
     NodeLn.prototype.opt2Attr = function (nOpt) {
-        var opt = nOpt ? nOpt : this.opt, P1 = opt.P1, P2 = opt.P2, r = opt.r || this.getLen() * 0.2;
+        var opt = nOpt ? nOpt : this.opt, P1 = opt.P1, P2 = opt.P2, r = opt.r || this.getLen() * 0.2, maxR = this.data('maxR');
+        if (r > maxR) {
+            r = maxR;
+        }
         var atan = Math.atan2(P1.y - P2.y, P2.x - P1.x) * (180 / Math.PI);
         var centerX = P2.x - r * Math.cos(atan * (Math.PI / 180));
         var centerY = P2.y + r * Math.sin(atan * (Math.PI / 180));

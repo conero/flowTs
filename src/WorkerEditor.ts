@@ -67,20 +67,18 @@ const Conf = {
  */
 export default class WorkerEditor{
     // config: object
-    config: any
+    config: rSu.bsMap
     paper: RaphaelPaper
     _rIdx: number
     _code2EidDick: {
         [k: string]: string
     }
     _LineDragingP:any
-    flow: any
     nodeQueues: any
     lineQueues: any
     textQueues: any
     tempNodes: any
     MagneticCore: any
-    $tool: any
     toolbarCtrl?: rSu.ToolBar       // 工具栏控制器
     
     protected toolNodeIstQue: any[]     // 工具栏部件节点队列
@@ -90,6 +88,7 @@ export default class WorkerEditor{
         isSelEd: boolean,
         type: string
     }
+    private tmpNodeMap: rSu.mapNode     // 临时节点字典
     // toolNodeIstQue: any[]     // 工具栏部件节点队列
     // 静态属性
     static version: VersionStruct = LibVersion
@@ -99,6 +98,7 @@ export default class WorkerEditor{
      */
     constructor(config: any){  
         this.nodeDick = {}      
+        this.tmpNodeMap = {}
         this.config = config            // 系统配置参数
         this.paper = H.createInstance(config) // Raphael 对象        
         this.ndMer = new NodeQue(this.paper)
@@ -153,7 +153,7 @@ export default class WorkerEditor{
 
         // 事件绑定处理
         var $this = this,
-            {tBodyNds, cBodyNds} = $this.toolbarCtrl
+            {tBodyNds, cBodyNds, connElems} = $this.toolbarCtrl
             
         // 节点拖动处理事件
         Util.each(tBodyNds, (key: string, nd: rSu.Node) => {
@@ -192,7 +192,18 @@ export default class WorkerEditor{
                 console.log(this, '测试：end')
             })
         })
-        // 连接线
+        // 连接线 -----------------
+        let {lnCon, lnPolyCon} = connElems,
+            {lnSeledBkg, lnDefBkg} = $this.toolbarCtrl.config
+        // 内部属性标记
+        lnCon.data('con', 'ln')
+        lnPolyCon.data('con', 'lnPoly')
+
+        // 清空连线选择状态
+        this.lineCnMode = {
+            isSelEd: false,
+            type: null
+        }
         var clearAllLinkSeled = () => {
             Util.each(cBodyNds, (key: string, nd: rSu.Node) => {
                 nd.isSelEd = false
@@ -201,7 +212,10 @@ export default class WorkerEditor{
                 isSelEd: false,
                 type: null
             }
+            lnCon.attr('fill', lnDefBkg)
+            lnPolyCon.attr('fill', lnDefBkg)
         }
+        // 节点内部选择控制事件
         Util.each(cBodyNds, (key: string, nd: rSu.Node) => {
             //console.log(key, nd)
             // 点击事件
@@ -214,16 +228,41 @@ export default class WorkerEditor{
                         isSelEd: true,
                         type: nd.NodeType
                     }
+                    if(nd.NodeType == 'ln'){
+                        lnCon.attr('fill', lnSeledBkg)
+                    }
+                    else{
+                        lnPolyCon.attr('fill', lnSeledBkg)
+                    }
                 }
             })
         })
+        // 基于 WorkerEditor 属性
+        let lnConClickEvt = function(){            
+            // 选中
+            if(!$this.lineCnMode.isSelEd || 
+                ($this.lineCnMode.isSelEd && this.data('con') != $this.lineCnMode.type)){    
+                    clearAllLinkSeled()
+                    this.attr('fill', lnSeledBkg)
+                    $this.lineCnMode = {
+                        isSelEd: true,
+                        type: this.data('con')
+                    }                            
+            }else{
+                clearAllLinkSeled()
+            }
+        }
+        lnCon.click(lnConClickEvt)
+        lnPolyCon.click(lnConClickEvt)
     }
     /**
      * 节点事件绑定
      * @param {rSu.Node} node 输入为空时绑定所有值
      */
     private _nodeBindEvt(node?: rSu.Node){
-        var $this = this;
+        var $this = this,
+            {ndMer} = this
+        ;
         // 事件绑定处理
         var toBindNodeEvts = (nd: rSu.Node) => {
             // 点击
@@ -231,9 +270,68 @@ export default class WorkerEditor{
                 $this.removeAllSeled()
                 nd.select()
             })
-            // 处理接口
+            // 处理接口            
             nd.onCreateBoxPnt = function(pnt: RaphaelElement){
-                //console.log(pnt)
+                var tmpLnIst: rSu.Node = $this.tmpNodeMap['connLnIst'] || null
+                // 存在则清空以前未完成的
+                if(tmpLnIst){
+                    tmpLnIst.delete()
+                    $this.tmpNodeMap['connLnIst'] = null
+                }
+                // 开启连线模式时
+                if($this.lineCnMode.isSelEd){
+                    //console.log(pnt)
+                    var tmpP = {x: 0, y: 0}
+                    pnt.drag(
+                        function(dx: number, dy: number){   // moving
+                            if(!tmpLnIst){
+                                console.log('选择框连线拖动出错！')
+                                return
+                            }
+                            dx += tmpP.x
+                            dy += tmpP.y
+                            if($this.lineCnMode.type == 'ln'){
+                                tmpLnIst.updAttr({
+                                    P2: {x: dx, y: dy}
+                                })
+                            }else{}
+                        },
+                        function(){     // start
+                            tmpP.x = this.attr('cx')
+                            tmpP.y = this.attr('cy')
+                            // 存在则清空以前未完成的
+                            if(tmpLnIst){
+                                console.log(tmpLnIst.NodeType, tmpLnIst)
+                                tmpLnIst.delete()
+                                $this.tmpNodeMap['connLnIst'] = null
+                                // tmpLnIst = null
+                            }
+                            let newOpt: rSu.NodeOpt = {},
+                                lx = tmpP.x, 
+                                ly = tmpP.y
+                            if($this.lineCnMode.type == 'ln'){
+                                newOpt = {
+                                    P1: {x: lx, y: ly},
+                                    P2: {x: lx+10, y: ly+5}
+                                }
+                            }
+                            else{
+                                newOpt = {
+                                    P1: {x: lx, y: ly},            
+                                    P2: {x: lx+4, y: ly + 4},
+                                    h: 4
+                                }
+                            }
+                            tmpLnIst = ndMer.make($this.lineCnMode.type, newOpt)
+                                .creator()
+                            $this.tmpNodeMap['connLnIst'] = tmpLnIst
+                        },
+                        function(){ // end 
+                            //
+                            console.log('END')
+                        }
+                    )
+                }
             }
         }
         if(node){
@@ -291,6 +389,16 @@ export default class WorkerEditor{
         }
     }
     /**
+     * 获取最新的节点
+     */
+    last(): rSu.Node{
+        let lastNode:rSu.Node = null
+        for(var key in this.nodeDick){
+            lastNode = this.nodeDick[key]
+        }
+        return lastNode
+    }
+    /**
      * 删除节点
      */
     remove(code?: string){
@@ -301,6 +409,12 @@ export default class WorkerEditor{
                 code = node.code
                 node.delete()
                 delete this.nodeDick[code]
+                isSuccess = true
+                // 选择切换
+                let lastElem: rSu.Node = this.last()
+                if(lastElem){
+                    lastElem.select()
+                }
             }
         }
         if(!code){
@@ -309,6 +423,39 @@ export default class WorkerEditor{
             removeNode(this.nodeDick[code])
         }
         return isSuccess
+    }
+    /**
+     * 循环获取节点， tab 节点选择切换
+     */
+    tab(){
+        var cSelEd: rSu.Node = this.getSelected(),
+            code: string = cSelEd? cSelEd.code : null,
+            findLastMk: boolean = false,    // 找到最后一个
+            successMk: boolean = false     // 匹配到标志
+
+        for(var key in this.nodeDick){
+            var nd = this.nodeDick[key]
+            if(!cSelEd){    // 没有的从第一个开始
+                nd.select()
+                successMk = true
+                break
+            }else{
+                if(findLastMk){     // 正好遍历到
+                    this.removeAllSeled()
+                    nd.select()
+                    successMk = true
+                    break
+                }
+                else if(code == nd.code){
+                    findLastMk = true
+                }
+            }
+        }
+        // 没有找到时从新开始，且存在元素
+        if(findLastMk && !successMk){
+            this.removeAllSeled()
+            this.tab()
+        }
     }
     /**
      * 节点复制
@@ -332,6 +479,9 @@ export default class WorkerEditor{
             newNode = this.ndMer.make(node.NodeType, newOpt)
                 .creator()
                 .moveable()
+            // 切换选中状态
+            this.removeAllSeled()
+            newNode.select()
             this._nodeBindEvt(newNode)
             let _index = this._getOrderCode()
             // 保存到字典中

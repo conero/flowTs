@@ -226,21 +226,19 @@ export default class ToolBar{
         // y += 23
         ch = y
         y += th2
-        this.connElems['tBody'] = paper.rect(x, y, cw, 60)
-            .attr('fill', '#ffffff')
-            // .attr('fill', '#99CC99')
-        x = x + 20
+        let prevH = 60  // 预处理高度
+        this.config['lnSeledBkg'] = this.config['lnSeledBkg'] || '#CCFF99'
+        this.config['lnDefBkg'] = this.config['lnDefBkg'] || '#ffffff'
+        let {lnDefBkg} = this.config
 
-        // 直线
-        y += 20
-        // let conAttr: rSu.bsMap = {
-        //     'stroke-width': '0.8'
-        // }
-        this.connElems['lnCon'] = paper.rect(x - 20, y - 20, cw, 30)
+        this.connElems['lnCon'] = paper.rect(x, y, cw, prevH/2)
+            .attr('fill', lnDefBkg)
             // .attr(conAttr)
+        let ly = y + prevH/4*0.7,
+            lx = x + 20
         ist = ndMer.make('ln', {
-            P1: {x: x-5, y},
-            P2: {x: x+10, y}
+            P1: {x: lx-5, y: ly},
+            P2: {x: lx+25, y: ly}
         })
             .creator()
         cBodyNds.ln = ist
@@ -248,11 +246,14 @@ export default class ToolBar{
 
         // 折线
         y += 20
-        this.connElems['lnPolyCon'] = paper.rect(x - 20, y - 10, cw, 30)
+        this.connElems['lnPolyCon'] = paper.rect(x, y, cw, prevH/2)
+            .attr('fill', lnDefBkg)
             // .attr(conAttr)
+        ly = y + prevH/4*0.7,
+            lx = x + 20
         ist = ndMer.make('lnPoly', {
-            P1: {x: x-5, y},            
-            P2: {x: x+10, y: y + 4},
+            P1: {x: lx-5, y: ly},            
+            P2: {x: lx+20, y: ly + 4},
             h: 4
         })
             .creator()
@@ -262,13 +263,12 @@ export default class ToolBar{
         ch = y - ch
         this.connElems['lnCon'].attr('height', ch/2)
         this.connElems['lnPolyCon'].attr('height', ch/2)
-        this.connElems['tBody'].attr('height', ch)
     }
     /**
      * 连线框占据节点框
      */
     connSizeNode(backMk?: boolean){
-        var {title, icon, tBody} = this.connElems,
+        var {title, icon, lnCon, lnPolyCon} = this.connElems,
             {cp, cw, th2, ch, th0, th1, nh} = this.rData,
             {x, y} = cp,
             {ln, lnPoly} = this.cBodyNds
@@ -278,21 +278,25 @@ export default class ToolBar{
         icon.attr('y', y+1)
         
         y += th2
-        x = x + 20
-        tBody.attr('y', y)
+        let prevH = 60  // 预处理高度
+        lnCon.attr('y', y)
 
         // 直线
-        y += 20
+        let ly = y + prevH/4*0.7,
+            lx = x + 20
         ln.updAttr({
-            P1: {x: x-5, y},
-            P2: {x: x+10, y}
+            P1: {x: lx-5, y: ly},
+            P2: {x: lx+25, y: ly}
         })
 
         // 折线
         y += 20
+        lnPolyCon.attr('y', y)
+        ly = y + prevH/4*0.7,
+            lx = x + 20
         lnPoly.updAttr({
-            P1: {x: x-5, y},            
-            P2: {x: x+10, y: y + 4},
+            P1: {x: lx-5, y: ly},            
+            P2: {x: lx+20, y: ly + 4},
             h: 4
         })
     }
@@ -340,7 +344,7 @@ export default class ToolBar{
     cToggle(type?:string, includeTit?: boolean){
         var cBodyNds = this.cBodyNds,
             connElems = this.connElems,
-            {tBody} = connElems
+            {lnCon, lnPolyCon} = connElems
         if('H' != type){
             Util.each(cBodyNds, (k: number, nd: rSu.Node) => {
                 nd.show()
@@ -349,8 +353,11 @@ export default class ToolBar{
                 connElems.title.show()
                 connElems.icon.show()
             }
-            if(tBody){
-                tBody.show()
+            if(lnCon){
+                lnCon.show()
+            }
+            if(lnPolyCon){
+                lnPolyCon.show()
             }
         }
         else{
@@ -361,8 +368,11 @@ export default class ToolBar{
                 connElems.title.hide()
                 connElems.icon.hide()
             }
-            if(tBody){
-                tBody.hide()
+            if(lnCon){
+                lnCon.hide()
+            }
+            if(lnPolyCon){
+                lnPolyCon.hide()
             }
         }
     }

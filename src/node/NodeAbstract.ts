@@ -219,7 +219,7 @@ export default abstract class NodeAbstract{
     /**
      * 节点删除
      */
-    delete(){
+    delete(){        
         this.c.remove()
         if(this.label){
             this.label.remove()

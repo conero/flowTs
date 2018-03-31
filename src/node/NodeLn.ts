@@ -6,6 +6,8 @@ import NodeAbstract from "./NodeAbstract"
 export default class NodeLn extends NodeAbstract{
     protected _onInit(){
         this.NodeType = 'ln'
+        // 箭头最大长度
+        this.data('maxR', 5)
     }
     protected _whenCreatorEvt(){
         var opt = this.opt,
@@ -20,7 +22,12 @@ export default class NodeLn extends NodeAbstract{
         var opt = nOpt? nOpt : this.opt,
             P1: rSu.P = opt.P1,
             P2: rSu.P = opt.P2,
-            r = opt.r || this.getLen() * 0.2
+            r = opt.r || this.getLen() * 0.2,
+            maxR = this.data('maxR')
+        
+        if(r > maxR){
+            r = maxR
+        }
         
         var atan = Math.atan2(P1.y - P2.y, P2.x - P1.x) * (180 / Math.PI);
 
