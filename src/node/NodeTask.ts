@@ -18,6 +18,12 @@ export default class NodeTask extends NodeAbstract{
             bkg = opt.bkg || '#88EEEA'
         this.c = this.paper.rect(attr.x, attr.y, attr.w, attr.h)
         this.c.attr('fill', bkg)
+
+        // 文字
+        if(opt.text){
+            let {x, y} = this._getTextPnt()
+            this.label = this.paper.text(x, y, opt.text)
+        }
     }
     /**
      * 通过选项映射到节点属性
@@ -36,7 +42,7 @@ export default class NodeTask extends NodeAbstract{
      * 更新属性
      * @param nOpt 
      */
-    updAttr(nOpt: rSu.NodeOpt){
+    updAttr(nOpt: rSu.NodeOpt): rSu.Node{
         this._updAttr(nOpt)
         var opt = this.opt2Attr()
         var cAttr: rSu.bsMap = {
@@ -46,6 +52,15 @@ export default class NodeTask extends NodeAbstract{
             height: opt.h
         }
         this.c.attr(cAttr)
-        return this
+
+        // 文字
+        if(this.label){
+            let {x, y} = this._getTextPnt()
+            this.label.attr({
+                x, y
+            })
+        }
+
+        return <rSu.Node>this
     }
 }

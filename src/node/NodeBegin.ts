@@ -19,12 +19,17 @@ export default class NodeBegin extends NodeAbstract{
             bkg = opt.bkg || '#851E07'
         this.c = this.paper.ellipse(opt.cx, opt.cy, opt.w/2, opt.h/2)
         this.c.attr('fill', bkg)
+        // 文字
+        if(opt.text){
+            let {x, y} = this._getTextPnt()
+            this.label = this.paper.text(x, y, opt.text)
+        }
     }
     /**
      * 更新属性
      * @param nOpt 
      */
-    updAttr(nOpt: rSu.NodeOpt){
+    updAttr(nOpt: rSu.NodeOpt): rSu.Node{
         var opt = this._updAttr(nOpt)
             .opt
         this.c.attr({
@@ -33,6 +38,13 @@ export default class NodeBegin extends NodeAbstract{
             rx: opt.w/2,
             ry: opt.h/2
         })
-        return this
+        // 文字
+        if(this.label){
+            let {x, y} = this._getTextPnt()
+            this.label.attr({
+                x, y
+            })
+        }
+        return <rSu.Node>this
     }
 }

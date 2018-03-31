@@ -8,6 +8,7 @@ import {VersionStruct, LibVersion} from '../version'
 import { Util } from './util';
 import ToolBar from './ToolBar';
 import { NodeQue } from './NodeQue';
+import {cNode} from './confNode'
 
 // 通过数据 object 类型
 interface ItfMap {
@@ -22,7 +23,7 @@ interface ItfPoint {
 }
 
 // 什么jQuery/RaphaelJs
-// declare var $: any;
+declare var $: any;
 
 // 配置参数常量 , type 1801 为特殊类型
 const Conf = {
@@ -84,6 +85,11 @@ export default class WorkerEditor{
     
     protected toolNodeIstQue: any[]     // 工具栏部件节点队列
     private ndMer: rSu.NodeQue
+    private nodeDick: rSu.mapNode       // 节点字典
+    private lineCnMode: {
+        isSelEd: boolean,
+        type: string
+    }
     // toolNodeIstQue: any[]     // 工具栏部件节点队列
     // 静态属性
     static version: VersionStruct = LibVersion
@@ -91,7 +97,8 @@ export default class WorkerEditor{
     /**
      * @param {object} config 数据配置项
      */
-    constructor(config: any){        
+    constructor(config: any){  
+        this.nodeDick = {}      
         this.config = config            // 系统配置参数
         this.paper = H.createInstance(config) // Raphael 对象        
         this.ndMer = new NodeQue(this.paper)
@@ -101,7 +108,6 @@ export default class WorkerEditor{
         this._code2EidDick = {}                 // 内部代码与元素id的映射字段
         this._LineDragingP = null               // RaphaelElement 直线正在拖动记录点
         // 内部缓存数组件容器： 节点、连接线、独立文本
-        this.nodeQueues = []                         // 运行节点数
         this.lineQueues = []                    // 连线记录器
         this.textQueues = []
         this.tempNodes = []                     // 临时节点集
@@ -169,18 +175,48 @@ export default class WorkerEditor{
                 tP.x = cx
                 tP.y = cy
                 cx += 25
-                ndAst = $this.ndMer.make(key, {cx, cy, w: 50, h:40})
+                let ndOpt:rSu.NodeOpt = {cx, cy, w: 50, h:40}
+                if(cNode[key]){
+                    ndOpt.text = cNode[key].text
+                }           
+                ndAst = $this.ndMer.make(key, ndOpt)
                     .creator()
                     .moveable()
                 $this._nodeBindEvt(ndAst)
-                $this.nodeQueues.push(ndAst)
-
+                let _index = $this._getOrderCode()
+                // 保存到字典中
+                ndAst.data('_code', _index)
+                $this.nodeDick[_index] = ndAst
             },
             function(): any{
                 console.log(this, '测试：end')
             })
         })
-
+        // 连接线
+        var clearAllLinkSeled = () => {
+            Util.each(cBodyNds, (key: string, nd: rSu.Node) => {
+                nd.isSelEd = false
+            })
+            this.lineCnMode = {
+                isSelEd: false,
+                type: null
+            }
+        }
+        Util.each(cBodyNds, (key: string, nd: rSu.Node) => {
+            //console.log(key, nd)
+            // 点击事件
+            nd.c.click(function(){
+                let isSelEd = nd.isSelEd
+                clearAllLinkSeled()
+                if(!isSelEd){
+                    nd.isSelEd = true
+                    $this.lineCnMode = {
+                        isSelEd: true,
+                        type: nd.NodeType
+                    }
+                }
+            })
+        })
     }
     /**
      * 节点事件绑定
@@ -188,43 +224,52 @@ export default class WorkerEditor{
      */
     private _nodeBindEvt(node?: rSu.Node){
         var $this = this;
-        if(node){
-            node.c.click(function(){
+        // 事件绑定处理
+        var toBindNodeEvts = (nd: rSu.Node) => {
+            // 点击
+            nd.c.click(function(){
                 $this.removeAllSeled()
-                node.select()
+                nd.select()
             })
-        }else{
-            this.nodeQueues.forEach((nd: rSu.Node) => {
-                nd.c.click(function(){
-                    $this.removeAllSeled()
-                    nd.select()
-                })
-            });
+            // 处理接口
+            nd.onCreateBoxPnt = function(pnt: RaphaelElement){
+                //console.log(pnt)
+            }
+        }
+        if(node){
+            toBindNodeEvts(node)
+        }else{           
+            for(var key in this.nodeDick){
+                toBindNodeEvts(this.nodeDick[key])
+            }
         }
     }
     /**
      * 移除所有选中中元素
      */
     removeAllSeled(){
-        this.nodeQueues.forEach((nd: rSu.Node) => {
+        for(var key in this.nodeDick){
+            let nd: rSu.Node = this.nodeDick[key]
             if(nd.isSelEd){
                 nd.removeBox()
+                nd.isSelEd = false
             }
-        });
+        }
     }
     /**
      * 全选
      */
     allSelect(){
-        this.nodeQueues.forEach((nd: rSu.Node) => {
+        for(var key in this.nodeDick){
+            let nd: rSu.Node = this.nodeDick[key]
             nd.select()
-        })
+        }
     }
 
     /**
      * 获取
      */
-    _getOrderCode(){
+    private _getOrderCode(){
         this._rIdx += 1
         var code = this.config.prefCode + this._rIdx
         // 判断序列号是否已经存在
@@ -232,35 +277,6 @@ export default class WorkerEditor{
             code = this._getOrderCode()
         }
         return code
-    }
-    /**
-     * 移除全部的边框
-     */
-    removeBBox(){
-        this.MagneticCore = null
-        // 系统节点
-        var nodes = this.nodeQueues
-        for(var i=0; i<nodes.length; i++){
-            var node = nodes[i]
-            if(node.bBox){
-                node.bBox.remove()
-                node.bBox = null    // 清空 bBox 
-            }
-        }
-        // 临时节点
-        this.removeTempNodes()
-        // 直线选中删除
-        var lines = this.lineQueues
-        for(var k=0; k<lines.length; k++){
-            var line = lines[k]
-            if(lines.selectEdMk){
-                line.selectEdMk = false
-            }
-        }
-        // 移除配置属性
-        this.removeIntersectMk()
-        // 删除文本选中状态
-        this.tempNodes = []
     }
     /**
      * 删除临时节点
@@ -275,74 +291,57 @@ export default class WorkerEditor{
         }
     }
     /**
-     * 删除节点, 为空是删除当前选中的节点
-     * @param {RaphaelElement|string|null} code 
+     * 删除节点
      */
-    removeNode(code: any){
-        if(!code){
-            code = this.getSelected()
-        }
-        if(code){
-            var node = 'object' == typeof code? code : 
-                (this._code2EidDick[code]? this.paper.getById(this._code2EidDick[code]):this.paper.getById(code))
-            if('object' == typeof node){
-                // 删除实体数据
-                var id = node.id    // id 数据
-                var isConnectMk = false // 是否为连接线
-                if(node.NodeType == 'arrow'){
-                    isConnectMk = true
-                }
-                if(node.bBox){
-                    node.bBox.remove()
-                    node.bBox = null
-                }
-                // 文本
-                if(node.label){
-                    node.label.remove()
-                    node.label = null
-                }
-                // 连线选择标识
-                if(node.selectEdMk){
-                    node.selectEdMk = false
-                }
-                node.c.remove();
-                node = null // 覆盖并或删除数据
-                // 清除连接线中的缓存器
-                if(isConnectMk){
-                    var lines = this.lineQueues
-                    var newLineQ = []
-                    for(var x=0; x<lines.length; x++){
-                        var line = lines[x]
-                        if(id == line.c.id){
-                            continue
-                        }
-                        newLineQ.push(line)
-                    }
-                    this.lineQueues = newLineQ
-                }
-                else{
-                    // 删除内部对象缓存的数据
-                    var nodes = this.nodeQueues
-                    var nodeStack = []
-                    for(var i=0; i<nodes.length; i++){
-                        var $node = nodes[i]
-                        // 清除已经删除节点的缓存数据
-                        if(id == $node.c.id){
-                            continue
-                        }
-                        nodeStack.push($node)
-                    }
-                    this.nodeQueues = nodeStack
-                }
-                
-                // 删除边框以及选中标识
-                this.removeBBox()
-                return true
+    remove(code?: string){
+        let isSuccess = false
+        // 删除节点
+        var removeNode = (node: rSu.Node) => {
+            if(node){
+                code = node.code
+                node.delete()
+                delete this.nodeDick[code]
             }
         }
-        return false
+        if(!code){
+            removeNode(this.getSelected())
+        }else{
+            removeNode(this.nodeDick[code])
+        }
+        return isSuccess
     }
     /**
+     * 节点复制
+     * @param {string} code 
+     */
+    clone(code?: string | rSu.Node): rSu.Node{
+        let node: rSu.Node,
+            newNode: rSu.Node
+        if(code && 'string' == typeof code){
+            node = this.nodeDick[code]
+        }else if(code && 'object' == typeof code){
+            node = code
+        }else{
+            node = this.getSelected()
+        }
+        if(node){
+            let newOpt: rSu.NodeOpt = $.extend(true, {}, node.opt),
+                rate = 0.2
+            newOpt.cx += newOpt.w * rate
+            newOpt.cy += newOpt.h * rate
+            newNode = this.ndMer.make(node.NodeType, newOpt)
+                .creator()
+                .moveable()
+            this._nodeBindEvt(newNode)
+            let _index = this._getOrderCode()
+            // 保存到字典中
+            newNode.data('_code', _index)
+            this.nodeDick[_index] = newNode
+        }
+        return newNode
+    }
+    /**
+     * // d2rw
      * 移除碰撞属性
      */
     removeIntersectMk(){
@@ -372,6 +371,7 @@ export default class WorkerEditor{
         return IntersectEl
     }
     /**
+     * d2rw
      * 移除连接检测线，用于连接线与节点关联时删除就的关联
      * @param {NodeBase} lineIst 
      * @param {string} type from/to
@@ -416,7 +416,6 @@ export default class WorkerEditor{
      * @returns {this}
      */
     removeAllNode(){
-        this.removeBBox()
         var nodes = this.nodeQueues
         for(var i=0; i<nodes.length; i++){
             var node = nodes[i]
@@ -433,7 +432,6 @@ export default class WorkerEditor{
      * @returns {this}
      */
     removeAllLine(){
-        this.removeBBox()
         var lines = this.lineQueues
         for(var i=0; i<lines.length; i++){
             var line = lines[i]
@@ -447,7 +445,6 @@ export default class WorkerEditor{
      * @returns {this}
      */
     removeAllText(){
-        this.removeBBox()
         var texts = this.textQueues
         for(var i=0; i<texts.length; i++){
             var text = texts[i]
@@ -571,18 +568,16 @@ export default class WorkerEditor{
      * 获取被选中的节点，只能一个
      * @returns {NodeBase}
      */
-    getSelected(){
+    getSelected(): rSu.Node{
         var nodes = this.nodeQueues
-        var selectedNode = null
+        var selectedNode: rSu.Node = null
         // 节点扫描
-        for(var i=0; i<nodes.length; i++){
-            var node = nodes[i]
-            if(node.bBox){
-                selectedNode = node
+        for(var key in this.nodeDick){
+            if(this.nodeDick[key].isSelEd){
+                selectedNode = this.nodeDick[key]
                 break
             }
         }
-        //console.log(this.lineQueues, selectedNode)
         if(!selectedNode){
             // 连线扫描
             var lines = this.lineQueues

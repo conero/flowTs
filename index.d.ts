@@ -108,6 +108,7 @@ declare namespace rSu{
         xRate?: number           // 移除边框百分比
         inlinesEle?: RaphaelElement[]    // 合并
         inlineEle?: RaphaelElement       // 并行
+        code?: string                    // 只读属性
 
         //--------> 方法
         // NodeAbstract => NodeAbstract
@@ -116,13 +117,22 @@ declare namespace rSu{
         onDrag(): any
         // 获取两点间的距离
         getPLen(P1: rSu.P, P2: rSu.P): number
-        delete(): boolean
+        delete(): void
         hide(): Node
         show(): Node
         moveable(): Node
         updAttr(nOpt?: rSu.NodeOpt): Node
-        select(): Node  // 选中节点
+        select(): Node  // 选中节点        
+        onCreateBoxPnt(rElem: RaphaelElement): void     // 事件接口 [生成边框先关的点] 用于连线
         removeBox(): Node // 移除元素边框
+        zoomOut(rate?: number): Node // 放大
+        zoomIn(rate?: number): Node // 缩小
+        data(key:any, value?:any): any // 数据存储器
+        move(type?: string, rate?: number): rSu.Node    // 方向性移动
+        move2T(rate?: number): rSu.Node
+        move2B(rate?: number): rSu.Node
+        move2L(rate?: number): rSu.Node
+        move2R(rate?: number): rSu.Node
     }
     // 节点队列 -> class
     export interface NodeQue{

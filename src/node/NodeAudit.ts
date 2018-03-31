@@ -17,6 +17,11 @@ export default class NodeAudit extends NodeAbstract{
 
         this.c = this.paper.path(this._ps2Path(pQue, true))
         this.c.attr('fill', bkg)
+        // 文字
+        if(nOpt.text){
+            let {x, y} = this._getTextPnt()
+            this.label = this.paper.text(x, y, nOpt.text)
+        }
     }
     /**
      * 选项与节点属性的映射
@@ -54,10 +59,17 @@ export default class NodeAudit extends NodeAbstract{
      * 更新属性
      * @param nOpt 
      */
-    updAttr(nOpt: rSu.NodeOpt){
+    updAttr(nOpt: rSu.NodeOpt): rSu.Node{
         this._updAttr(nOpt)
         var opt = this.opt2Attr()
         this.c.attr('path', this._ps2PathAttr(opt, true))
-        return this
+        // 文字
+        if(this.label){
+            let {x, y} = this._getTextPnt()
+            this.label.attr({
+                x, y
+            })
+        }
+        return <rSu.Node>this
     }
 }

@@ -6,6 +6,14 @@ import { Util } from "../util";
  */
 ///<reference path="../../index.d.ts"/>
 ///<reference path="../types/raphael.ts"/>
+///<reference path="../types/jquery.ts"/>
+
+// declare var $: jQuery
+// declare var $: jquery
+    // BUG[180331]  <reference path="../types/jquery.ts"/> 无效
+declare var $: any
+
+
 /**
  * @export
  * @abstract
@@ -26,9 +34,12 @@ export default abstract class NodeAbstract{
     inlinesEle?: RaphaelElement[]    // 合并
     inlineEle?: RaphaelElement // 并行
     tRElem: rSu.MapRElm        // 临时类集合
+    protected _dataQueueDick: rSu.bsMap
+    protected _code: string
 
     constructor(paper: RaphaelPaper, opt?: rSu.NodeOpt){
         this.tRElem = {}
+        this._dataQueueDick = {}
         this.isSelEd = false
         this.paper = paper
         // 连接线起点获取终点
@@ -40,6 +51,28 @@ export default abstract class NodeAbstract{
             this.opt = opt
         }
         this._onInit()
+    }
+    /**
+     * @param {string|number} key _code 特殊属性
+     * @param {*} value 
+     */
+    data(key:any, value?:any): any{
+        if('undefined' == typeof value){
+            return this._dataQueueDick[key]
+        }else{
+            this._dataQueueDick[key] = value
+            // 特殊处理，保持 code 只读，首次写入时保存
+            if(!this._code && key == '_code'){
+                this._code = value
+            }
+        }
+        return this
+    }
+    /**
+     * 获取代码，使之只读
+     */
+    get code():string{
+        return this._code
     }
     /**
      * 节点生成器，外部可访问接口
@@ -176,11 +209,30 @@ export default abstract class NodeAbstract{
         return this
     }
     /**
-     * 节点删除
-     * @returns {boolean}
+     * 获取文本所在的位置
      */
-    delete(): boolean{
-        return false
+    protected _getTextPnt(): rSu.P{
+        let {cx, cy} = this.opt,
+            p = {x: cx + 1, y: cy + 1}
+        return p
+    }
+    /**
+     * 节点删除
+     */
+    delete(){
+        this.c.remove()
+        if(this.label){
+            this.label.remove()
+        }
+        if(this.inlineEle){
+            this.inlineEle.remove()
+        }
+        if(this.inlinesEle){
+            this.inlinesEle.forEach((ist: RaphaelElement) => {
+                ist.remove()
+            })
+        }
+        this.removeBox()
     }
     /**
      * 隐藏
@@ -251,13 +303,17 @@ export default abstract class NodeAbstract{
      * 更新属性
      * @param nOpt 
      */
-    updAttr(nOpt: rSu.NodeOpt): any{
-        return this
+    updAttr(nOpt: rSu.NodeOpt): rSu.Node{
+        return <rSu.Node>this
     }
+    /**
+     * 事件接口 [生成边框先关的点] 用于连线
+     */
+    onCreateBoxPnt(rElem: RaphaelElement){}
     /**
      * 选中
      */
-    select(){
+    select(): rSu.Node{
         let selMk = false,
             {x, y, width, height} = this.c.getBBox(),
             {paper} = this,
@@ -291,8 +347,10 @@ export default abstract class NodeAbstract{
             let {x, y} = ptQue[key]
             this.tRElem['__p' + key] = paper.circle(x, y, 2)
                 .attr('fill', '#000000')
+            this.onCreateBoxPnt(this.tRElem['__p' + key])
+            
         }
-        return this
+        return <rSu.Node>this
     }
     /**
      * 移除历史边框
@@ -316,10 +374,98 @@ export default abstract class NodeAbstract{
     }
     /**
      * 放大
+     * @param {number} rate 比例 0.2 [0-1]
      */
-    zoomOut(){}
+    zoomOut(rate?: number): rSu.Node{
+        rate = rate? rate: 0.2
+        var {c, opt} = this
+        opt.w = opt.w * (1 + rate)
+        opt.h = opt.h * (1 + rate)
+        this.updAttr({
+            w: opt.w,
+            h: opt.h
+        })
+        this.select()
+        return <rSu.Node>this
+    }
     /**
      * 首先
+     * @param {number} rate 比例 0.2 [0-1]
      */
-    zoomIn(){}
+    zoomIn(rate?: number): rSu.Node{
+        rate = rate? rate: 0.2
+        var {c, opt} = this
+        opt.w = opt.w * (1 - rate)
+        opt.h = opt.h * (1 - rate)
+        this.updAttr({
+            w: opt.w,
+            h: opt.h
+        })
+        this.select()
+        return <rSu.Node>this
+    }
+    /**
+     * 方向移动
+     * @param {number} rate 比例 0.2 [0-1]
+     */
+    move(type?: string, rate?: number): rSu.Node{
+        rate = rate? rate: 0.05
+        var {opt} = this,
+            uOpt: rSu.NodeOpt
+        type = type? type.toUpperCase() : type
+        switch(type){
+            case 'T':
+                uOpt = {cy: opt.cy * (1 - rate)}
+                break
+            case 'B':
+                uOpt = {cy: opt.cy * (1 + rate)}
+                break
+            case 'L':
+                uOpt = {cx: opt.cx * (1 - rate)}
+                break
+            case 'R':
+                uOpt = {cx: opt.cx * (1 + rate)}
+                break
+        }
+        if(uOpt){
+            this.updAttr(uOpt)
+            this.select()
+        }
+        return <rSu.Node>this
+    }
+    /**
+     * 上移
+     * @param {number} rate 比例 0.2 [0-1]
+     */
+    move2T(rate?: number): rSu.Node{
+        this.move('T', rate)
+        return <rSu.Node>this
+    }
+    /**
+     * 
+     * 下移
+     * @param {number} rate 比例 0.2 [0-1]
+     */
+    move2B(rate?: number): rSu.Node{
+        this.move('B', rate)
+        return <rSu.Node>this
+    }
+    /**
+     * 
+     * 下移
+     * @param {number} rate 比例 0.2 [0-1]
+     */
+    move2L(rate?: number): rSu.Node{
+        this.move('L', rate)
+        return <rSu.Node>this
+    }
+    /**
+     * 
+     * 下移
+     * @param {number} rate 比例 0.2 [0-1]
+     */
+    move2R(rate?: number): rSu.Node{
+        this.move('R', rate)
+        return <rSu.Node>this
+    }
 }

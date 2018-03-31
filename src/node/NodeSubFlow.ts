@@ -25,6 +25,12 @@ export default class NodeSubFlow extends NodeAbstract{
             this.paper.path(this._ps2Path(lLine)),
             this.paper.path(this._ps2Path(rLine))
         ]
+
+        // 文字
+        if(opt.text){
+            let {x, y} = this._getTextPnt()
+            this.label = this.paper.text(x, y, opt.text)
+        }
     }
     /**
      * 通过选项映射到节点属性
@@ -55,7 +61,7 @@ export default class NodeSubFlow extends NodeAbstract{
      * 更新属性
      * @param nOpt 
      */
-    updAttr(nOpt: rSu.NodeOpt){
+    updAttr(nOpt: rSu.NodeOpt): rSu.Node{
         this._updAttr(nOpt)
         var {cAttr, lLine, rLine} = this.opt2Attr()
         this.c.attr({
@@ -63,6 +69,15 @@ export default class NodeSubFlow extends NodeAbstract{
         })
         this.inlinesEle[0].attr('path', this._ps2PathAttr(lLine))
         this.inlinesEle[1].attr('path', this._ps2PathAttr(rLine))
-        return this
+
+        // 文字
+        if(this.label){
+            let {x, y} = this._getTextPnt()
+            this.label.attr({
+                x, y
+            })
+        }
+        
+        return <rSu.Node>this
     }
 }

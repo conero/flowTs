@@ -233,6 +233,11 @@ export default class ToolBar{
 
         // 直线
         y += 20
+        // let conAttr: rSu.bsMap = {
+        //     'stroke-width': '0.8'
+        // }
+        this.connElems['lnCon'] = paper.rect(x - 20, y - 20, cw, 30)
+            // .attr(conAttr)
         ist = ndMer.make('ln', {
             P1: {x: x-5, y},
             P2: {x: x+10, y}
@@ -243,6 +248,8 @@ export default class ToolBar{
 
         // 折线
         y += 20
+        this.connElems['lnPolyCon'] = paper.rect(x - 20, y - 10, cw, 30)
+            // .attr(conAttr)
         ist = ndMer.make('lnPoly', {
             P1: {x: x-5, y},            
             P2: {x: x+10, y: y + 4},
@@ -253,6 +260,8 @@ export default class ToolBar{
 
         this.cBodyNds = cBodyNds
         ch = y - ch
+        this.connElems['lnCon'].attr('height', ch/2)
+        this.connElems['lnPolyCon'].attr('height', ch/2)
         this.connElems['tBody'].attr('height', ch)
     }
     /**
