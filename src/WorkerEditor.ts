@@ -216,6 +216,13 @@ export default class WorkerEditor{
             lnPolyCon.attr('fill', lnDefBkg)
         }
         // 节点内部选择控制事件
+        var afterLnCnnClickedEvt = () => {
+            // 存在被选中的节点时，重新生成
+            let cSeledNode = $this.getSelected()
+            if(cSeledNode){
+                cSeledNode.select()
+            }
+        }
         Util.each(cBodyNds, (key: string, nd: rSu.Node) => {
             //console.log(key, nd)
             // 点击事件
@@ -234,6 +241,7 @@ export default class WorkerEditor{
                     else{
                         lnPolyCon.attr('fill', lnSeledBkg)
                     }
+                    afterLnCnnClickedEvt()
                 }
             })
         })
@@ -247,7 +255,8 @@ export default class WorkerEditor{
                     $this.lineCnMode = {
                         isSelEd: true,
                         type: this.data('con')
-                    }                            
+                    }              
+                    afterLnCnnClickedEvt()              
             }else{
                 clearAllLinkSeled()
             }
@@ -270,14 +279,10 @@ export default class WorkerEditor{
                 $this.removeAllSeled()
                 nd.select()
             })
+            //nd
             // 处理接口            
             nd.onCreateBoxPnt = function(pnt: RaphaelElement){
-                var tmpLnIst: rSu.Node = $this.tmpNodeMap['connLnIst'] || null
-                // 存在则清空以前未完成的
-                if(tmpLnIst){
-                    tmpLnIst.delete()
-                    $this.tmpNodeMap['connLnIst'] = null
-                }
+                var tmpLnIst: rSu.Node             
                 // 开启连线模式时
                 if($this.lineCnMode.isSelEd){
                     //console.log(pnt)
@@ -297,8 +302,18 @@ export default class WorkerEditor{
                             }else{}
                         },
                         function(){     // start
+                            // 历史节点处理
+                            tmpLnIst = $this.tmpNodeMap['connLnIst'] || null
+                            // 存在则清空以前未完成的
+                            if(tmpLnIst){
+                                tmpLnIst.delete()
+                                $this.tmpNodeMap['connLnIst'] = null
+                            }
+                            
+                            // 处理
                             tmpP.x = this.attr('cx')
                             tmpP.y = this.attr('cy')
+
                             // 存在则清空以前未完成的
                             if(tmpLnIst){
                                 console.log(tmpLnIst.NodeType, tmpLnIst)
@@ -324,11 +339,15 @@ export default class WorkerEditor{
                             }
                             tmpLnIst = ndMer.make($this.lineCnMode.type, newOpt)
                                 .creator()
-                            $this.tmpNodeMap['connLnIst'] = tmpLnIst
+                            
                         },
                         function(){ // end 
                             //
                             console.log('END')
+                            // 完成后删除
+                            // tmpLnIst.delete()
+                            // 
+                            $this.tmpNodeMap['connLnIst'] = tmpLnIst
                         }
                     )
                 }

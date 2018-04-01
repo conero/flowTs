@@ -347,8 +347,9 @@ export default abstract class NodeAbstract{
             let {x, y} = ptQue[key]
             this.tRElem['__p' + key] = paper.circle(x, y, 2)
                 .attr('fill', '#000000')
-            this.onCreateBoxPnt(this.tRElem['__p' + key])
-            
+                .data('pcode', this.code)
+                .data('posi', key)
+            this.onCreateBoxPnt(this.tRElem['__p' + key])            
         }
         return <rSu.Node>this
     }
@@ -374,10 +375,10 @@ export default abstract class NodeAbstract{
     }
     /**
      * 放大
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     zoomOut(rate?: number): rSu.Node{
-        rate = rate? rate: 0.2
+        rate = rate? rate: 0.05
         var {c, opt} = this
         opt.w = opt.w * (1 + rate)
         opt.h = opt.h * (1 + rate)
@@ -390,10 +391,10 @@ export default abstract class NodeAbstract{
     }
     /**
      * 首先
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     zoomIn(rate?: number): rSu.Node{
-        rate = rate? rate: 0.2
+        rate = rate? rate: 0.05
         var {c, opt} = this
         opt.w = opt.w * (1 - rate)
         opt.h = opt.h * (1 - rate)
@@ -406,7 +407,7 @@ export default abstract class NodeAbstract{
     }
     /**
      * 方向移动
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     move(type?: string, rate?: number): rSu.Node{
         rate = rate? rate: 0.05
@@ -435,7 +436,7 @@ export default abstract class NodeAbstract{
     }
     /**
      * 上移
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     move2T(rate?: number): rSu.Node{
         this.move('T', rate)
@@ -444,7 +445,7 @@ export default abstract class NodeAbstract{
     /**
      * 
      * 下移
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     move2B(rate?: number): rSu.Node{
         this.move('B', rate)
@@ -453,7 +454,7 @@ export default abstract class NodeAbstract{
     /**
      * 
      * 下移
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     move2L(rate?: number): rSu.Node{
         this.move('L', rate)
@@ -462,7 +463,7 @@ export default abstract class NodeAbstract{
     /**
      * 
      * 下移
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     move2R(rate?: number): rSu.Node{
         this.move('R', rate)

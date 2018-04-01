@@ -7,14 +7,15 @@ $(function(){
     var $worker = new workerflow({
         dom: '#workflow',
         w: 900,
-        h: 600
+        // h: 600
+        h: 570,
         // noToolBar: true
     })
     // 事件处理
     $(document).keydown(function(key){
         // console.log(key)
         var code = key.keyCode
-        // console.log(code)
+        console.log(code)
         var nodeSelEd = $worker.getSelected()
         if(key.shiftKey){
             // 向上 ↑ + shift
@@ -52,6 +53,18 @@ $(function(){
             // shitf + T tab 循环
             else if(84 == code){
                 $worker.tab()
+            }
+            // shitf + + tab 循环
+            else if(107 == code){
+                if(nodeSelEd){
+                    nodeSelEd.zoomOut()
+                }
+            }
+            // shitf + - tab 循环
+            else if(109 == code){
+                if(nodeSelEd){
+                    nodeSelEd.zoomIn()
+                }
             }
         }
         

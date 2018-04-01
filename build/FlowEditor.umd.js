@@ -383,7 +383,9 @@ var NodeAbstract = /** @class */ (function () {
         for (var key in ptQue) {
             var _b = ptQue[key], x_1 = _b.x, y_1 = _b.y;
             this.tRElem['__p' + key] = paper.circle(x_1, y_1, 2)
-                .attr('fill', '#000000');
+                .attr('fill', '#000000')
+                .data('pcode', this.code)
+                .data('posi', key);
             this.onCreateBoxPnt(this.tRElem['__p' + key]);
         }
         return this;
@@ -410,10 +412,10 @@ var NodeAbstract = /** @class */ (function () {
     };
     /**
      * 放大
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     NodeAbstract.prototype.zoomOut = function (rate) {
-        rate = rate ? rate : 0.2;
+        rate = rate ? rate : 0.05;
         var _a = this, c = _a.c, opt = _a.opt;
         opt.w = opt.w * (1 + rate);
         opt.h = opt.h * (1 + rate);
@@ -426,10 +428,10 @@ var NodeAbstract = /** @class */ (function () {
     };
     /**
      * 首先
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     NodeAbstract.prototype.zoomIn = function (rate) {
-        rate = rate ? rate : 0.2;
+        rate = rate ? rate : 0.05;
         var _a = this, c = _a.c, opt = _a.opt;
         opt.w = opt.w * (1 - rate);
         opt.h = opt.h * (1 - rate);
@@ -442,7 +444,7 @@ var NodeAbstract = /** @class */ (function () {
     };
     /**
      * 方向移动
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     NodeAbstract.prototype.move = function (type, rate) {
         rate = rate ? rate : 0.05;
@@ -470,7 +472,7 @@ var NodeAbstract = /** @class */ (function () {
     };
     /**
      * 上移
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     NodeAbstract.prototype.move2T = function (rate) {
         this.move('T', rate);
@@ -479,7 +481,7 @@ var NodeAbstract = /** @class */ (function () {
     /**
      *
      * 下移
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     NodeAbstract.prototype.move2B = function (rate) {
         this.move('B', rate);
@@ -488,7 +490,7 @@ var NodeAbstract = /** @class */ (function () {
     /**
      *
      * 下移
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     NodeAbstract.prototype.move2L = function (rate) {
         this.move('L', rate);
@@ -497,7 +499,7 @@ var NodeAbstract = /** @class */ (function () {
     /**
      *
      * 下移
-     * @param {number} rate 比例 0.2 [0-1]
+     * @param {number} rate 比例 0.05 [0-1]
      */
     NodeAbstract.prototype.move2R = function (rate) {
         this.move('R', rate);
@@ -888,6 +890,13 @@ var WorkerEditor = /** @class */ (function () {
             lnPolyCon.attr('fill', lnDefBkg);
         };
         // 节点内部选择控制事件
+        var afterLnCnnClickedEvt = function () {
+            // 存在被选中的节点时，重新生成
+            var cSeledNode = $this.getSelected();
+            if (cSeledNode) {
+                cSeledNode.select();
+            }
+        };
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(cBodyNds, function (key, nd) {
             //console.log(key, nd)
             // 点击事件
@@ -906,6 +915,7 @@ var WorkerEditor = /** @class */ (function () {
                     else {
                         lnPolyCon.attr('fill', lnSeledBkg);
                     }
+                    afterLnCnnClickedEvt();
                 }
             });
         });
@@ -920,6 +930,7 @@ var WorkerEditor = /** @class */ (function () {
                     isSelEd: true,
                     type: this.data('con')
                 };
+                afterLnCnnClickedEvt();
             }
             else {
                 clearAllLinkSeled();
@@ -941,14 +952,10 @@ var WorkerEditor = /** @class */ (function () {
                 $this.removeAllSeled();
                 nd.select();
             });
+            //nd
             // 处理接口            
             nd.onCreateBoxPnt = function (pnt) {
-                var tmpLnIst = $this.tmpNodeMap['connLnIst'] || null;
-                // 存在则清空以前未完成的
-                if (tmpLnIst) {
-                    tmpLnIst.delete();
-                    $this.tmpNodeMap['connLnIst'] = null;
-                }
+                var tmpLnIst;
                 // 开启连线模式时
                 if ($this.lineCnMode.isSelEd) {
                     //console.log(pnt)
@@ -967,6 +974,14 @@ var WorkerEditor = /** @class */ (function () {
                         }
                         else { }
                     }, function () {
+                        // 历史节点处理
+                        tmpLnIst = $this.tmpNodeMap['connLnIst'] || null;
+                        // 存在则清空以前未完成的
+                        if (tmpLnIst) {
+                            tmpLnIst.delete();
+                            $this.tmpNodeMap['connLnIst'] = null;
+                        }
+                        // 处理
                         tmpP.x = this.attr('cx');
                         tmpP.y = this.attr('cy');
                         // 存在则清空以前未完成的
@@ -992,10 +1007,13 @@ var WorkerEditor = /** @class */ (function () {
                         }
                         tmpLnIst = ndMer.make($this.lineCnMode.type, newOpt)
                             .creator();
-                        $this.tmpNodeMap['connLnIst'] = tmpLnIst;
                     }, function () {
                         //
                         console.log('END');
+                        // 完成后删除
+                        // tmpLnIst.delete()
+                        // 
+                        $this.tmpNodeMap['connLnIst'] = tmpLnIst;
                     });
                 }
             };
@@ -1794,7 +1812,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.0.8", "release": "20180331", "author": "Joshua Conero" };
+var LibVersion = { "version": "2.0.9", "release": "20180401", "author": "Joshua Conero" };
 
 
 /***/ }),

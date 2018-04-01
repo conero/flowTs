@@ -13,6 +13,8 @@
     - NodeEnd 结束
     - NodePolyLn 折线
     - NodeLn 直线
+- 节点选择边框点
+    - 圆形 circle ， data 参数值包括 {pcode: 节点代码, posi: 连接点位置(a-h)}
 
 ## 基本算法或概念
 - 基于节点中心点移动算法    
