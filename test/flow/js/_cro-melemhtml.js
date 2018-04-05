@@ -1930,7 +1930,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.0.9", "release": "20180401", "author": "Joshua Conero" };
+var LibVersion = { "version": "2.0.10", "release": "20180405", "author": "Joshua Conero" };
 
 
 /***/ }),
