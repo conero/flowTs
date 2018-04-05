@@ -36,3 +36,18 @@
         }
     }
 ```
+
+## src/WorkerEditor.ts 编辑器
+- 属性说明
+    - tmpNodeMap 临时字典
+        ```js
+        {
+            connLnIst: rSu.Node     // 当前正在连接的直线/折线实例， 直线保存起点和终点
+                // 节点属性 Node.data => {from_code: '代码', from_posi: '连线的位置', to_code: '终点节点代码', to_posi: '连接点位置' }
+        }
+        ```
+
+### NodeAbstract
+- 边框选择点( ***rSu.Node.select()*** )
+    - 特定属性： *** {pcode, posi} ***
+

@@ -48,16 +48,20 @@ export default abstract class NodeAbstract{
         this.NodeType = null            // 节点类型
         // 传入属性时，设置目前的对象
         if(opt){
+            opt.bkgMagnetic = opt.bkgMagnetic || '#FF0000'
             this.opt = opt
-        }
+        }        
         this._onInit()
     }
     /**
      * @param {string|number} key _code 特殊属性
      * @param {*} value 
      */
-    data(key:any, value?:any): any{
+    data(key?:any, value?:any): any{        
         if('undefined' == typeof value){
+            if('undefined' == typeof key){
+                return Util.clone(this._dataQueueDick)
+            }
             return this._dataQueueDick[key]
         }else{
             this._dataQueueDick[key] = value
@@ -467,6 +471,24 @@ export default abstract class NodeAbstract{
      */
     move2R(rate?: number): rSu.Node{
         this.move('R', rate)
+        return <rSu.Node>this
+    }
+    /**
+     * 底色
+     * @param {string} type 空便是默认底色， 
+     */
+    background(type?: string): rSu.Node{
+        if(type){
+            type = type.toLowerCase()
+        }
+        switch(type){
+            case 'magn':        // 磁化背景色
+                this.c.attr('fill', this.opt.bkgMagnetic)
+                break
+            default:
+                console.log('52')
+                this.c.attr('fill', this.opt.bkg)
+        }
         return <rSu.Node>this
     }
 }

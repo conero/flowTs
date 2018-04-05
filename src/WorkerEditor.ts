@@ -10,18 +10,6 @@ import ToolBar from './ToolBar';
 import { NodeQue } from './NodeQue';
 import {cNode} from './confNode'
 
-// 通过数据 object 类型
-interface ItfMap {
-    [k: string]: any,
-    [k: number]: any
-}
-
-// 坐标点
-interface ItfPoint {
-    x?: number,
-    y?: number
-}
-
 // 什么jQuery/RaphaelJs
 declare var $: any;
 
@@ -84,9 +72,12 @@ export default class WorkerEditor{
     protected toolNodeIstQue: any[]     // 工具栏部件节点队列
     private ndMer: rSu.NodeQue
     private nodeDick: rSu.mapNode       // 节点字典
-    private lineCnMode: {
+    private lineCnMode: {               // 直线连接模式
         isSelEd: boolean,
-        type: string
+        type: string,
+        fromIst?: rSu.Node                // 连线起点节点实例
+        toIst?: rSu.Node                  // 连线终点节点实例
+        lnIst?: rSu.Node                  // 连线实例
     }
     private tmpNodeMap: rSu.mapNode     // 临时节点字典
     // toolNodeIstQue: any[]     // 工具栏部件节点队列
@@ -303,24 +294,18 @@ export default class WorkerEditor{
                         },
                         function(){     // start
                             // 历史节点处理
-                            tmpLnIst = $this.tmpNodeMap['connLnIst'] || null
-                            // 存在则清空以前未完成的
-                            if(tmpLnIst){
-                                tmpLnIst.delete()
-                                $this.tmpNodeMap['connLnIst'] = null
-                            }
+                            $this.removeTmpNode('connLnIst')
+                            // tmpLnIst = $this.tmpNodeMap['connLnIst'] || null
+                            // // 存在则清空以前未完成的
+                            // if(tmpLnIst){
+                            //     tmpLnIst.delete()
+                            //     $this.tmpNodeMap['connLnIst'] = null
+                            // }
                             
                             // 处理
                             tmpP.x = this.attr('cx')
                             tmpP.y = this.attr('cy')
-
-                            // 存在则清空以前未完成的
-                            if(tmpLnIst){
-                                console.log(tmpLnIst.NodeType, tmpLnIst)
-                                tmpLnIst.delete()
-                                $this.tmpNodeMap['connLnIst'] = null
-                                // tmpLnIst = null
-                            }
+                          
                             let newOpt: rSu.NodeOpt = {},
                                 lx = tmpP.x, 
                                 ly = tmpP.y
@@ -339,19 +324,44 @@ export default class WorkerEditor{
                             }
                             tmpLnIst = ndMer.make($this.lineCnMode.type, newOpt)
                                 .creator()
+                                .data('from_code', pnt.data('pcode'))
+                                .data('from_posi', pnt.data('posi'))
+                            $this.tmpNodeMap['connLnIst'] = tmpLnIst
                             
                         },
                         function(){ // end 
                             //
                             console.log('END')
                             // 完成后删除
-                            // tmpLnIst.delete()
+                            //tmpLnIst.delete()
+                            $this.removeTmpNode('connLnIst')
                             // 
-                            $this.tmpNodeMap['connLnIst'] = tmpLnIst
+                            // $this.tmpNodeMap['connLnIst'] = tmpLnIst
                         }
                     )
                 }
             }
+            // hover 鼠标处理事件，用于连线
+            nd.c.hover(
+                // f_in
+                function(){
+                    //console.log(this, 'In')
+                    let cLnIst = $this.tmpNodeMap['connLnIst']
+                    if(cLnIst){
+                        // console.log(cLnIst.data())
+                        nd.background('Magn')
+                    }
+                },
+                // f_out
+                function(){
+                    console.log('Out')
+                    // let cLnIst = $this.tmpNodeMap['connLnIst']
+                    // if(cLnIst){
+                    //     // console.log(cLnIst.data())                        
+                    // }
+                    nd.background()
+                }
+            )
         }
         if(node){
             toBindNodeEvts(node)
@@ -864,7 +874,30 @@ export default class WorkerEditor{
         }
         return code
     }
-   
+    // removeTmpNode(value?: any){
+    removeTmpNode(value?: string | string[]){
+       if(value){
+           let queue: string[] = []
+           if('object' == typeof value){
+               queue = value
+           }else{
+               queue = [value]
+           }
+           Util.each(queue, (k:number, v: string) => {
+                if(this.tmpNodeMap[v]){
+                    this.tmpNodeMap[v].delete()
+                    delete this.tmpNodeMap[v]
+                }
+            })
+       }
+       else{
+           Util.each(this.tmpNodeMap, (k: string, nd: rSu.Node) => {
+                nd.delete()
+                delete this.tmpNodeMap[k]
+           })
+       }
+       return this
+   }
     /**
      * 事件处理接口
      * @param {NodeBase} nodeIst 

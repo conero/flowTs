@@ -2,14 +2,9 @@
  * 2018年1月4日 星期四
  * 工具库
  */
+///<reference path='../index.d.ts' />
 // 什么jQuery/RaphaelJs
 declare var $: any;
-// 抽象类型
-interface AbstMap {
-    [k: number]: any,
-    [k: string]: any
-}
-
 
 class Util{
     /**
@@ -27,7 +22,7 @@ class Util{
      */
     static ArrayMergeSameValue(array: any[]){
         if('object' == typeof array && array.length && array.length > 1){
-            var valueMap: AbstMap = {}
+            var valueMap: rSu.bsMap = {}
             var newArray = []
             for(var i=0; i<array.length; i++){
                 if(valueMap[array[i]]){

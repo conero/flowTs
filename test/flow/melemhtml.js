@@ -15,7 +15,7 @@ $(function(){
     $(document).keydown(function(key){
         // console.log(key)
         var code = key.keyCode
-        console.log(code)
+        // console.log(code)
         var nodeSelEd = $worker.getSelected()
         if(key.shiftKey){
             // 向上 ↑ + shift

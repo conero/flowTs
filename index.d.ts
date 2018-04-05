@@ -81,7 +81,8 @@ declare namespace rSu{
         w?: number              // 容器的宽度
         h?: number              // 容器的高度
         text?: string           // 容器标签文字
-        bkg?: string            // 底色
+        bkg?: string            // 底色，具有默认色
+        bkgMagnetic?: string     // 磁化底色，具有默认底色
         features?: bsMap        // 特征属性
         /**
          **/
@@ -127,12 +128,13 @@ declare namespace rSu{
         removeBox(): Node // 移除元素边框
         zoomOut(rate?: number): Node // 放大
         zoomIn(rate?: number): Node // 缩小
-        data(key:any, value?:any): any // 数据存储器
+        data(key?:any, value?:any): any // 数据存储器
         move(type?: string, rate?: number): rSu.Node    // 方向性移动
         move2T(rate?: number): rSu.Node
         move2B(rate?: number): rSu.Node
         move2L(rate?: number): rSu.Node
         move2R(rate?: number): rSu.Node
+        background(type?: string): rSu.Node     // 底色处理
     }
     // 节点队列 -> class
     export interface NodeQue{

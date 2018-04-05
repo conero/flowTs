@@ -68,6 +68,8 @@
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(1);
+
 /**
  * @export
  * @abstract
@@ -85,6 +87,7 @@ var NodeAbstract = /** @class */ (function () {
         this.NodeType = null; // 节点类型
         // 传入属性时，设置目前的对象
         if (opt) {
+            opt.bkgMagnetic = opt.bkgMagnetic || '#FF0000';
             this.opt = opt;
         }
         this._onInit();
@@ -95,6 +98,9 @@ var NodeAbstract = /** @class */ (function () {
      */
     NodeAbstract.prototype.data = function (key, value) {
         if ('undefined' == typeof value) {
+            if ('undefined' == typeof key) {
+                return __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].clone(this._dataQueueDick);
+            }
             return this._dataQueueDick[key];
         }
         else {
@@ -495,6 +501,24 @@ var NodeAbstract = /** @class */ (function () {
         this.move('R', rate);
         return this;
     };
+    /**
+     * 底色
+     * @param {string} type 空便是默认底色，
+     */
+    NodeAbstract.prototype.background = function (type) {
+        if (type) {
+            type = type.toLowerCase();
+        }
+        switch (type) {
+            case 'magn': // 磁化背景色
+                this.c.attr('fill', this.opt.bkgMagnetic);
+                break;
+            default:
+                console.log('52');
+                this.c.attr('fill', this.opt.bkg);
+        }
+        return this;
+    };
     return NodeAbstract;
 }());
 /* harmony default export */ __webpack_exports__["a"] = (NodeAbstract);
@@ -506,6 +530,7 @@ var NodeAbstract = /** @class */ (function () {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Util; });
+///<reference path='../index.d.ts' />
 var Util = /** @class */ (function () {
     function Util() {
     }
@@ -700,7 +725,7 @@ $(function(){
     $(document).keydown(function(key){
         // console.log(key)
         var code = key.keyCode
-        console.log(code)
+        // console.log(code)
         var nodeSelEd = $worker.getSelected()
         if(key.shiftKey){
             // 向上 ↑ + shift
@@ -1024,22 +1049,16 @@ var WorkerEditor = /** @class */ (function () {
                         else { }
                     }, function () {
                         // 历史节点处理
-                        tmpLnIst = $this.tmpNodeMap['connLnIst'] || null;
-                        // 存在则清空以前未完成的
-                        if (tmpLnIst) {
-                            tmpLnIst.delete();
-                            $this.tmpNodeMap['connLnIst'] = null;
-                        }
+                        $this.removeTmpNode('connLnIst');
+                        // tmpLnIst = $this.tmpNodeMap['connLnIst'] || null
+                        // // 存在则清空以前未完成的
+                        // if(tmpLnIst){
+                        //     tmpLnIst.delete()
+                        //     $this.tmpNodeMap['connLnIst'] = null
+                        // }
                         // 处理
                         tmpP.x = this.attr('cx');
                         tmpP.y = this.attr('cy');
-                        // 存在则清空以前未完成的
-                        if (tmpLnIst) {
-                            console.log(tmpLnIst.NodeType, tmpLnIst);
-                            tmpLnIst.delete();
-                            $this.tmpNodeMap['connLnIst'] = null;
-                            // tmpLnIst = null
-                        }
                         var newOpt = {}, lx = tmpP.x, ly = tmpP.y;
                         if ($this.lineCnMode.type == 'ln') {
                             newOpt = {
@@ -1055,17 +1074,41 @@ var WorkerEditor = /** @class */ (function () {
                             };
                         }
                         tmpLnIst = ndMer.make($this.lineCnMode.type, newOpt)
-                            .creator();
+                            .creator()
+                            .data('from_code', pnt.data('pcode'))
+                            .data('from_posi', pnt.data('posi'));
+                        $this.tmpNodeMap['connLnIst'] = tmpLnIst;
                     }, function () {
                         //
                         console.log('END');
                         // 完成后删除
-                        // tmpLnIst.delete()
+                        //tmpLnIst.delete()
+                        $this.removeTmpNode('connLnIst');
                         // 
-                        $this.tmpNodeMap['connLnIst'] = tmpLnIst;
+                        // $this.tmpNodeMap['connLnIst'] = tmpLnIst
                     });
                 }
             };
+            // hover 鼠标处理事件，用于连线
+            nd.c.hover(
+            // f_in
+            function () {
+                //console.log(this, 'In')
+                var cLnIst = $this.tmpNodeMap['connLnIst'];
+                if (cLnIst) {
+                    // console.log(cLnIst.data())
+                    nd.background('Magn');
+                }
+            }, 
+            // f_out
+            function () {
+                console.log('Out');
+                // let cLnIst = $this.tmpNodeMap['connLnIst']
+                // if(cLnIst){
+                //     // console.log(cLnIst.data())                        
+                // }
+                nd.background();
+            });
         };
         if (node) {
             toBindNodeEvts(node);
@@ -1577,6 +1620,32 @@ var WorkerEditor = /** @class */ (function () {
         }
         return code;
     };
+    // removeTmpNode(value?: any){
+    WorkerEditor.prototype.removeTmpNode = function (value) {
+        var _this = this;
+        if (value) {
+            var queue = [];
+            if ('object' == typeof value) {
+                queue = value;
+            }
+            else {
+                queue = [value];
+            }
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(queue, function (k, v) {
+                if (_this.tmpNodeMap[v]) {
+                    _this.tmpNodeMap[v].delete();
+                    delete _this.tmpNodeMap[v];
+                }
+            });
+        }
+        else {
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.tmpNodeMap, function (k, nd) {
+                nd.delete();
+                delete _this.tmpNodeMap[k];
+            });
+        }
+        return this;
+    };
     /**
      * 事件处理接口
      * @param {NodeBase} nodeIst
@@ -1861,7 +1930,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.0.8", "release": "20180331", "author": "Joshua Conero" };
+var LibVersion = { "version": "2.0.9", "release": "20180401", "author": "Joshua Conero" };
 
 
 /***/ }),
