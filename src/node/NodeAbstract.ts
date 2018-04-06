@@ -20,8 +20,12 @@ declare var $: any
  * @class NodeAbstract
  */
 export default abstract class NodeAbstract{
-    fromLine: NodeAbstract[]    // 起点连线
-    toLine: NodeAbstract[]      // 终点连线
+    conLns: {
+        from?: string[]    // [{code: '', posi: ''}] 
+        to?: string[]
+    }
+    fromLine: rSu.Node[]    // 起点连线
+    toLine: rSu.Node[]      // 终点连线
     NodeType: string            // 节点类型
     opt: rSu.NodeOpt            // 节点选项
     label?: RaphaelElement      // 标签元素
@@ -38,6 +42,10 @@ export default abstract class NodeAbstract{
     protected _code: string
 
     constructor(paper: RaphaelPaper, opt?: rSu.NodeOpt){
+        this.conLns = {
+            from: [],
+            to: []
+        }
         this.tRElem = {}
         this._dataQueueDick = {}
         this.isSelEd = false
@@ -122,6 +130,20 @@ export default abstract class NodeAbstract{
             pArr.push(['Z'])
         }        
         return pArr
+    }
+    /**
+     * 连线处理(记录)
+     * @param value 
+     * @param isEnd 
+     */
+    line(value: string, isEnd?: boolean): rSu.Node{
+        if(isEnd){
+            this.conLns.to.push(value)
+        }
+        else{
+            this.conLns.from.push(value)
+        }
+        return <rSu.Node>this
     }
     /**
      * 创建事件时，处理事件
@@ -309,35 +331,21 @@ export default abstract class NodeAbstract{
      */
     updAttr(nOpt: rSu.NodeOpt): rSu.Node{
         return <rSu.Node>this
-    }
+    }    
     /**
-     * 事件接口 [生成边框先关的点] 用于连线
+     * 获取处理以后的边框值
      */
-    onCreateBoxPnt(rElem: RaphaelElement){}
-    /**
-     * 选中
-     */
-    select(): rSu.Node{
-        let selMk = false,
-            {x, y, width, height} = this.c.getBBox(),
-            {paper} = this,
-            ist:RaphaelElement 
-        
-        this.removeBox()
-        this.isSelEd = true        
-        x -= 4, y -= 4
-        width += 8, height += 8
-        this.tRElem['box'] = paper.rect(x, y, width, height)
-            .attr({
-                'stroke': '#0033FF',
-                'stroke-width': '0.8'
-            })
+    getBBox(): rSu.BoxAttr{
+        let {x, y, width, height} = this.c.getBBox()
+        x -= 3, y -= 3
+        width += 6, height += 6
+
         // 顺时针： 
         let mx = x + width/2, 
             xx = x + width,
             my = y + height/2,
             xy = y + height,
-            ptQue: rSu.bsMap = {
+            ps: rSu.bsMap = {
                 a: {x, y},             // A
                 b: {x: mx, y},         // B
                 c: {x: xx, y},         // C
@@ -347,8 +355,96 @@ export default abstract class NodeAbstract{
                 g: {x: x, y: xy},      // G
                 h: {x: x, y: my}       // H
             }
-        for(var key in ptQue){
-            let {x, y} = ptQue[key]
+        let attr = {x, y, width, height}
+        return {attr, ps}
+    }
+    /**
+     * 磁化核心，基于碰撞以后的坐标点
+     * @param px
+     * @param py
+     */
+    magnCore(px: number, py: number): RaphaelElement{
+        let bAttr = this.getBBox(),
+            {attr, ps} = bAttr,
+            {x, y} = attr,
+            w = attr.width,
+            h = attr.height
+        // a-h
+        let pt: rSu.P,
+            cx1 = x + w/4,
+            cx = x + w/2,
+            cx2 = x + w*(3/4),
+            cy1 = y + w/4,
+            cy = y + w/2,
+            cy2 = y + w*(3/4),
+            posi = null
+
+        if(px <= cx1 && py <= cy1){
+            pt = ps.a
+            posi = 'a'
+        }
+        else if((px > cx1 && px < cx2) && py <= cy1){
+            pt = ps.b
+            posi = 'b'
+        }
+        else if((px >= cx2) && py <= cy1){
+            pt = ps.c
+            posi = 'c'
+        }
+        else if((px >= cx2) && (py > cy1 && py < cy2)){
+            pt = ps.d
+            posi = 'd'
+        }
+        else if((px >= cx2) && py >= cy2){
+            pt = ps.e
+            posi = 'e'
+        }
+        else if((px > cx1 && px < cx2) && py >= cy2){
+            pt = ps.f
+            posi = 'f'
+        }
+        else if((px <= cx1) && py >= cy2){
+            pt = ps.g
+            posi = 'g'
+        }
+        else if((px<= cx1) && (py > cy1 && py < cy2)){
+            pt = ps.h
+            posi = 'h'
+        }
+        this.clearTmpElem('mc')
+        if(pt){
+            this.tRElem['mc'] = this.paper
+                .circle(pt.x, pt.y, 3)
+                .attr('fill', this.opt.bkgMagnetic)
+                .data('pcode', this.code)
+                .data('posi', posi)
+        }
+        let rElem: RaphaelElement
+        if(this.tRElem['mc']){
+            rElem = this.tRElem['mc']
+        }
+        return rElem
+    }
+    /**
+     * 选中
+     */    
+    select(): rSu.Node{
+        let selMk = false,
+            bAttr = this.getBBox(),
+            {attr, ps} = bAttr,
+            {x, y, width, height} = attr,
+            {paper} = this,
+            ist:RaphaelElement 
+        
+        this.removeBox()
+        this.isSelEd = true        
+        this.tRElem['box'] = paper.rect(x, y, width, height)
+            .attr({
+                'stroke': '#0033FF',
+                'stroke-width': '0.8'
+            })        
+        for(var key in ps){
+            let {x, y} = ps[key]
             this.tRElem['__p' + key] = paper.circle(x, y, 2)
                 .attr('fill', '#000000')
                 .data('pcode', this.code)
@@ -486,9 +582,38 @@ export default abstract class NodeAbstract{
                 this.c.attr('fill', this.opt.bkgMagnetic)
                 break
             default:
-                console.log('52')
                 this.c.attr('fill', this.opt.bkg)
         }
         return <rSu.Node>this
     }
+    /**
+     * 删除节点中的临时节点
+     * @param key 
+     */
+    clearTmpElem(key?: string|Array<string>): rSu.Node{
+        if(key){
+            let tArr: Array<string> = []
+            if('object' == typeof key){
+                tArr = key
+            }else{
+                tArr = [key]
+            }
+            Util.each(this.tRElem, (k: string, elem: RaphaelElement) => {
+                if($.inArray(k, tArr) > -1){
+                    elem.remove()
+                    delete this.tRElem[k]
+                }
+            })            
+        }else{
+            Util.each(this.tRElem, (k: string, elem: RaphaelElement) => {
+                elem.remove()
+                delete this.tRElem[k]
+            })  
+        }
+        return <rSu.Node>this
+    }
+    /**
+     * 事件接口 [生成边框先关的点] 用于连线
+     */
+    onCreateBoxPnt(rElem: RaphaelElement){}
 }

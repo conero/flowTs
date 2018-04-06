@@ -77,6 +77,10 @@
  */
 var NodeAbstract = /** @class */ (function () {
     function NodeAbstract(paper, opt) {
+        this.conLns = {
+            from: [],
+            to: []
+        };
         this.tRElem = {};
         this._dataQueueDick = {};
         this.isSelEd = false;
@@ -166,6 +170,20 @@ var NodeAbstract = /** @class */ (function () {
             pArr.push(['Z']);
         }
         return pArr;
+    };
+    /**
+     * 连线处理(记录)
+     * @param value
+     * @param isEnd
+     */
+    NodeAbstract.prototype.line = function (value, isEnd) {
+        if (isEnd) {
+            this.conLns.to.push(value);
+        }
+        else {
+            this.conLns.from.push(value);
+        }
+        return this;
     };
     /**
      * 创建事件时，处理事件
@@ -348,25 +366,14 @@ var NodeAbstract = /** @class */ (function () {
         return this;
     };
     /**
-     * 事件接口 [生成边框先关的点] 用于连线
+     * 获取处理以后的边框值
      */
-    NodeAbstract.prototype.onCreateBoxPnt = function (rElem) { };
-    /**
-     * 选中
-     */
-    NodeAbstract.prototype.select = function () {
-        var selMk = false, _a = this.c.getBBox(), x = _a.x, y = _a.y, width = _a.width, height = _a.height, paper = this.paper, ist;
-        this.removeBox();
-        this.isSelEd = true;
-        x -= 4, y -= 4;
-        width += 8, height += 8;
-        this.tRElem['box'] = paper.rect(x, y, width, height)
-            .attr({
-            'stroke': '#0033FF',
-            'stroke-width': '0.8'
-        });
+    NodeAbstract.prototype.getBBox = function () {
+        var _a = this.c.getBBox(), x = _a.x, y = _a.y, width = _a.width, height = _a.height;
+        x -= 3, y -= 3;
+        width += 6, height += 6;
         // 顺时针： 
-        var mx = x + width / 2, xx = x + width, my = y + height / 2, xy = y + height, ptQue = {
+        var mx = x + width / 2, xx = x + width, my = y + height / 2, xy = y + height, ps = {
             a: { x: x, y: y },
             b: { x: mx, y: y },
             c: { x: xx, y: y },
@@ -376,8 +383,78 @@ var NodeAbstract = /** @class */ (function () {
             g: { x: x, y: xy },
             h: { x: x, y: my } // H
         };
-        for (var key in ptQue) {
-            var _b = ptQue[key], x_1 = _b.x, y_1 = _b.y;
+        var attr = { x: x, y: y, width: width, height: height };
+        return { attr: attr, ps: ps };
+    };
+    /**
+     * 磁化核心，基于碰撞以后的坐标点
+     * @param px
+     * @param py
+     */
+    NodeAbstract.prototype.magnCore = function (px, py) {
+        var bAttr = this.getBBox(), attr = bAttr.attr, ps = bAttr.ps, x = attr.x, y = attr.y, w = attr.width, h = attr.height;
+        // a-h
+        var pt, cx1 = x + w / 4, cx = x + w / 2, cx2 = x + w * (3 / 4), cy1 = y + w / 4, cy = y + w / 2, cy2 = y + w * (3 / 4), posi = null;
+        if (px <= cx1 && py <= cy1) {
+            pt = ps.a;
+            posi = 'a';
+        }
+        else if ((px > cx1 && px < cx2) && py <= cy1) {
+            pt = ps.b;
+            posi = 'b';
+        }
+        else if ((px >= cx2) && py <= cy1) {
+            pt = ps.c;
+            posi = 'c';
+        }
+        else if ((px >= cx2) && (py > cy1 && py < cy2)) {
+            pt = ps.d;
+            posi = 'd';
+        }
+        else if ((px >= cx2) && py >= cy2) {
+            pt = ps.e;
+            posi = 'e';
+        }
+        else if ((px > cx1 && px < cx2) && py >= cy2) {
+            pt = ps.f;
+            posi = 'f';
+        }
+        else if ((px <= cx1) && py >= cy2) {
+            pt = ps.g;
+            posi = 'g';
+        }
+        else if ((px <= cx1) && (py > cy1 && py < cy2)) {
+            pt = ps.h;
+            posi = 'h';
+        }
+        this.clearTmpElem('mc');
+        if (pt) {
+            this.tRElem['mc'] = this.paper
+                .circle(pt.x, pt.y, 3)
+                .attr('fill', this.opt.bkgMagnetic)
+                .data('pcode', this.code)
+                .data('posi', posi);
+        }
+        var rElem;
+        if (this.tRElem['mc']) {
+            rElem = this.tRElem['mc'];
+        }
+        return rElem;
+    };
+    /**
+     * 选中
+     */
+    NodeAbstract.prototype.select = function () {
+        var selMk = false, bAttr = this.getBBox(), attr = bAttr.attr, ps = bAttr.ps, x = attr.x, y = attr.y, width = attr.width, height = attr.height, paper = this.paper, ist;
+        this.removeBox();
+        this.isSelEd = true;
+        this.tRElem['box'] = paper.rect(x, y, width, height)
+            .attr({
+            'stroke': '#0033FF',
+            'stroke-width': '0.8'
+        });
+        for (var key in ps) {
+            var _a = ps[key], x_1 = _a.x, y_1 = _a.y;
             this.tRElem['__p' + key] = paper.circle(x_1, y_1, 2)
                 .attr('fill', '#000000')
                 .data('pcode', this.code)
@@ -514,11 +591,43 @@ var NodeAbstract = /** @class */ (function () {
                 this.c.attr('fill', this.opt.bkgMagnetic);
                 break;
             default:
-                console.log('52');
                 this.c.attr('fill', this.opt.bkg);
         }
         return this;
     };
+    /**
+     * 删除节点中的临时节点
+     * @param key
+     */
+    NodeAbstract.prototype.clearTmpElem = function (key) {
+        var _this = this;
+        if (key) {
+            var tArr_1 = [];
+            if ('object' == typeof key) {
+                tArr_1 = key;
+            }
+            else {
+                tArr_1 = [key];
+            }
+            __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].each(this.tRElem, function (k, elem) {
+                if ($.inArray(k, tArr_1) > -1) {
+                    elem.remove();
+                    delete _this.tRElem[k];
+                }
+            });
+        }
+        else {
+            __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].each(this.tRElem, function (k, elem) {
+                elem.remove();
+                delete _this.tRElem[k];
+            });
+        }
+        return this;
+    };
+    /**
+     * 事件接口 [生成边框先关的点] 用于连线
+     */
+    NodeAbstract.prototype.onCreateBoxPnt = function (rElem) { };
     return NodeAbstract;
 }());
 /* harmony default export */ __webpack_exports__["a"] = (NodeAbstract);
@@ -853,6 +962,11 @@ var WorkerEditor = /** @class */ (function () {
      * @param {object} config 数据配置项
      */
     function WorkerEditor(config) {
+        // 索引处理字典
+        this.idxDick = {
+            c: 0,
+            n: 0
+        };
         this.nodeDick = {};
         this.tmpNodeMap = {};
         this.config = config; // 系统配置参数
@@ -1041,6 +1155,22 @@ var WorkerEditor = /** @class */ (function () {
                         }
                         dx += tmpP.x;
                         dy += tmpP.y;
+                        var collNode = $this.collisionByP(dx, dy);
+                        $this.allBackground();
+                        if (collNode) {
+                            var rElem = collNode.magnCore(dx, dy);
+                            if (rElem) {
+                                dx = rElem.attr('cx');
+                                dy = rElem.attr('cy');
+                                tmpLnIst.data('to_code', rElem.data('pcode'))
+                                    .data('to_posi', rElem.data('posi'));
+                            }
+                            collNode.background('magn');
+                        }
+                        else {
+                            tmpLnIst.data('to_code', null)
+                                .data('to_posi', null);
+                        }
                         if ($this.lineCnMode.type == 'ln') {
                             tmpLnIst.updAttr({
                                 P2: { x: dx, y: dy }
@@ -1083,6 +1213,11 @@ var WorkerEditor = /** @class */ (function () {
                         console.log('END');
                         // 完成后删除
                         //tmpLnIst.delete()
+                        if (tmpLnIst.data('to_code') && tmpLnIst.data('to_posi')) {
+                            var cIdx = $this._order('c'), fCode = tmpLnIst.data('from_code'), tCode = tmpLnIst.data('to_code');
+                            tmpLnIst.data('_code', cIdx);
+                            $this.tmpNodeMap['connLnIst'] = null;
+                        }
                         $this.removeTmpNode('connLnIst');
                         // 
                         // $this.tmpNodeMap['connLnIst'] = tmpLnIst
@@ -1090,25 +1225,42 @@ var WorkerEditor = /** @class */ (function () {
                 }
             };
             // hover 鼠标处理事件，用于连线
-            nd.c.hover(
-            // f_in
-            function () {
-                //console.log(this, 'In')
-                var cLnIst = $this.tmpNodeMap['connLnIst'];
-                if (cLnIst) {
-                    // console.log(cLnIst.data())
-                    nd.background('Magn');
-                }
-            }, 
-            // f_out
-            function () {
-                console.log('Out');
-                // let cLnIst = $this.tmpNodeMap['connLnIst']
-                // if(cLnIst){
-                //     // console.log(cLnIst.data())                        
-                // }
-                nd.background();
-            });
+            /*
+                nd.c.hover(
+                    // f_in
+                    function(){
+                        //console.log(this, 'In')
+                        let cLnIst = $this.tmpNodeMap['connLnIst']
+                        if(cLnIst){
+                            // console.log(cLnIst.data())
+                            nd.background('Magn')
+                        }
+                    },
+                    // f_out
+                    function(){
+                        console.log('Out')
+                        // let cLnIst = $this.tmpNodeMap['connLnIst']
+                        // if(cLnIst){
+                        //     // console.log(cLnIst.data())
+                        // }
+                        nd.background()
+                    }
+                )
+            */
+            // 鼠标检测时间
+            // mouseover -> mouseout
+            // mousedown -> mouseup
+            // nd.c
+            //     // .mousedown(function(){
+            //     .mouseover(function(){
+            //         console.log('over')
+            //         nd.background('Magn')
+            //     })
+            //     // .mouseup(function(){
+            //     .mouseout(function(){
+            //         console.log('out')
+            //         nd.background()
+            //     })
         };
         if (node) {
             toBindNodeEvts(node);
@@ -1141,6 +1293,14 @@ var WorkerEditor = /** @class */ (function () {
         }
     };
     /**
+     * 设置统一变化管理
+     */
+    WorkerEditor.prototype.allBackground = function (type) {
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (i, v) {
+            v.background(type);
+        });
+    };
+    /**
      * 获取
      */
     WorkerEditor.prototype._getOrderCode = function () {
@@ -1151,6 +1311,23 @@ var WorkerEditor = /** @class */ (function () {
             code = this._getOrderCode();
         }
         return code;
+    };
+    /**
+     * 序列号获取
+     * @param type
+     */
+    WorkerEditor.prototype._order = function (type, prev) {
+        var newStr;
+        if (type) {
+            if ('undefined' != typeof this.idxDick[type]) {
+                this.idxDick[type] += 1;
+                newStr = this.idxDick[type];
+            }
+        }
+        if (prev) {
+            newStr = prev + newStr;
+        }
+        return newStr;
     };
     /**
      * 删除临时节点
@@ -1645,6 +1822,29 @@ var WorkerEditor = /** @class */ (function () {
             });
         }
         return this;
+    };
+    /**
+     * 通过点坐标计算相碰撞的元素
+     */
+    WorkerEditor.prototype.collisionByP = function (x, y) {
+        var tmpNode;
+        // 点坐标自动转换
+        if ('object' == typeof x) {
+            var nX = x.x, nY = x.y;
+            x = nX;
+            y = nY;
+        }
+        if (x && y) {
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (index, nd) {
+                var boxdt = nd.getBBox(), attr = boxdt.attr, ps = boxdt.ps, width = attr.width, height = attr.height, x1 = attr.x, y1 = attr.y;
+                if ((x >= x1 && x <= x1 + width) &&
+                    (y >= y1 && y <= y1 + height)) {
+                    tmpNode = nd;
+                    return false;
+                }
+            });
+        }
+        return tmpNode;
     };
     /**
      * 事件处理接口
@@ -2289,9 +2489,10 @@ var NodeBegin = /** @class */ (function (_super) {
      * 生成器处理事件
      */
     NodeBegin.prototype._whenCreatorEvt = function () {
-        var opt = this.opt, bkg = opt.bkg || '#851E07';
+        this.opt.bkg = this.opt.bkg || '#851E07';
+        var opt = this.opt;
         this.c = this.paper.ellipse(opt.cx, opt.cy, opt.w / 2, opt.h / 2);
-        this.c.attr('fill', bkg);
+        this.c.attr('fill', opt.bkg);
         // 文字
         if (opt.text) {
             var _a = this._getTextPnt(), x = _a.x, y = _a.y;
@@ -2358,7 +2559,8 @@ var NodeTask = /** @class */ (function (_super) {
      * 生成器处理事件
      */
     NodeTask.prototype._whenCreatorEvt = function () {
-        var attr = this.opt2Attr(), opt = this.opt, bkg = opt.bkg || '#88EEEA';
+        this.opt.bkg = this.opt.bkg || '#88EEEA';
+        var attr = this.opt2Attr(), opt = this.opt, bkg = opt.bkg;
         this.c = this.paper.rect(attr.x, attr.y, attr.w, attr.h);
         this.c.attr('fill', bkg);
         // 文字
@@ -2435,9 +2637,10 @@ var NodeAudit = /** @class */ (function (_super) {
         this.xRate = 0.20;
     };
     NodeAudit.prototype._whenCreatorEvt = function () {
-        var pQue = this.opt2Attr(), nOpt = this.opt, bkg = nOpt.bkg || '#88EEEA';
+        this.opt.bkg = this.opt.bkg || '#88EEEA';
+        var pQue = this.opt2Attr(), nOpt = this.opt;
         this.c = this.paper.path(this._ps2Path(pQue, true));
-        this.c.attr('fill', bkg);
+        this.c.attr('fill', nOpt.bkg);
         // 文字
         if (nOpt.text) {
             var _a = this._getTextPnt(), x = _a.x, y = _a.y;
@@ -2523,7 +2726,8 @@ var NodeSign = /** @class */ (function (_super) {
         this.xRate = 0.20;
     };
     NodeSign.prototype._whenCreatorEvt = function () {
-        var pQue = this.opt2Attr(), opt = this.opt, bkg = opt.bkg || '#88EEEA';
+        this.opt.bkg = this.opt.bkg || '#88EEEA';
+        var pQue = this.opt2Attr(), opt = this.opt, bkg = opt.bkg;
         this.c = this.paper.path(this._ps2Path(pQue, true));
         this.c.attr('fill', bkg);
         // 文字
@@ -2610,9 +2814,10 @@ var NodeCond = /** @class */ (function (_super) {
         this.NodeType = 'cond';
     };
     NodeCond.prototype._whenCreatorEvt = function () {
-        var pQue = this.opt2Attr(), opt = this.opt, bkg = opt.bkg || '#88EEEA';
+        this.opt.bkg = this.opt.bkg || '#88EEEA';
+        var pQue = this.opt2Attr(), opt = this.opt;
         this.c = this.paper.path(this._ps2Path(pQue, true));
-        this.c.attr('fill', bkg);
+        this.c.attr('fill', opt.bkg);
         // 文字
         if (opt.text) {
             var _a = this._getTextPnt(), x = _a.x, y = _a.y;
@@ -2701,7 +2906,8 @@ var NodeSubFlow = /** @class */ (function (_super) {
      * 生成器处理事件
      */
     NodeSubFlow.prototype._whenCreatorEvt = function () {
-        var _a = this.opt2Attr(), cAttr = _a.cAttr, lLine = _a.lLine, rLine = _a.rLine, opt = this.opt, bkg = opt.bkg || '#88EEEA';
+        this.opt.bkg = this.opt.bkg || '#88EEEA';
+        var _a = this.opt2Attr(), cAttr = _a.cAttr, lLine = _a.lLine, rLine = _a.rLine, opt = this.opt, bkg = opt.bkg;
         this.c = this.paper.rect(cAttr.x, cAttr.y, cAttr.w, cAttr.h);
         this.c.attr('fill', bkg);
         this.inlinesEle = [
@@ -2790,7 +2996,8 @@ var NodeParallel = /** @class */ (function (_super) {
         this.xRate = 0.20;
     };
     NodeParallel.prototype._whenCreatorEvt = function () {
-        var attrs = this.opt2Attr(), opt = this.opt, bkg = opt.bkg || '#88EEEA';
+        this.opt.bkg = this.opt.bkg || '#88EEEA';
+        var attrs = this.opt2Attr(), opt = this.opt, bkg = opt.bkg;
         this.c = this.paper.path(this._ps2Path(attrs.cAttr, true));
         this.c.attr('fill', bkg);
         this.inlineEle = this.paper.path(this._ps2Path(attrs.inLine));
@@ -2874,7 +3081,8 @@ var NodeMerge = /** @class */ (function (_super) {
         this.xRate = 0.20;
     };
     NodeMerge.prototype._whenCreatorEvt = function () {
-        var attrs = this.opt2Attr(), opt = this.opt, bkg = opt.bkg || '#88EEEA';
+        this.opt.bkg = this.opt.bkg || '#88EEEA';
+        var attrs = this.opt2Attr(), opt = this.opt, bkg = opt.bkg;
         this.c = this.paper.path(this._ps2Path(attrs.cAttr, true));
         this.c.attr('fill', bkg);
         this.inlinesEle = [
@@ -2968,9 +3176,10 @@ var NodeEnd = /** @class */ (function (_super) {
      * 生成器处理事件
      */
     NodeEnd.prototype._whenCreatorEvt = function () {
-        var opt = this.opt, bkg = opt.bkg || '#2EF25F';
+        this.opt.bkg = this.opt.bkg || '#2EF25F';
+        var opt = this.opt;
         this.c = this.paper.ellipse(opt.cx, opt.cy, opt.w / 2, opt.h / 2);
-        this.c.attr('fill', bkg);
+        this.c.attr('fill', this.opt.bkg);
         // 文字
         if (opt.text) {
             var _a = this._getTextPnt(), x = _a.x, y = _a.y;
@@ -3036,9 +3245,10 @@ var NodeLn = /** @class */ (function (_super) {
         this.data('maxR', 5);
     };
     NodeLn.prototype._whenCreatorEvt = function () {
-        var opt = this.opt, bkg = opt.bkg || 'rgb(3, 84, 41)';
+        this.opt.bkg = this.opt.bkg || 'rgb(3, 84, 41)';
+        var opt = this.opt, bkg = opt.bkg;
         this.c = this.paper.path(this._ps2Path(this.opt2Attr()));
-        this.c.attr('fill', bkg);
+        this.c.attr('fill', this.opt.bkg);
     };
     /**
      * 生成器

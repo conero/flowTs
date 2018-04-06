@@ -93,6 +93,17 @@ declare namespace rSu{
         [k: string]: any
         [i: number]: any
     }
+    // 边框属性
+    export interface BoxAttr{
+        attr: {
+            x?: number
+            y?: number
+            width?: number
+            height?: number
+        },
+        ps: rSu.bsMap
+    }
+
     // 节点信息 -> class
     export interface Node{
         //--------> 属性
@@ -104,6 +115,10 @@ declare namespace rSu{
         paper: RaphaelPaper         // Raphael 绘制对象器
         c: RaphaelElement
         isSelEd: boolean            // 选中标记
+        conLns: {                   // 新的连线数结构
+            from?: string[]    // [{code: {posi: ''}}]    // [{code: string}] 
+            to?: string[]
+        }
 
         // 审核、合并
         xRate?: number           // 移除边框百分比
@@ -123,7 +138,9 @@ declare namespace rSu{
         show(): Node
         moveable(): Node
         updAttr(nOpt?: rSu.NodeOpt): Node
+        getBBox(): BoxAttr
         select(): Node  // 选中节点        
+        magnCore(px: number, py: number): RaphaelElement
         onCreateBoxPnt(rElem: RaphaelElement): void     // 事件接口 [生成边框先关的点] 用于连线
         removeBox(): Node // 移除元素边框
         zoomOut(rate?: number): Node // 放大
@@ -135,6 +152,8 @@ declare namespace rSu{
         move2L(rate?: number): rSu.Node
         move2R(rate?: number): rSu.Node
         background(type?: string): rSu.Node     // 底色处理
+        clearTmpElem(key?: string|Array<string>): rSu.Node   
+        line(value: string, isEnd?: boolean): rSu.Node     // 节点连接
     }
     // 节点队列 -> class
     export interface NodeQue{

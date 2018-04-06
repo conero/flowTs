@@ -72,6 +72,8 @@ export default class WorkerEditor{
     protected toolNodeIstQue: any[]     // 工具栏部件节点队列
     private ndMer: rSu.NodeQue
     private nodeDick: rSu.mapNode       // 节点字典
+    private connDick: rSu.mapNode       // 连线字典 c{index}
+    private idxDick: rSu.bsMap          // 连线处理栈 {c: numer-连线, a: number-字母}
     private lineCnMode: {               // 直线连接模式
         isSelEd: boolean,
         type: string,
@@ -88,6 +90,11 @@ export default class WorkerEditor{
      * @param {object} config 数据配置项
      */
     constructor(config: any){  
+        // 索引处理字典
+        this.idxDick = {
+            c: 0,
+            n: 0
+        }
         this.nodeDick = {}      
         this.tmpNodeMap = {}
         this.config = config            // 系统配置参数
@@ -286,6 +293,21 @@ export default class WorkerEditor{
                             }
                             dx += tmpP.x
                             dy += tmpP.y
+                            let collNode: rSu.Node = $this.collisionByP(dx, dy)
+                            $this.allBackground()
+                            if(collNode){                                
+                                let rElem = collNode.magnCore(dx, dy)
+                                if(rElem){
+                                    dx = rElem.attr('cx')
+                                    dy = rElem.attr('cy')
+                                    tmpLnIst.data('to_code', rElem.data('pcode'))
+                                        .data('to_posi', rElem.data('posi'))
+                                }                                
+                                collNode.background('magn')
+                            }else{
+                                tmpLnIst.data('to_code', null)
+                                        .data('to_posi', null)
+                            }
                             if($this.lineCnMode.type == 'ln'){
                                 tmpLnIst.updAttr({
                                     P2: {x: dx, y: dy}
@@ -334,6 +356,13 @@ export default class WorkerEditor{
                             console.log('END')
                             // 完成后删除
                             //tmpLnIst.delete()
+                            if(tmpLnIst.data('to_code') && tmpLnIst.data('to_posi')){
+                                let cIdx = $this._order('c'),
+                                    fCode = tmpLnIst.data('from_code'),
+                                    tCode = tmpLnIst.data('to_code')
+                                tmpLnIst.data('_code', cIdx)                                
+                                $this.tmpNodeMap['connLnIst'] = null
+                            }
                             $this.removeTmpNode('connLnIst')
                             // 
                             // $this.tmpNodeMap['connLnIst'] = tmpLnIst
@@ -342,26 +371,44 @@ export default class WorkerEditor{
                 }
             }
             // hover 鼠标处理事件，用于连线
-            nd.c.hover(
-                // f_in
-                function(){
-                    //console.log(this, 'In')
-                    let cLnIst = $this.tmpNodeMap['connLnIst']
-                    if(cLnIst){
-                        // console.log(cLnIst.data())
-                        nd.background('Magn')
+            /*
+                nd.c.hover(
+                    // f_in
+                    function(){
+                        //console.log(this, 'In')
+                        let cLnIst = $this.tmpNodeMap['connLnIst']
+                        if(cLnIst){
+                            // console.log(cLnIst.data())
+                            nd.background('Magn')
+                        }
+                    },
+                    // f_out
+                    function(){
+                        console.log('Out')
+                        // let cLnIst = $this.tmpNodeMap['connLnIst']
+                        // if(cLnIst){
+                        //     // console.log(cLnIst.data())                        
+                        // }
+                        nd.background()
                     }
-                },
-                // f_out
-                function(){
-                    console.log('Out')
-                    // let cLnIst = $this.tmpNodeMap['connLnIst']
-                    // if(cLnIst){
-                    //     // console.log(cLnIst.data())                        
-                    // }
-                    nd.background()
-                }
-            )
+                )
+            */
+
+            // 鼠标检测时间
+            // mouseover -> mouseout
+            // mousedown -> mouseup
+            // nd.c
+            //     // .mousedown(function(){
+            //     .mouseover(function(){
+            //         console.log('over')
+            //         nd.background('Magn')
+            //     })
+            //     // .mouseup(function(){
+            //     .mouseout(function(){
+            //         console.log('out')
+            //         nd.background()
+            //     })
+
         }
         if(node){
             toBindNodeEvts(node)
@@ -392,7 +439,14 @@ export default class WorkerEditor{
             nd.select()
         }
     }
-
+    /**
+     * 设置统一变化管理
+     */
+    allBackground(type?:string){
+        Util.each(this.nodeDick, (i: number, v: rSu.Node) => {
+            v.background(type)
+        })
+    }
     /**
      * 获取
      */
@@ -404,6 +458,23 @@ export default class WorkerEditor{
             code = this._getOrderCode()
         }
         return code
+    }
+    /**
+     * 序列号获取
+     * @param type 
+     */
+    private _order(type: string, prev?: string): string|number{
+        let newStr: string|number
+        if(type){
+            if('undefined' != typeof this.idxDick[type]){
+                this.idxDick[type] += 1
+                newStr = this.idxDick[type]
+            }
+        }
+        if(prev){
+            newStr = prev + newStr
+        }
+        return newStr
     }
     /**
      * 删除临时节点
@@ -898,6 +969,37 @@ export default class WorkerEditor{
        }
        return this
    }
+   /**
+    * 通过点坐标计算相碰撞的元素
+    */
+   collisionByP(x: number|rSu.NodeOpt, y?: number): rSu.Node{
+       let tmpNode: rSu.Node
+       // 点坐标自动转换
+       if('object' == typeof x){
+           let nX = x.x,
+            nY = x.y
+            x = nX
+            y = nY
+       }
+       if(x && y){
+           Util.each(this.nodeDick, (index: number, nd: rSu.Node) => {
+               let boxdt = nd.getBBox(),
+                {attr, ps} = boxdt,
+                {width, height} = attr,
+                x1 = attr.x,
+                y1 = attr.y
+                if(
+                    (x >= x1 && x <= x1 + width) &&
+                    (y >= y1 && y <= y1 + height)
+                ){
+                    tmpNode = nd
+                    return false
+                }
+           })
+       }
+       return tmpNode
+   }
+
     /**
      * 事件处理接口
      * @param {NodeBase} nodeIst 

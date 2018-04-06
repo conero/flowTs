@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>鼠标移入移出检测-180406</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- <link rel="stylesheet" type="text/css" media="screen" href="main.css" /> -->
+    <script src="../jquery.min.js"></script>
+</head>
+<body>
+    <div id="container" style="margin:0px; padding: 10px;min-height: 600px;width: 100%;">
+        <div class="js__pointer" style="display: block;margin-left: 260px; margin-top: 160px; padding: 5px; height: 50px; width: 100px;" >检测元素 {(:- rSu}</div>
+    </div>
+<script>
+// js 脚本
+$(() =>{
+    // console.log(this)
+    $('#container').css({'background-color': '#9999FF'});
+    let pDefCol = '#00FF99',
+        pOnCol = '#FF3300'
+
+    $('#container .js__pointer')
+        .css({'border': '1px solid white', 'background-color': pDefCol})
+        .mouseover(function(){
+            console.log('鼠标移入')
+            let dom = $(this)
+            dom.css({'background-color': pOnCol})
+        })
+        .mouseout(function(){
+            console.log('鼠标移出')
+            let dom = $(this)
+            dom.css({'background-color': pDefCol})
+        })
+})
+</script>    
+</body>
+</html>

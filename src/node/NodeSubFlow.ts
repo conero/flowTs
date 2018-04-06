@@ -15,9 +15,10 @@ export default class NodeSubFlow extends NodeAbstract{
      * 生成器处理事件
      */
     protected _whenCreatorEvt(){
+        this.opt.bkg = this.opt.bkg || '#88EEEA'
         var {cAttr, lLine, rLine} = this.opt2Attr(),
             opt = this.opt,
-            bkg = opt.bkg || '#88EEEA'
+            {bkg} = opt
 
         this.c = this.paper.rect(cAttr.x, cAttr.y, cAttr.w, cAttr.h)
         this.c.attr('fill', bkg)

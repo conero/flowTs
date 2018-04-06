@@ -15,10 +15,10 @@ export default class NodeBegin extends NodeAbstract{
      * 生成器处理事件
      */
     protected _whenCreatorEvt(){
-        var opt = this.opt,
-            bkg = opt.bkg || '#851E07'
+        this.opt.bkg = this.opt.bkg || '#851E07'
+        var opt = this.opt
         this.c = this.paper.ellipse(opt.cx, opt.cy, opt.w/2, opt.h/2)
-        this.c.attr('fill', bkg)
+        this.c.attr('fill', opt.bkg)
         // 文字
         if(opt.text){
             let {x, y} = this._getTextPnt()

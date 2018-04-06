@@ -13,9 +13,10 @@ export default class NodeTask extends NodeAbstract{
      * 生成器处理事件
      */
     protected _whenCreatorEvt(){
+        this.opt.bkg = this.opt.bkg || '#88EEEA'
         var attr = this.opt2Attr(),
             opt = this.opt,
-            bkg = opt.bkg || '#88EEEA'
+            {bkg} = opt
         this.c = this.paper.rect(attr.x, attr.y, attr.w, attr.h)
         this.c.attr('fill', bkg)
 

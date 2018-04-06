@@ -9,11 +9,11 @@ export default class NodeCond extends NodeAbstract{
         this.NodeType = 'cond'
     }
     protected _whenCreatorEvt(){
+        this.opt.bkg = this.opt.bkg || '#88EEEA'
         var pQue = this.opt2Attr(),
-            opt = this.opt,
-            bkg = opt.bkg || '#88EEEA'   
+            opt = this.opt
         this.c = this.paper.path(this._ps2Path(pQue, true))
-        this.c.attr('fill', bkg)
+        this.c.attr('fill', opt.bkg)
         // 文字
         if(opt.text){
             let {x, y} = this._getTextPnt()

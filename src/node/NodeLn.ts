@@ -10,10 +10,11 @@ export default class NodeLn extends NodeAbstract{
         this.data('maxR', 5)
     }
     protected _whenCreatorEvt(){
+        this.opt.bkg = this.opt.bkg || 'rgb(3, 84, 41)'
         var opt = this.opt,
-            bkg = opt.bkg || 'rgb(3, 84, 41)'
+            {bkg} = opt
         this.c = this.paper.path(this._ps2Path(this.opt2Attr()))
-        this.c.attr('fill', bkg)
+        this.c.attr('fill', this.opt.bkg)
     }
     /**
      * 生成器

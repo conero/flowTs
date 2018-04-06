@@ -11,9 +11,10 @@ export default class NodeParallel extends NodeAbstract{
         this.xRate = 0.20
     }
     protected _whenCreatorEvt(){
+        this.opt.bkg = this.opt.bkg || '#88EEEA'
         var attrs = this.opt2Attr(),
             opt = this.opt,
-            bkg = opt.bkg || '#88EEEA'
+            {bkg} = opt
 
         this.c = this.paper.path(this._ps2Path(attrs.cAttr, true))
         this.c.attr('fill', bkg)

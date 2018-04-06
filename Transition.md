@@ -50,4 +50,18 @@
 ### NodeAbstract
 - 边框选择点( ***rSu.Node.select()*** )
     - 特定属性： *** {pcode, posi} ***
+- 属性值
+    - tRElem
+        - 注册用户: 
+        ```js
+        {
+            box:  '边框实例',
+            __pa: '边框节点实例 __p{key} '
+            mc: '磁性连接点'
+        }
+        ```    
 
+
+### RaphaelJs
+- 鼠标移入移出检测
+    - mouseover/mouseout
