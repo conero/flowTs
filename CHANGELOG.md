@@ -3,6 +3,14 @@
 
 > ***V2.0.x/alpha-date*** alpha 类型模板
 
+- ***V2.0.12/20180407***
+    - src/WorkerEditor.ts
+        - (+) 添加方法 ***_lineMoveSync*** 用于节点移动时连线同步移动处理
+        - 连线模式下：优化代码，完善代码之间关联属性
+    - NodeAbstract.ts 抽象节点
+        - (优化) ***moveable*** 添加参数 ***data/json*** 用于外部处理节点移动的时间处理
+            - 支持参数： data => {afterUpd(x, y)}
+            
 - ***V2.0.11/20180406***
     - src/WorkerEditor.ts
         - (+) 添加属性 ***connDick*** ，以及利用新的序列生成器 ***idxDick***

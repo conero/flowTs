@@ -96,6 +96,7 @@ export default class WorkerEditor{
             n: 0
         }
         this.nodeDick = {}      
+        this.connDick = {}
         this.tmpNodeMap = {}
         this.config = config            // 系统配置参数
         this.paper = H.createInstance(config) // Raphael 对象        
@@ -139,6 +140,15 @@ export default class WorkerEditor{
         this.config.noToolBar = this.config.noToolBar || false
     }
     /**
+     * 连线同步
+     * @param x 
+     * @param y 
+     */
+    private _lineMoveSync(x: number, y: number, node: rSu.Node){
+        // console.log(x, y, node)
+        // @todo 连线同步处理
+    }
+    /**
      * 工具栏处理器
      */
     private _cerateToolBar(): any{
@@ -179,7 +189,9 @@ export default class WorkerEditor{
                 }           
                 ndAst = $this.ndMer.make(key, ndOpt)
                     .creator()
-                    .moveable()
+                    .moveable({
+                        afterUpd: $this._lineMoveSync
+                    })
                 $this._nodeBindEvt(ndAst)
                 let _index = $this._getOrderCode()
                 // 保存到字典中
@@ -317,13 +329,6 @@ export default class WorkerEditor{
                         function(){     // start
                             // 历史节点处理
                             $this.removeTmpNode('connLnIst')
-                            // tmpLnIst = $this.tmpNodeMap['connLnIst'] || null
-                            // // 存在则清空以前未完成的
-                            // if(tmpLnIst){
-                            //     tmpLnIst.delete()
-                            //     $this.tmpNodeMap['connLnIst'] = null
-                            // }
-                            
                             // 处理
                             tmpP.x = this.attr('cx')
                             tmpP.y = this.attr('cy')
@@ -352,15 +357,20 @@ export default class WorkerEditor{
                             
                         },
                         function(){ // end 
-                            //
-                            console.log('END')
-                            // 完成后删除
-                            //tmpLnIst.delete()
+                            // 有效的连线保留，说明其连接成功
                             if(tmpLnIst.data('to_code') && tmpLnIst.data('to_posi')){
-                                let cIdx = $this._order('c'),
+                                let cIdx = $this._order('c', 'C'),
                                     fCode = tmpLnIst.data('from_code'),
                                     tCode = tmpLnIst.data('to_code')
-                                tmpLnIst.data('_code', cIdx)                                
+                                tmpLnIst.data('_code', cIdx)         
+
+                                let fNd: rSu.Node = $this.nodeDick[fCode]
+                                let tNd: rSu.Node = $this.nodeDick[tCode]
+
+                                fNd.line(<string>cIdx)
+                                tNd.line(<string>cIdx, true)
+                                // 记录到字典中
+                                $this.connDick[cIdx] = tmpLnIst
                                 $this.tmpNodeMap['connLnIst'] = null
                             }
                             $this.removeTmpNode('connLnIst')
@@ -370,45 +380,6 @@ export default class WorkerEditor{
                     )
                 }
             }
-            // hover 鼠标处理事件，用于连线
-            /*
-                nd.c.hover(
-                    // f_in
-                    function(){
-                        //console.log(this, 'In')
-                        let cLnIst = $this.tmpNodeMap['connLnIst']
-                        if(cLnIst){
-                            // console.log(cLnIst.data())
-                            nd.background('Magn')
-                        }
-                    },
-                    // f_out
-                    function(){
-                        console.log('Out')
-                        // let cLnIst = $this.tmpNodeMap['connLnIst']
-                        // if(cLnIst){
-                        //     // console.log(cLnIst.data())                        
-                        // }
-                        nd.background()
-                    }
-                )
-            */
-
-            // 鼠标检测时间
-            // mouseover -> mouseout
-            // mousedown -> mouseup
-            // nd.c
-            //     // .mousedown(function(){
-            //     .mouseover(function(){
-            //         console.log('over')
-            //         nd.background('Magn')
-            //     })
-            //     // .mouseup(function(){
-            //     .mouseout(function(){
-            //         console.log('out')
-            //         nd.background()
-            //     })
-
         }
         if(node){
             toBindNodeEvts(node)
@@ -578,7 +549,9 @@ export default class WorkerEditor{
             newOpt.cy += newOpt.h * rate
             newNode = this.ndMer.make(node.NodeType, newOpt)
                 .creator()
-                .moveable()
+                .moveable({
+                    afterUpd: this._lineMoveSync
+                })
             // 切换选中状态
             this.removeAllSeled()
             newNode.select()

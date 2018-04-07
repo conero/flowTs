@@ -350,11 +350,13 @@ var NodeAbstract = /** @class */ (function () {
     };
     /**
      * 节点可移动处理
+     * data => {afterUpd(x, y)}
      * @returns
      * @memberof NodeAbstract
      */
-    NodeAbstract.prototype.moveable = function () {
+    NodeAbstract.prototype.moveable = function (data) {
         var $this = this;
+        data = 'object' == typeof data ? data : {};
         this.c.undrag();
         var tP = { cx: 0, cy: 0 };
         this.c.drag(function (dx, dy) {
@@ -362,6 +364,9 @@ var NodeAbstract = /** @class */ (function () {
             dy += tP.cy;
             $this.updAttr({ cx: dx, cy: dy });
             $this.select();
+            if (data.afterUpd && 'function' == typeof data.afterUpd) {
+                data.afterUpd(dx, dy, $this);
+            }
         }, function () {
             var _a = $this.opt, cx = _a.cx, cy = _a.cy;
             tP = { cx: cx, cy: cy };
@@ -919,6 +924,7 @@ var WorkerEditor = /** @class */ (function () {
             n: 0
         };
         this.nodeDick = {};
+        this.connDick = {};
         this.tmpNodeMap = {};
         this.config = config; // 系统配置参数
         this.paper = __WEBPACK_IMPORTED_MODULE_0__helper__["a" /* default */].createInstance(config); // Raphael 对象        
@@ -961,6 +967,15 @@ var WorkerEditor = /** @class */ (function () {
         this.config.noToolBar = this.config.noToolBar || false;
     };
     /**
+     * 连线同步
+     * @param x
+     * @param y
+     */
+    WorkerEditor.prototype._lineMoveSync = function (x, y, node) {
+        // console.log(x, y, node)
+        // @todo 连线同步处理
+    };
+    /**
      * 工具栏处理器
      */
     WorkerEditor.prototype._cerateToolBar = function () {
@@ -997,7 +1012,9 @@ var WorkerEditor = /** @class */ (function () {
                 }
                 ndAst = $this.ndMer.make(key, ndOpt)
                     .creator()
-                    .moveable();
+                    .moveable({
+                    afterUpd: $this._lineMoveSync
+                });
                 $this._nodeBindEvt(ndAst);
                 var _index = $this._getOrderCode();
                 // 保存到字典中
@@ -1131,12 +1148,6 @@ var WorkerEditor = /** @class */ (function () {
                     }, function () {
                         // 历史节点处理
                         $this.removeTmpNode('connLnIst');
-                        // tmpLnIst = $this.tmpNodeMap['connLnIst'] || null
-                        // // 存在则清空以前未完成的
-                        // if(tmpLnIst){
-                        //     tmpLnIst.delete()
-                        //     $this.tmpNodeMap['connLnIst'] = null
-                        // }
                         // 处理
                         tmpP.x = this.attr('cx');
                         tmpP.y = this.attr('cy');
@@ -1160,13 +1171,16 @@ var WorkerEditor = /** @class */ (function () {
                             .data('from_posi', pnt.data('posi'));
                         $this.tmpNodeMap['connLnIst'] = tmpLnIst;
                     }, function () {
-                        //
-                        console.log('END');
-                        // 完成后删除
-                        //tmpLnIst.delete()
+                        // 有效的连线保留，说明其连接成功
                         if (tmpLnIst.data('to_code') && tmpLnIst.data('to_posi')) {
-                            var cIdx = $this._order('c'), fCode = tmpLnIst.data('from_code'), tCode = tmpLnIst.data('to_code');
+                            var cIdx = $this._order('c', 'C'), fCode = tmpLnIst.data('from_code'), tCode = tmpLnIst.data('to_code');
                             tmpLnIst.data('_code', cIdx);
+                            var fNd = $this.nodeDick[fCode];
+                            var tNd = $this.nodeDick[tCode];
+                            fNd.line(cIdx);
+                            tNd.line(cIdx, true);
+                            // 记录到字典中
+                            $this.connDick[cIdx] = tmpLnIst;
                             $this.tmpNodeMap['connLnIst'] = null;
                         }
                         $this.removeTmpNode('connLnIst');
@@ -1175,43 +1189,6 @@ var WorkerEditor = /** @class */ (function () {
                     });
                 }
             };
-            // hover 鼠标处理事件，用于连线
-            /*
-                nd.c.hover(
-                    // f_in
-                    function(){
-                        //console.log(this, 'In')
-                        let cLnIst = $this.tmpNodeMap['connLnIst']
-                        if(cLnIst){
-                            // console.log(cLnIst.data())
-                            nd.background('Magn')
-                        }
-                    },
-                    // f_out
-                    function(){
-                        console.log('Out')
-                        // let cLnIst = $this.tmpNodeMap['connLnIst']
-                        // if(cLnIst){
-                        //     // console.log(cLnIst.data())
-                        // }
-                        nd.background()
-                    }
-                )
-            */
-            // 鼠标检测时间
-            // mouseover -> mouseout
-            // mousedown -> mouseup
-            // nd.c
-            //     // .mousedown(function(){
-            //     .mouseover(function(){
-            //         console.log('over')
-            //         nd.background('Magn')
-            //     })
-            //     // .mouseup(function(){
-            //     .mouseout(function(){
-            //         console.log('out')
-            //         nd.background()
-            //     })
         };
         if (node) {
             toBindNodeEvts(node);
@@ -1382,7 +1359,9 @@ var WorkerEditor = /** @class */ (function () {
             newOpt.cy += newOpt.h * rate;
             newNode = this.ndMer.make(node.NodeType, newOpt)
                 .creator()
-                .moveable();
+                .moveable({
+                afterUpd: this._lineMoveSync
+            });
             // 切换选中状态
             this.removeAllSeled();
             newNode.select();
@@ -2081,7 +2060,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.0.11", "release": "20180406", "author": "Joshua Conero" };
+var LibVersion = { "version": "2.0.12", "release": "20180407", "author": "Joshua Conero" };
 
 
 /***/ }),

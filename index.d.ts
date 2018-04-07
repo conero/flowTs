@@ -136,7 +136,7 @@ declare namespace rSu{
         delete(): void
         hide(): Node
         show(): Node
-        moveable(): Node
+        moveable(data?: rSu.bsMap): rSu.Node
         updAttr(nOpt?: rSu.NodeOpt): Node
         getBBox(): BoxAttr
         select(): Node  // 选中节点        

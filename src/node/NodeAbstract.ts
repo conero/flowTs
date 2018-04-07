@@ -304,11 +304,13 @@ export default abstract class NodeAbstract{
     }
     /**
      * 节点可移动处理
+     * data => {afterUpd(x, y)}
      * @returns 
      * @memberof NodeAbstract
      */
-    moveable(){
+    moveable(data?: rSu.bsMap): rSu.Node{
         var $this = this;
+        data = 'object' == typeof data? data : {}
         this.c.undrag()
         var tP = {cx: 0, cy: 0}
         this.c.drag(
@@ -317,13 +319,16 @@ export default abstract class NodeAbstract{
                 dy += tP.cy
                 $this.updAttr({cx: dx, cy: dy})
                 $this.select()
+                if(data.afterUpd && 'function' == typeof data.afterUpd){
+                    data.afterUpd(dx, dy, $this)
+                }
             },
             function(){
                 let {cx, cy} = $this.opt
                 tP = {cx, cy}
             }
         )
-        return $this
+        return <rSu.Node>$this
     }
     /**
      * 更新属性
