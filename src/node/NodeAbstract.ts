@@ -57,9 +57,40 @@ export default abstract class NodeAbstract{
         // 传入属性时，设置目前的对象
         if(opt){
             opt.bkgMagnetic = opt.bkgMagnetic || '#FF0000'
+            let features = opt.features || {}
             this.opt = opt
         }        
         this._onInit()
+    }    
+    /**
+     * 特征值处理
+     * @param {string|object} key 
+     * @param {*} value 
+     * @param {*} def  默认值，默认时会自动设置参数
+     */
+    feature(key: string|rSu.bsMap, value?: any, def?: any): rSu.Node|any{
+        let feature = this.opt.features || {}
+        if(!value){
+            if('object' == typeof key){
+                return null
+            }
+            let gValue = feature[key] || null
+            if(def && !gValue){
+                feature[key] = def
+                this.opt.features = feature
+                return def
+            }
+            return gValue
+        }else{
+            if('object' == typeof key){
+                feature = Util.jsonMerge(feature, key)
+            }
+            else{
+                feature[key] = value
+            }
+            this.opt.features = feature
+            return <rSu.Node>this
+        }
     }
     /**
      * @param {string|number} key _code 特殊属性
@@ -146,6 +177,34 @@ export default abstract class NodeAbstract{
         return <rSu.Node>this
     }
     /**
+     * 移除连接线
+     * @param type 
+     * @param code 
+     */
+    rmLine(value: string, isEnd?: boolean): rSu.Node{
+        if(value){
+            if(isEnd){
+                let tLns: string[] = []
+                Util.each(this.conLns.to, (k: number, code: string) => {
+                    if(code != value){
+                        tLns.push(code)
+                    }
+                })
+                this.conLns.to = tLns
+            }
+            else{
+                let fLns: string[] = []
+                Util.each(this.fromLine, (k: number, code: string) => {
+                    if(code != value){
+                        fLns.push(code)
+                    }
+                })
+                this.conLns.from = fLns
+            }
+        }
+        return <rSu.Node>this
+    }
+    /**
      * 创建事件时，处理事件
      */
     protected _whenCreatorEvt(){}
@@ -169,7 +228,7 @@ export default abstract class NodeAbstract{
         else if('to' == type){
             this.toLine.push($node)
         }
-    }
+    }    
     /**
      * 同步处理连线
      * @param {function} callback 
@@ -304,7 +363,7 @@ export default abstract class NodeAbstract{
     }
     /**
      * 节点可移动处理
-     * data => {afterUpd(x, y)}
+     * data => {afterUpd(x, y, $node)}
      * @returns 
      * @memberof NodeAbstract
      */
@@ -476,6 +535,7 @@ export default abstract class NodeAbstract{
                 delete this.tRElem[key]
             }
         }
+        this.isSelEd = false
         return this
     }
     /**

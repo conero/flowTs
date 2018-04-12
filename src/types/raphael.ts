@@ -45,6 +45,8 @@ interface RaphaelElement {
     drag(onmove: (dx: number, dy: number, x?: number, y?: number, event?: DragEvent) => any, onstart?: (x: number, y: number, event: DragEvent) => any, onend?: (DragEvent: any) => any, mcontext?: any, scontext?: any, econtext?: any): RaphaelElement;
     drag(onmove: (dx: number, dy: number, x: number, y: number, event: DragEvent) =>{ }, onstart: (x: number, y: number, event: DragEvent) =>{ }, onend: (DragEvent: any) =>{ }, mcontext?: any, scontext?: any, econtext?: any): RaphaelElement;
     getBBox(isWithoutTransform?: boolean): BoundingBox;
+    // 2018年4月12日 星期四 , 适用于 path 类型
+    getPointAtLength(length: number): {x: number, y: number}
     glow(glow?: { width?: number; fill?: boolean; opacity?: number; offsetx?: number; offsety?: number; color?: string; }): RaphaelSet;
     hide(): RaphaelElement;
     hover(f_in: Function, f_out: Function, icontext?: any, ocontext?: any): RaphaelElement;

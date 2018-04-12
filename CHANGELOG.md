@@ -3,6 +3,18 @@
 
 > ***V2.0.x/alpha-date*** alpha 类型模板
 
+- ***V2.0.13/20180412***
+    - src/WorkerEditor.ts
+        - 实现节点连接线与节点同步移动算法
+        - (+) 添加对 ***connDick/连接线字典*** 管理的方法，如删除全部连接线的选中特性
+        - (+) 添加连接事件绑定方法 ***_lineBindEvt** ， 实现选中连接线端点重复与节点的之间的 ***解绑/绑定*** 算法
+    - src/node/NodeAbstract.ts 抽象节点
+        - (+) 添加 ***feature*** 方法实现对节点特性参数的管理
+        - (+) 添加 ***rmLine*** 方法用具解除节点与连线的绑定关系
+    - src/node/NodeLn.ts
+        - (+) 添加 ***getFocusPoint*** 方法用于生成聚焦点坐标
+        - (+) 添加 ***select*** 特定的节点选中方法
+
 - ***V2.0.12/20180407***
     - src/WorkerEditor.ts
         - (+) 添加方法 ***_lineMoveSync*** 用于节点移动时连线同步移动处理

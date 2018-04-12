@@ -13,6 +13,16 @@
     - NodeEnd 结束
     - NodePolyLn 折线
     - NodeLn 直线
+        - 特殊连接点: 三点连线式
+            - F/from,M/middle,T/to
+        - 特征值
+```js
+{
+    focusPBkg: '#990000   聚焦点底色'
+}        
+
+```
+
 - 节点选择边框点
     - 圆形 circle ， data 参数值包括 {pcode: 节点代码, posi: 连接点位置(a-h)}
 

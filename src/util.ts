@@ -78,6 +78,18 @@ class Util{
         }
         return false
     }
+    /**
+     * json 数据合并
+     * @param bjson 
+     * @param mjson 
+     */
+    static jsonMerge(bjson: rSu.bsMap, mjson: rSu.bsMap): rSu.bsMap{
+        bjson = bjson? bjson : {}
+        Util.each(mjson, (k: any, v: any) => {
+            bjson[k] = v
+        })
+        return bjson
+    }
 }
 
 export {Util}

@@ -3,6 +3,7 @@
  * 直线
  */
 import NodeAbstract from "./NodeAbstract"
+import { Util } from "../util";
 export default class NodeLn extends NodeAbstract{
     protected _onInit(){
         this.NodeType = 'ln'
@@ -17,7 +18,7 @@ export default class NodeLn extends NodeAbstract{
         this.c.attr('fill', this.opt.bkg)
     }
     /**
-     * 生成器
+     * 生成器 nOpt: {P1: rSu.P, P2: rSu.P, r?: number}
      */
     opt2Attr(nOpt?: rSu.NodeOpt){
         var opt = nOpt? nOpt : this.opt,
@@ -66,5 +67,36 @@ export default class NodeLn extends NodeAbstract{
             P1: rSu.P = opt.P1,
             P2: rSu.P = opt.P2
         return this.getPLen(P1, P2)
+    }
+    /**
+     * 特殊的连接方式
+     */
+    select(): rSu.Node{
+        let fP = this.getFocusPoint()
+        this.removeBox()
+        this.isSelEd = true
+        Util.each(fP, (k: string, p: rSu.P) => {
+            let tPIst = this.paper.circle(p.x, p.y, 3)
+                .attr('fill', this.feature('focusPBkg', null, '#990000'))    
+                .data('pcode', this.code)
+                .data('posi', k)                                        
+            this.tRElem['__p' + k] = tPIst
+            this.onCreateBoxPnt(this.tRElem['__p' + k])
+        })
+        return <rSu.Node>this
+    }
+    /**
+     * 获取聚焦点
+     * f/m/t
+     */
+    getFocusPoint(){
+        let {P1, P2} = this.opt,
+            len = this.getPLen(P1, P2),
+            tP = this.c.getPointAtLength(len/2)
+        return {
+            f: P1,
+            m: {x: tP.x, y: tP.y},
+            t: P2
+        }
     }
 }

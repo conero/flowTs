@@ -146,6 +146,7 @@ declare namespace rSu{
         zoomOut(rate?: number): Node // 放大
         zoomIn(rate?: number): Node // 缩小
         data(key?:any, value?:any): any // 数据存储器
+        feature(key: string|rSu.bsMap, value?: any, def?: any): rSu.Node|any    // // 特性参数操作
         move(type?: string, rate?: number): rSu.Node    // 方向性移动
         move2T(rate?: number): rSu.Node
         move2B(rate?: number): rSu.Node
@@ -154,6 +155,7 @@ declare namespace rSu{
         background(type?: string): rSu.Node     // 底色处理
         clearTmpElem(key?: string|Array<string>): rSu.Node   
         line(value: string, isEnd?: boolean): rSu.Node     // 节点连接
+        rmLine(value: string, isEnd?: boolean): rSu.Node    // 移除连线节点
     }
     // 节点队列 -> class
     export interface NodeQue{

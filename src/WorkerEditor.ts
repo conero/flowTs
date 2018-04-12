@@ -145,8 +145,30 @@ export default class WorkerEditor{
      * @param y 
      */
     private _lineMoveSync(x: number, y: number, node: rSu.Node){
-        // console.log(x, y, node)
-        // @todo 连线同步处理
+        let conLns = node.conLns,
+            {from, to} = conLns,
+            $this = this
+        // 处理起点
+        Util.each(from, (k: number, v: string) => {
+            let fromLn: rSu.Node = $this.connDick[v]
+            if('ln' == fromLn.NodeType){
+                let from_code = fromLn.data('from_code'),
+                    from_posi = fromLn.data('from_posi'),
+                    {ps} = node.getBBox()
+                fromLn.updAttr({P1: ps[from_posi]})
+            }
+        })
+        // 处理终点
+        Util.each(to, (k: number, v: string) => {
+            let toLn: rSu.Node = $this.connDick[v]
+            if('ln' == toLn.NodeType){
+                toLn.updAttr({P2: {x, y}})
+                let to_code = toLn.data('to_code'),
+                    to_posi = toLn.data('to_posi'),
+                    {ps} = node.getBBox()
+                toLn.updAttr({P2: ps[to_posi]})
+            }
+        })
     }
     /**
      * 工具栏处理器
@@ -190,7 +212,9 @@ export default class WorkerEditor{
                 ndAst = $this.ndMer.make(key, ndOpt)
                     .creator()
                     .moveable({
-                        afterUpd: $this._lineMoveSync
+                        afterUpd: function(x: number, y: number, node: rSu.Node){
+                            $this._lineMoveSync(x, y, node)
+                        }
                     })
                 $this._nodeBindEvt(ndAst)
                 let _index = $this._getOrderCode()
@@ -327,8 +351,10 @@ export default class WorkerEditor{
                             }else{}
                         },
                         function(){     // start
-                            // 历史节点处理
+                            // 历史节点处理                            
                             $this.removeTmpNode('connLnIst')
+                            // 删除所有联系那选中状态
+                            $this.rmAllLnSeled()
                             // 处理
                             tmpP.x = this.attr('cx')
                             tmpP.y = this.attr('cy')
@@ -368,8 +394,13 @@ export default class WorkerEditor{
                                 let tNd: rSu.Node = $this.nodeDick[tCode]
 
                                 fNd.line(<string>cIdx)
+                                fNd.clearTmpElem('mc')
                                 tNd.line(<string>cIdx, true)
+                                tNd.clearTmpElem('mc')
+                                $this.allBackground()
+
                                 // 记录到字典中
+                                $this._lineBindEvt(tmpLnIst)
                                 $this.connDick[cIdx] = tmpLnIst
                                 $this.tmpNodeMap['connLnIst'] = null
                             }
@@ -390,26 +421,147 @@ export default class WorkerEditor{
         }
     }
     /**
+     * 连接线事件绑定
+     * @param ln 
+     */
+    private _lineBindEvt(ln?: rSu.Node){
+        let $this = this
+        if(ln){
+            if('ln' == ln.NodeType){
+                ln.onCreateBoxPnt = function(pElem: RaphaelElement){
+                    let pcode = pElem.data('pcode'),
+                        posi = pElem.data('posi')
+                    // 起点
+                    if('f' == posi){
+                        let p1: rSu.P = {x: 0, y: 0}
+                        pElem.drag(
+                            function(dx: number, dy: number){
+                                dx += p1.x
+                                dy += p1.y
+
+                                // 节点碰撞
+                                let collNode: rSu.Node = $this.collisionByP(dx, dy),
+                                    fCode = ln.data('from_code'),
+                                    lnCode = ln.code
+                                if(fCode){
+                                    $this.nodeDick[fCode].rmLine(lnCode)
+                                }
+                                $this.allBackground()
+
+                                if(collNode){                                
+                                    let rElem = collNode.magnCore(dx, dy)
+                                    if(rElem){
+                                        dx = rElem.attr('cx')
+                                        dy = rElem.attr('cy')
+                                        ln.data('from_code', rElem.data('pcode'))
+                                            .data('from_posi', rElem.data('posi'))
+                                    }                                
+                                    collNode.background('magn')
+                                    collNode.line(lnCode)
+                                }else{
+                                    ln.data('from_code', null)
+                                        .data('from_posi', null)
+                                }
+                                ln.updAttr({P1: {x: dx, y: dy}})
+                            },
+                            function(){
+                                p1.x = this.attr('cx')                                
+                                p1.y = this.attr('cy')                                
+                            },
+                            function(){}
+                        )
+                    }
+                    else if('t' == posi){
+                        let p1: rSu.P = {x: 0, y: 0}
+                        pElem.drag(
+                            function(dx: number, dy: number){
+                                dx += p1.x
+                                dy += p1.y
+
+                                // 节点碰撞
+                                let collNode: rSu.Node = $this.collisionByP(dx, dy),
+                                    fCode = ln.data('to_code'),
+                                    lnCode = ln.code
+                                if(fCode){
+                                    $this.nodeDick[fCode].rmLine(lnCode, true)
+                                }
+                                $this.allBackground()
+
+                                if(collNode){                                
+                                    let rElem = collNode.magnCore(dx, dy)
+                                    if(rElem){
+                                        dx = rElem.attr('cx')
+                                        dy = rElem.attr('cy')
+                                        ln.data('to_code', rElem.data('pcode'))
+                                            .data('to_posi', rElem.data('posi'))
+                                    }                                
+                                    collNode.background('magn')
+                                    collNode.line(lnCode, true)
+                                }else{
+                                    ln.data('to_code', null)
+                                        .data('to_posi', null)
+                                }
+                                ln.updAttr({P2: {x: dx, y: dy}})
+                            },
+                            function(){
+                                p1.x = this.attr('cx')                                
+                                p1.y = this.attr('cy')                                
+                            },
+                            function(){}
+                        )
+                    }
+                }
+                // 连线选中
+                ln.c.click(function(){
+                    $this.removeAllSeled()
+                    ln.select()
+                })
+            }
+        }
+    }
+    /**
      * 移除所有选中中元素
      */
     removeAllSeled(){
-        for(var key in this.nodeDick){
-            let nd: rSu.Node = this.nodeDick[key]
-            if(nd.isSelEd){
-                nd.removeBox()
-                nd.isSelEd = false
-            }
-        }
+        this.rmAllNdSeled()
+        this.rmAllLnSeled()
     }
     /**
      * 全选
      */
     allSelect(){
+        this.allNodeSelect()
+    }
+    // 所有节点选中
+    allNodeSelect(){
         for(var key in this.nodeDick){
             let nd: rSu.Node = this.nodeDick[key]
             nd.select()
         }
     }
+    /**
+     * 移除所有节点选中状态
+     */
+    rmAllNdSeled(){
+        for(var key in this.nodeDick){
+            let nd: rSu.Node = this.nodeDick[key]
+            if(nd.isSelEd){
+                nd.removeBox()
+            }
+        }
+    }
+    /**
+     * 移除所有连线选中状态
+     */
+    rmAllLnSeled(){
+        for(var key in this.connDick){
+            let nd: rSu.Node = this.connDick[key]
+            if(nd.isSelEd){
+                nd.removeBox()
+            }
+        }
+    }
+
     /**
      * 设置统一变化管理
      */
@@ -534,7 +686,8 @@ export default class WorkerEditor{
      */
     clone(code?: string | rSu.Node): rSu.Node{
         let node: rSu.Node,
-            newNode: rSu.Node
+            newNode: rSu.Node,
+            $this = this
         if(code && 'string' == typeof code){
             node = this.nodeDick[code]
         }else if(code && 'object' == typeof code){
@@ -550,7 +703,9 @@ export default class WorkerEditor{
             newNode = this.ndMer.make(node.NodeType, newOpt)
                 .creator()
                 .moveable({
-                    afterUpd: this._lineMoveSync
+                    afterUpd: function(x: number, y: number, node: rSu.Node){
+                        $this._lineMoveSync(x, y, node)
+                    }
                 })
             // 切换选中状态
             this.removeAllSeled()

@@ -92,10 +92,42 @@ var NodeAbstract = /** @class */ (function () {
         // 传入属性时，设置目前的对象
         if (opt) {
             opt.bkgMagnetic = opt.bkgMagnetic || '#FF0000';
+            var features = opt.features || {};
             this.opt = opt;
         }
         this._onInit();
     }
+    /**
+     * 特征值处理
+     * @param {string|object} key
+     * @param {*} value
+     * @param {*} def  默认值，默认时会自动设置参数
+     */
+    NodeAbstract.prototype.feature = function (key, value, def) {
+        var feature = this.opt.features || {};
+        if (!value) {
+            if ('object' == typeof key) {
+                return null;
+            }
+            var gValue = feature[key] || null;
+            if (def && !gValue) {
+                feature[key] = def;
+                this.opt.features = feature;
+                return def;
+            }
+            return gValue;
+        }
+        else {
+            if ('object' == typeof key) {
+                feature = __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].jsonMerge(feature, key);
+            }
+            else {
+                feature[key] = value;
+            }
+            this.opt.features = feature;
+            return this;
+        }
+    };
     /**
      * @param {string|number} key _code 特殊属性
      * @param {*} value
@@ -182,6 +214,34 @@ var NodeAbstract = /** @class */ (function () {
         }
         else {
             this.conLns.from.push(value);
+        }
+        return this;
+    };
+    /**
+     * 移除连接线
+     * @param type
+     * @param code
+     */
+    NodeAbstract.prototype.rmLine = function (value, isEnd) {
+        if (value) {
+            if (isEnd) {
+                var tLns_1 = [];
+                __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].each(this.conLns.to, function (k, code) {
+                    if (code != value) {
+                        tLns_1.push(code);
+                    }
+                });
+                this.conLns.to = tLns_1;
+            }
+            else {
+                var fLns_1 = [];
+                __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].each(this.fromLine, function (k, code) {
+                    if (code != value) {
+                        fLns_1.push(code);
+                    }
+                });
+                this.conLns.from = fLns_1;
+            }
         }
         return this;
     };
@@ -340,7 +400,7 @@ var NodeAbstract = /** @class */ (function () {
     };
     /**
      * 节点可移动处理
-     * data => {afterUpd(x, y)}
+     * data => {afterUpd(x, y, $node)}
      * @returns
      * @memberof NodeAbstract
      */
@@ -486,6 +546,7 @@ var NodeAbstract = /** @class */ (function () {
                 delete this.tRElem[key];
             }
         }
+        this.isSelEd = false;
         return this;
     };
     /**
@@ -720,6 +781,18 @@ var Util = /** @class */ (function () {
         }
         return false;
     };
+    /**
+     * json 数据合并
+     * @param bjson
+     * @param mjson
+     */
+    Util.jsonMerge = function (bjson, mjson) {
+        bjson = bjson ? bjson : {};
+        Util.each(mjson, function (k, v) {
+            bjson[k] = v;
+        });
+        return bjson;
+    };
     return Util;
 }());
 
@@ -937,8 +1010,24 @@ var WorkerEditor = /** @class */ (function () {
      * @param y
      */
     WorkerEditor.prototype._lineMoveSync = function (x, y, node) {
-        // console.log(x, y, node)
-        // @todo 连线同步处理
+        var conLns = node.conLns, from = conLns.from, to = conLns.to, $this = this;
+        // 处理起点
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(from, function (k, v) {
+            var fromLn = $this.connDick[v];
+            if ('ln' == fromLn.NodeType) {
+                var from_code = fromLn.data('from_code'), from_posi = fromLn.data('from_posi'), ps = node.getBBox().ps;
+                fromLn.updAttr({ P1: ps[from_posi] });
+            }
+        });
+        // 处理终点
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(to, function (k, v) {
+            var toLn = $this.connDick[v];
+            if ('ln' == toLn.NodeType) {
+                toLn.updAttr({ P2: { x: x, y: y } });
+                var to_code = toLn.data('to_code'), to_posi = toLn.data('to_posi'), ps = node.getBBox().ps;
+                toLn.updAttr({ P2: ps[to_posi] });
+            }
+        });
     };
     /**
      * 工具栏处理器
@@ -978,7 +1067,9 @@ var WorkerEditor = /** @class */ (function () {
                 ndAst = $this.ndMer.make(key, ndOpt)
                     .creator()
                     .moveable({
-                    afterUpd: $this._lineMoveSync
+                    afterUpd: function (x, y, node) {
+                        $this._lineMoveSync(x, y, node);
+                    }
                 });
                 $this._nodeBindEvt(ndAst);
                 var _index = $this._getOrderCode();
@@ -1111,8 +1202,10 @@ var WorkerEditor = /** @class */ (function () {
                         }
                         else { }
                     }, function () {
-                        // 历史节点处理
+                        // 历史节点处理                            
                         $this.removeTmpNode('connLnIst');
+                        // 删除所有联系那选中状态
+                        $this.rmAllLnSeled();
                         // 处理
                         tmpP.x = this.attr('cx');
                         tmpP.y = this.attr('cy');
@@ -1143,8 +1236,12 @@ var WorkerEditor = /** @class */ (function () {
                             var fNd = $this.nodeDick[fCode];
                             var tNd = $this.nodeDick[tCode];
                             fNd.line(cIdx);
+                            fNd.clearTmpElem('mc');
                             tNd.line(cIdx, true);
+                            tNd.clearTmpElem('mc');
+                            $this.allBackground();
                             // 记录到字典中
+                            $this._lineBindEvt(tmpLnIst);
                             $this.connDick[cIdx] = tmpLnIst;
                             $this.tmpNodeMap['connLnIst'] = null;
                         }
@@ -1165,24 +1262,129 @@ var WorkerEditor = /** @class */ (function () {
         }
     };
     /**
+     * 连接线事件绑定
+     * @param ln
+     */
+    WorkerEditor.prototype._lineBindEvt = function (ln) {
+        var $this = this;
+        if (ln) {
+            if ('ln' == ln.NodeType) {
+                ln.onCreateBoxPnt = function (pElem) {
+                    var pcode = pElem.data('pcode'), posi = pElem.data('posi');
+                    // 起点
+                    if ('f' == posi) {
+                        var p1_1 = { x: 0, y: 0 };
+                        pElem.drag(function (dx, dy) {
+                            dx += p1_1.x;
+                            dy += p1_1.y;
+                            // 节点碰撞
+                            var collNode = $this.collisionByP(dx, dy), fCode = ln.data('from_code'), lnCode = ln.code;
+                            if (fCode) {
+                                $this.nodeDick[fCode].rmLine(lnCode);
+                            }
+                            $this.allBackground();
+                            if (collNode) {
+                                var rElem = collNode.magnCore(dx, dy);
+                                if (rElem) {
+                                    dx = rElem.attr('cx');
+                                    dy = rElem.attr('cy');
+                                    ln.data('from_code', rElem.data('pcode'))
+                                        .data('from_posi', rElem.data('posi'));
+                                }
+                                collNode.background('magn');
+                                collNode.line(lnCode);
+                            }
+                            else {
+                                ln.data('from_code', null)
+                                    .data('from_posi', null);
+                            }
+                            ln.updAttr({ P1: { x: dx, y: dy } });
+                        }, function () {
+                            p1_1.x = this.attr('cx');
+                            p1_1.y = this.attr('cy');
+                        }, function () { });
+                    }
+                    else if ('t' == posi) {
+                        var p1_2 = { x: 0, y: 0 };
+                        pElem.drag(function (dx, dy) {
+                            dx += p1_2.x;
+                            dy += p1_2.y;
+                            // 节点碰撞
+                            var collNode = $this.collisionByP(dx, dy), fCode = ln.data('to_code'), lnCode = ln.code;
+                            if (fCode) {
+                                $this.nodeDick[fCode].rmLine(lnCode, true);
+                            }
+                            $this.allBackground();
+                            if (collNode) {
+                                var rElem = collNode.magnCore(dx, dy);
+                                if (rElem) {
+                                    dx = rElem.attr('cx');
+                                    dy = rElem.attr('cy');
+                                    ln.data('to_code', rElem.data('pcode'))
+                                        .data('to_posi', rElem.data('posi'));
+                                }
+                                collNode.background('magn');
+                                collNode.line(lnCode, true);
+                            }
+                            else {
+                                ln.data('to_code', null)
+                                    .data('to_posi', null);
+                            }
+                            ln.updAttr({ P2: { x: dx, y: dy } });
+                        }, function () {
+                            p1_2.x = this.attr('cx');
+                            p1_2.y = this.attr('cy');
+                        }, function () { });
+                    }
+                };
+                // 连线选中
+                ln.c.click(function () {
+                    $this.removeAllSeled();
+                    ln.select();
+                });
+            }
+        }
+    };
+    /**
      * 移除所有选中中元素
      */
     WorkerEditor.prototype.removeAllSeled = function () {
-        for (var key in this.nodeDick) {
-            var nd = this.nodeDick[key];
-            if (nd.isSelEd) {
-                nd.removeBox();
-                nd.isSelEd = false;
-            }
-        }
+        this.rmAllNdSeled();
+        this.rmAllLnSeled();
     };
     /**
      * 全选
      */
     WorkerEditor.prototype.allSelect = function () {
+        this.allNodeSelect();
+    };
+    // 所有节点选中
+    WorkerEditor.prototype.allNodeSelect = function () {
         for (var key in this.nodeDick) {
             var nd = this.nodeDick[key];
             nd.select();
+        }
+    };
+    /**
+     * 移除所有节点选中状态
+     */
+    WorkerEditor.prototype.rmAllNdSeled = function () {
+        for (var key in this.nodeDick) {
+            var nd = this.nodeDick[key];
+            if (nd.isSelEd) {
+                nd.removeBox();
+            }
+        }
+    };
+    /**
+     * 移除所有连线选中状态
+     */
+    WorkerEditor.prototype.rmAllLnSeled = function () {
+        for (var key in this.connDick) {
+            var nd = this.connDick[key];
+            if (nd.isSelEd) {
+                nd.removeBox();
+            }
         }
     };
     /**
@@ -1308,7 +1510,7 @@ var WorkerEditor = /** @class */ (function () {
      * @param {string} code
      */
     WorkerEditor.prototype.clone = function (code) {
-        var node, newNode;
+        var node, newNode, $this = this;
         if (code && 'string' == typeof code) {
             node = this.nodeDick[code];
         }
@@ -1325,7 +1527,9 @@ var WorkerEditor = /** @class */ (function () {
             newNode = this.ndMer.make(node.NodeType, newOpt)
                 .creator()
                 .moveable({
-                afterUpd: this._lineMoveSync
+                afterUpd: function (x, y, node) {
+                    $this._lineMoveSync(x, y, node);
+                }
             });
             // 切换选中状态
             this.removeAllSeled();
@@ -2025,7 +2229,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.0.12", "release": "20180407", "author": "Joshua Conero" };
+var LibVersion = { "version": "2.0.13", "release": "20180412", "author": "Joshua Conero" };
 
 
 /***/ }),
@@ -3114,6 +3318,7 @@ var NodeEnd = /** @class */ (function (_super) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__util__ = __webpack_require__(1);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -3128,6 +3333,7 @@ var __extends = (this && this.__extends) || (function () {
  * 2018年3月26日 星期一
  * 直线
  */
+
 
 var NodeLn = /** @class */ (function (_super) {
     __extends(NodeLn, _super);
@@ -3146,7 +3352,7 @@ var NodeLn = /** @class */ (function (_super) {
         this.c.attr('fill', this.opt.bkg);
     };
     /**
-     * 生成器
+     * 生成器 nOpt: {P1: rSu.P, P2: rSu.P, r?: number}
      */
     NodeLn.prototype.opt2Attr = function (nOpt) {
         var opt = nOpt ? nOpt : this.opt, P1 = opt.P1, P2 = opt.P2, r = opt.r || this.getLen() * 0.2, maxR = this.data('maxR');
@@ -3183,6 +3389,36 @@ var NodeLn = /** @class */ (function (_super) {
     NodeLn.prototype.getLen = function (nOpt) {
         var opt = nOpt ? nOpt : this.opt, P1 = opt.P1, P2 = opt.P2;
         return this.getPLen(P1, P2);
+    };
+    /**
+     * 特殊的连接方式
+     */
+    NodeLn.prototype.select = function () {
+        var _this = this;
+        var fP = this.getFocusPoint();
+        this.removeBox();
+        this.isSelEd = true;
+        __WEBPACK_IMPORTED_MODULE_1__util__["a" /* Util */].each(fP, function (k, p) {
+            var tPIst = _this.paper.circle(p.x, p.y, 3)
+                .attr('fill', _this.feature('focusPBkg', null, '#990000'))
+                .data('pcode', _this.code)
+                .data('posi', k);
+            _this.tRElem['__p' + k] = tPIst;
+            _this.onCreateBoxPnt(_this.tRElem['__p' + k]);
+        });
+        return this;
+    };
+    /**
+     * 获取聚焦点
+     * f/m/t
+     */
+    NodeLn.prototype.getFocusPoint = function () {
+        var _a = this.opt, P1 = _a.P1, P2 = _a.P2, len = this.getPLen(P1, P2), tP = this.c.getPointAtLength(len / 2);
+        return {
+            f: P1,
+            m: { x: tP.x, y: tP.y },
+            t: P2
+        };
     };
     return NodeLn;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
