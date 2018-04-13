@@ -156,12 +156,23 @@ export default class WorkerEditor{
                     from_posi = fromLn.data('from_posi'),
                     {ps} = node.getBBox()
                 fromLn.updAttr({P1: ps[from_posi]})
+            }else{
+                let from_code = fromLn.data('from_code'),
+                    from_posi = fromLn.data('from_posi'),
+                    {ps} = node.getBBox()
+                fromLn.updAttr({P1: ps[from_posi]})
             }
         })
         // 处理终点
         Util.each(to, (k: number, v: string) => {
             let toLn: rSu.Node = $this.connDick[v]
             if('ln' == toLn.NodeType){
+                toLn.updAttr({P2: {x, y}})
+                let to_code = toLn.data('to_code'),
+                    to_posi = toLn.data('to_posi'),
+                    {ps} = node.getBBox()
+                toLn.updAttr({P2: ps[to_posi]})
+            }else{
                 toLn.updAttr({P2: {x, y}})
                 let to_code = toLn.data('to_code'),
                     to_posi = toLn.data('to_posi'),
@@ -252,7 +263,7 @@ export default class WorkerEditor{
         // 节点内部选择控制事件
         var afterLnCnnClickedEvt = () => {
             // 存在被选中的节点时，重新生成
-            let cSeledNode = $this.getSelected()
+            let cSeledNode = $this.select()
             if(cSeledNode){
                 cSeledNode.select()
             }
@@ -348,7 +359,11 @@ export default class WorkerEditor{
                                 tmpLnIst.updAttr({
                                     P2: {x: dx, y: dy}
                                 })
-                            }else{}
+                            }else{
+                                tmpLnIst.updAttr({
+                                    P2: {x: dx, y: dy}
+                                })
+                            }
                         },
                         function(){     // start
                             // 历史节点处理                            
@@ -372,7 +387,8 @@ export default class WorkerEditor{
                                 newOpt = {
                                     P1: {x: lx, y: ly},            
                                     P2: {x: lx+4, y: ly + 4},
-                                    h: 4
+                                    //h: 4
+                                    r: 5
                                 }
                             }
                             tmpLnIst = ndMer.make($this.lineCnMode.type, newOpt)
@@ -516,7 +532,32 @@ export default class WorkerEditor{
                     $this.removeAllSeled()
                     ln.select()
                 })
+            }else{
+                // 连线选中
+                ln.c.click(function(){
+                    $this.removeAllSeled()
+                    ln.select()
+                })
             }
+            // 公共鼠标选中事件
+            ln.c.hover(
+                function(){
+                    this.attr('stroke-width', '3px')
+                        //.attr('fill', '#0033FF')
+                        .attr('stroke', '#0033FF')
+                        
+                    // console.log(ln)
+                    // if('ln' == ln.NodeType){
+                    //     this.attr('fill', '#0033FF')
+                    // }else{}
+                },
+                function(){
+                    this.attr('stroke-width', '1px')
+                        // .attr('fill', '#000000')
+                        .attr('stroke', '#000000')
+                }
+            )
+            // console.log(ln)
         }
     }
     /**
@@ -629,19 +670,32 @@ export default class WorkerEditor{
         // 删除节点
         var removeNode = (node: rSu.Node) => {
             if(node){
-                code = node.code
+                let NodeType = node.NodeType,
+                    value = node.code
+                if('ln' == NodeType){   // 连线删除
+                    let fCode = node.data('from_code'),
+                        tCode = node.data('to_code')               
+                    this.nodeDick[fCode].rmLine(value)
+                    this.nodeDick[tCode].rmLine(value, true)
+                }
+                
                 node.delete()
-                delete this.nodeDick[code]
+                if(this.nodeDick[value]){
+                    delete this.nodeDick[value]
+                }else if(this.connDick[value]){
+                    delete this.connDick[value]
+                }
                 isSuccess = true
                 // 选择切换
                 let lastElem: rSu.Node = this.last()
                 if(lastElem){
                     lastElem.select()
                 }
+                
             }
         }
         if(!code){
-            removeNode(this.getSelected())
+            removeNode(this.select())
         }else{
             removeNode(this.nodeDick[code])
         }
@@ -651,7 +705,7 @@ export default class WorkerEditor{
      * 循环获取节点， tab 节点选择切换
      */
     tab(){
-        var cSelEd: rSu.Node = this.getSelected(),
+        var cSelEd: rSu.Node = this.select(),
             code: string = cSelEd? cSelEd.code : null,
             findLastMk: boolean = false,    // 找到最后一个
             successMk: boolean = false     // 匹配到标志
@@ -693,7 +747,7 @@ export default class WorkerEditor{
         }else if(code && 'object' == typeof code){
             node = code
         }else{
-            node = this.getSelected()
+            node = this.select()
         }
         if(node){
             let newOpt: rSu.NodeOpt = $.extend(true, {}, node.opt),
@@ -904,7 +958,7 @@ export default class WorkerEditor{
                 option = {text: option}
             }
             if(!code){
-                code = this.getSelected()
+                code = this.select()
             }
             var node = 'object' == typeof code? code : this.getNodeByCode(code)
             // 文本属性
@@ -923,51 +977,29 @@ export default class WorkerEditor{
         return isSuccess
     }
     /**
-     * 赋值节点，为空是复制当前选中的节点
-     * @param {RaphaelElement|string|null} code 
+     * 获取选中的实例
      */
-    cloneNode(code: any){
-        if(!code){
-            code = this.getSelected()
-        }
-        if(code){
-            var node = 'object' == typeof code? code : this.paper.getById(code)
-            if('object' == typeof node){
-                // 删除实体数据
-                var id = node.id    // id 数据
-                node.c.clone()
-                node.label.clone()
-                return true
-            }
-        }
-        return false
-    }
-    /**
-     * 获取被选中的节点，只能一个
-     * @returns {NodeBase}
-     */
-    getSelected(): rSu.Node{
+    select(): rSu.Node{
         var nodes = this.nodeQueues
         var selectedNode: rSu.Node = null
         // 节点扫描
-        for(var key in this.nodeDick){
-            if(this.nodeDick[key].isSelEd){
-                selectedNode = this.nodeDick[key]
-                break
+        Util.each(this.nodeDick, (k: string, node: rSu.Node) => {
+            if(node.isSelEd){
+                selectedNode = node
+                return false
             }
-        }
+        })
+        // 连线扫描
         if(!selectedNode){
-            // 连线扫描
-            var lines = this.lineQueues
-            for(var j=0; j<lines.length; j++){
-                var line = lines[j]
-                if(line.selectEdMk){
-                    selectedNode = line
+            Util.each(this.connDick, (k: string, node: rSu.Node) => {
+                if(node.isSelEd){
+                    selectedNode = node
+                    return false
                 }
-            }
+            })
         }
         return selectedNode
-    }
+    }    
     /**
      * 获取最新生成的节点
      * @returns {NodeBase}
@@ -1001,7 +1033,7 @@ export default class WorkerEditor{
      */
     getFlowJson(node: any){
         if(!node){
-            node = this.getSelected()
+            node = this.select()
         }
         var fjson: Flower.StepStr = {}
         if(node){

@@ -11,20 +11,45 @@
     - NodeParallel 并行
     - NodeMerge 并行
     - NodeEnd 结束
-    - NodePolyLn 折线
+    - NodeLnPoly 折线
     - NodeLn 直线
-        - 特殊连接点: 三点连线式
-            - F/from,M/middle,T/to
-        - 特征值
+
+- 节点选择边框点
+    - 圆形 circle ， data 参数值包括 {pcode: 节点代码, posi: 连接点位置(a-h)}
+
+### NodeLn 直线
+
+- 特殊连接点: 三点连线式
+    - F/from,M/middle,T/to
+
+- 特征值
 ```js
 {
     focusPBkg: '#990000   聚焦点底色'
 }        
-
 ```
 
-- 节点选择边框点
-    - 圆形 circle ， data 参数值包括 {pcode: 节点代码, posi: 连接点位置(a-h)}
+- 属性参数
+```js
+{
+    P1: {x, y},             // 起点
+    P2: {x, y},             // 终点
+    r: number,
+}
+```
+
+### NodeLnPoly 折线
+- 特殊连接点
+    - F/from, T/to
+
+- 属性参数
+```js
+{
+    P1: {x, y},             // 起点
+    P2: {x, y},             // 终点
+    MPs: {x, y}[]           // 中间对列表
+    r: number,
+}    
 
 ## 基本算法或概念
 - 基于节点中心点移动算法    

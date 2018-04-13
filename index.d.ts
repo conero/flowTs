@@ -84,6 +84,10 @@ declare namespace rSu{
         bkg?: string            // 底色，具有默认色
         bkgMagnetic?: string     // 磁化底色，具有默认底色
         features?: bsMap        // 特征属性
+        // 连线特殊选项
+        P1?: rSu.P              // 连线起点
+        P2?: rSu.P              // 连线终点， NodeLn
+        MPs?: rSu.P[]           // 连线中间点， NodeLnPoly
         /**
          **/
         [k: string]: any        // 支持其他，用于实现特殊节点和直线
@@ -92,6 +96,10 @@ declare namespace rSu{
     export interface bsMap{
         [k: string]: any
         [i: number]: any
+    }
+    export interface pMap{
+        [K: string]: rSu.P
+        [K: number]: rSu.P
     }
     // 边框属性
     export interface BoxAttr{
@@ -107,8 +115,6 @@ declare namespace rSu{
     // 节点信息 -> class
     export interface Node{
         //--------> 属性
-        fromLine: Node[]    // 起点连线
-        toLine: Node[]      // 终点连线
         NodeType: string            // 节点类型
         opt: rSu.NodeOpt            // 节点选项
         label?: RaphaelElement      // 标签元素

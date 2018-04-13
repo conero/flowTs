@@ -90,6 +90,16 @@ class Util{
         })
         return bjson
     }
+    /**
+     * @param json 
+     */
+    static jsonValues(json: rSu.bsMap): any[]{
+        let value: any[] = []
+        Util.each(json, (k: any, v: any) => {
+            value.push(v)
+        })
+        return value
+    }
 }
 
 export {Util}

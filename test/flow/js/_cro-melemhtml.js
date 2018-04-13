@@ -85,9 +85,6 @@ var NodeAbstract = /** @class */ (function () {
         this._dataQueueDick = {};
         this.isSelEd = false;
         this.paper = paper;
-        // 连接线起点获取终点
-        this.fromLine = [];
-        this.toLine = [];
         this.NodeType = null; // 节点类型
         // 传入属性时，设置目前的对象
         if (opt) {
@@ -235,7 +232,7 @@ var NodeAbstract = /** @class */ (function () {
             }
             else {
                 var fLns_1 = [];
-                __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].each(this.fromLine, function (k, code) {
+                __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].each(this.conLns.from, function (k, code) {
                     if (code != value) {
                         fLns_1.push(code);
                     }
@@ -257,42 +254,6 @@ var NodeAbstract = /** @class */ (function () {
      * 节点拖动以后处理，调用拖动以后 [接口]
      */
     NodeAbstract.prototype.onDrag = function () { };
-    /**
-     * 记录连接线
-     * @param {stirng} type 连接线类型
-     * @param {this}  $node 节点实例
-     */
-    NodeAbstract.prototype.recordLine = function (type, $node) {
-        if ('from' == type) {
-            this.fromLine.push($node);
-        }
-        else if ('to' == type) {
-            this.toLine.push($node);
-        }
-    };
-    /**
-     * 同步处理连线
-     * @param {function} callback
-     */
-    NodeAbstract.prototype.syncLineMove = function (callback) {
-        if ('function' !== typeof callback) {
-            callback = function (instance, type) { };
-        }
-        // 直线同步移动
-        var fLines = this.fromLine;
-        var tLines = this.toLine;
-        // 起点列表处理
-        for (var i = 0; i < fLines.length; i++) {
-            var $fC = fLines[i].c;
-            var $fPath = $fC.attr('path');
-            callback($fC, 'from', fLines[i]);
-        }
-        // 终点列表处理
-        for (var j = 0; j < tLines.length; j++) {
-            var $tC = tLines[j].c;
-            callback($tC, 'to', tLines[j]);
-        }
-    };
     /**
      * 公共接口化
      * NodeBase struct to json 对象， 用于生产节点中 “struct” 的数据结构
@@ -793,6 +754,16 @@ var Util = /** @class */ (function () {
         });
         return bjson;
     };
+    /**
+     * @param json
+     */
+    Util.jsonValues = function (json) {
+        var value = [];
+        Util.each(json, function (k, v) {
+            value.push(v);
+        });
+        return value;
+    };
     return Util;
 }());
 
@@ -913,7 +884,7 @@ $(function(){
         // console.log(key)
         var code = key.keyCode
         // console.log(code)
-        var nodeSelEd = $worker.getSelected()
+        var nodeSelEd = $worker.select()
         if(key.shiftKey){
             // 向上 ↑ + shift
             if(38 == code){
@@ -983,7 +954,7 @@ window.workerflow = __WEBPACK_IMPORTED_MODULE_0__src_WorkerEditor__["a" /* defau
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ToolBar__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeQue__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__confNode__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__confNode__ = __webpack_require__(22);
 ///<reference path='../index.d.ts' />
 /**
  * 2018年3月1日 星期四
@@ -1102,11 +1073,20 @@ var WorkerEditor = /** @class */ (function () {
                 var from_code = fromLn.data('from_code'), from_posi = fromLn.data('from_posi'), ps = node.getBBox().ps;
                 fromLn.updAttr({ P1: ps[from_posi] });
             }
+            else {
+                var from_code = fromLn.data('from_code'), from_posi = fromLn.data('from_posi'), ps = node.getBBox().ps;
+                fromLn.updAttr({ P1: ps[from_posi] });
+            }
         });
         // 处理终点
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(to, function (k, v) {
             var toLn = $this.connDick[v];
             if ('ln' == toLn.NodeType) {
+                toLn.updAttr({ P2: { x: x, y: y } });
+                var to_code = toLn.data('to_code'), to_posi = toLn.data('to_posi'), ps = node.getBBox().ps;
+                toLn.updAttr({ P2: ps[to_posi] });
+            }
+            else {
                 toLn.updAttr({ P2: { x: x, y: y } });
                 var to_code = toLn.data('to_code'), to_posi = toLn.data('to_posi'), ps = node.getBBox().ps;
                 toLn.updAttr({ P2: ps[to_posi] });
@@ -1188,7 +1168,7 @@ var WorkerEditor = /** @class */ (function () {
         // 节点内部选择控制事件
         var afterLnCnnClickedEvt = function () {
             // 存在被选中的节点时，重新生成
-            var cSeledNode = $this.getSelected();
+            var cSeledNode = $this.select();
             if (cSeledNode) {
                 cSeledNode.select();
             }
@@ -1284,7 +1264,11 @@ var WorkerEditor = /** @class */ (function () {
                                 P2: { x: dx, y: dy }
                             });
                         }
-                        else { }
+                        else {
+                            tmpLnIst.updAttr({
+                                P2: { x: dx, y: dy }
+                            });
+                        }
                     }, function () {
                         // 历史节点处理                            
                         $this.removeTmpNode('connLnIst');
@@ -1304,7 +1288,8 @@ var WorkerEditor = /** @class */ (function () {
                             newOpt = {
                                 P1: { x: lx, y: ly },
                                 P2: { x: lx + 4, y: ly + 4 },
-                                h: 4
+                                //h: 4
+                                r: 5
                             };
                         }
                         tmpLnIst = ndMer.make($this.lineCnMode.type, newOpt)
@@ -1427,6 +1412,28 @@ var WorkerEditor = /** @class */ (function () {
                     ln.select();
                 });
             }
+            else {
+                // 连线选中
+                ln.c.click(function () {
+                    $this.removeAllSeled();
+                    ln.select();
+                });
+            }
+            // 公共鼠标选中事件
+            ln.c.hover(function () {
+                this.attr('stroke-width', '3px')
+                    //.attr('fill', '#0033FF')
+                    .attr('stroke', '#0033FF');
+                // console.log(ln)
+                // if('ln' == ln.NodeType){
+                //     this.attr('fill', '#0033FF')
+                // }else{}
+            }, function () {
+                this.attr('stroke-width', '1px')
+                    // .attr('fill', '#000000')
+                    .attr('stroke', '#000000');
+            });
+            // console.log(ln)
         }
     };
     /**
@@ -1539,9 +1546,19 @@ var WorkerEditor = /** @class */ (function () {
         // 删除节点
         var removeNode = function (node) {
             if (node) {
-                code = node.code;
+                var NodeType = node.NodeType, value = node.code;
+                if ('ln' == NodeType) { // 连线删除
+                    var fCode = node.data('from_code'), tCode = node.data('to_code');
+                    _this.nodeDick[fCode].rmLine(value);
+                    _this.nodeDick[tCode].rmLine(value, true);
+                }
                 node.delete();
-                delete _this.nodeDick[code];
+                if (_this.nodeDick[value]) {
+                    delete _this.nodeDick[value];
+                }
+                else if (_this.connDick[value]) {
+                    delete _this.connDick[value];
+                }
                 isSuccess = true;
                 // 选择切换
                 var lastElem = _this.last();
@@ -1551,7 +1568,7 @@ var WorkerEditor = /** @class */ (function () {
             }
         };
         if (!code) {
-            removeNode(this.getSelected());
+            removeNode(this.select());
         }
         else {
             removeNode(this.nodeDick[code]);
@@ -1562,7 +1579,7 @@ var WorkerEditor = /** @class */ (function () {
      * 循环获取节点， tab 节点选择切换
      */
     WorkerEditor.prototype.tab = function () {
-        var cSelEd = this.getSelected(), code = cSelEd ? cSelEd.code : null, findLastMk = false, // 找到最后一个
+        var cSelEd = this.select(), code = cSelEd ? cSelEd.code : null, findLastMk = false, // 找到最后一个
         successMk = false; // 匹配到标志
         for (var key in this.nodeDick) {
             var nd = this.nodeDick[key];
@@ -1602,7 +1619,7 @@ var WorkerEditor = /** @class */ (function () {
             node = code;
         }
         else {
-            node = this.getSelected();
+            node = this.select();
         }
         if (node) {
             var newOpt = $.extend(true, {}, node.opt), rate = 0.2;
@@ -1812,7 +1829,7 @@ var WorkerEditor = /** @class */ (function () {
                 option = { text: option };
             }
             if (!code) {
-                code = this.getSelected();
+                code = this.select();
             }
             var node = 'object' == typeof code ? code : this.getNodeByCode(code);
             // 文本属性
@@ -1831,48 +1848,26 @@ var WorkerEditor = /** @class */ (function () {
         return isSuccess;
     };
     /**
-     * 赋值节点，为空是复制当前选中的节点
-     * @param {RaphaelElement|string|null} code
+     * 获取选中的实例
      */
-    WorkerEditor.prototype.cloneNode = function (code) {
-        if (!code) {
-            code = this.getSelected();
-        }
-        if (code) {
-            var node = 'object' == typeof code ? code : this.paper.getById(code);
-            if ('object' == typeof node) {
-                // 删除实体数据
-                var id = node.id; // id 数据
-                node.c.clone();
-                node.label.clone();
-                return true;
-            }
-        }
-        return false;
-    };
-    /**
-     * 获取被选中的节点，只能一个
-     * @returns {NodeBase}
-     */
-    WorkerEditor.prototype.getSelected = function () {
+    WorkerEditor.prototype.select = function () {
         var nodes = this.nodeQueues;
         var selectedNode = null;
         // 节点扫描
-        for (var key in this.nodeDick) {
-            if (this.nodeDick[key].isSelEd) {
-                selectedNode = this.nodeDick[key];
-                break;
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (k, node) {
+            if (node.isSelEd) {
+                selectedNode = node;
+                return false;
             }
-        }
+        });
+        // 连线扫描
         if (!selectedNode) {
-            // 连线扫描
-            var lines = this.lineQueues;
-            for (var j = 0; j < lines.length; j++) {
-                var line = lines[j];
-                if (line.selectEdMk) {
-                    selectedNode = line;
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.connDick, function (k, node) {
+                if (node.isSelEd) {
+                    selectedNode = node;
+                    return false;
                 }
-            }
+            });
         }
         return selectedNode;
     };
@@ -1909,7 +1904,7 @@ var WorkerEditor = /** @class */ (function () {
      */
     WorkerEditor.prototype.getFlowJson = function (node) {
         if (!node) {
-            node = this.getSelected();
+            node = this.select();
         }
         var fjson = {};
         if (node) {
@@ -2313,7 +2308,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.0.13", "release": "20180412", "author": "Joshua Conero" };
+var LibVersion = { "version": "2.0.14", "release": "20180413", "author": "Joshua Conero" };
 
 
 /***/ }),
@@ -2322,7 +2317,7 @@ var LibVersion = { "version": "2.0.13", "release": "20180412", "author": "Joshua
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeQue__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ObjX__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ObjX__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
 
 
@@ -3433,7 +3428,9 @@ var NodeLn = /** @class */ (function (_super) {
         this.opt.bkg = this.opt.bkg || 'rgb(3, 84, 41)';
         var opt = this.opt, bkg = opt.bkg;
         this.c = this.paper.path(this._ps2Path(this.opt2Attr()));
+        //.attr('stroke-width', '2px')
         this.c.attr('fill', this.opt.bkg);
+        // .attr('stroke-width', '2px')
     };
     /**
      * 生成器 nOpt: {P1: rSu.P, P2: rSu.P, r?: number}
@@ -3515,6 +3512,8 @@ var NodeLn = /** @class */ (function (_super) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeUtil__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -3530,6 +3529,8 @@ var __extends = (this && this.__extends) || (function () {
  * 折线
  */
 
+
+
 var NodeLnPoly = /** @class */ (function (_super) {
     __extends(NodeLnPoly, _super);
     function NodeLnPoly() {
@@ -3539,9 +3540,46 @@ var NodeLnPoly = /** @class */ (function (_super) {
         this.NodeType = 'ln_poly';
     };
     NodeLnPoly.prototype._whenCreatorEvt = function () {
-        this.c = this.paper.path(this._ps2Path(this.opt2Attr()));
+        this.opt.bkg = this.opt.bkg || 'rgb(3, 84, 41)';
+        var opt = this.opt, bkg = opt.bkg, _a = this.opt2Attr(), pQue = _a.pQue, arrowPs = _a.arrowPs;
+        this.c = this.paper.path(this._ps2Path(pQue));
+        // .attr('stroke-width', '1px')
+        this.inlineEle = this.paper.path(this._ps2Path(__WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].jsonValues(arrowPs)));
+        this.inlineEle.attr('fill', this.opt.bkg);
+        // .attr('stroke-width', '1px')
     };
+    /**
+     * 选项转属性
+     * @param nOpt
+     */
     NodeLnPoly.prototype.opt2Attr = function (nOpt) {
+        var pQue = [];
+        var opt = nOpt ? nOpt : this.opt, P1 = opt.P1, P2 = opt.P2, l = this.getLen(), rX = opt.rX || 0.35, r = opt.r || (l * (1 - rX) * 0.2), MPs = opt.MPs || [];
+        pQue = [P1]; // 起点
+        // 中间点计算
+        if (MPs.length > 0) { // 使用默认的点列
+            pQue = pQue.concat(MPs);
+        }
+        else {
+            var x1 = P1.x, y1 = P1.y, x2 = P2.x, y2 = P2.y;
+            // 非同x/y 轴            
+            if (x1 != x2 || y1 != y2) {
+                var delMps = { x: x1, y: y2 };
+                MPs.push(delMps);
+                pQue.push(delMps);
+                this.opt.MPs = MPs;
+            }
+        }
+        pQue.push(P2); // 终点
+        // 箭头坐标
+        var arrowPs = {};
+        if (pQue.length > 1) {
+            var pQLen = pQue.length - 1;
+            arrowPs = __WEBPACK_IMPORTED_MODULE_1__NodeUtil__["a" /* default */].ps2arrow(pQue[pQLen - 1], pQue[pQLen], r);
+        }
+        return { pQue: pQue, arrowPs: arrowPs };
+    };
+    NodeLnPoly.prototype.__opt2Attr = function (nOpt) {
         var opt = nOpt ? nOpt : this.opt, P1 = opt.P1, P2 = opt.P2, h = opt.h || 4, rX = opt.rX || 0.35, l = this.getLen(), r = opt.r || (l * (1 - rX) * 0.2);
         var nP1 = { x: P1.x + l * rX, y: P1.y + h };
         // 箭头计算
@@ -3576,8 +3614,56 @@ var NodeLnPoly = /** @class */ (function (_super) {
      */
     NodeLnPoly.prototype.updAttr = function (nOpt) {
         this._updAttr(nOpt);
-        this.c.attr('path', this._ps2PathAttr(this.opt2Attr()));
+        var _a = this.opt2Attr(), pQue = _a.pQue, arrowPs = _a.arrowPs;
+        this.c.attr('path', this._ps2PathAttr(pQue));
+        this.inlineEle.attr('path', this._ps2PathAttr(__WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].jsonValues(arrowPs)));
         return this;
+    };
+    /**
+     * 特殊的连接方式
+     */
+    NodeLnPoly.prototype.select = function () {
+        var _this = this;
+        var fP = this.getFocusPoint();
+        this.removeBox();
+        this.isSelEd = true;
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(fP, function (k, p) {
+            var tPIst = _this.paper.circle(p.x, p.y, 3)
+                .attr('fill', _this.feature('focusPBkg', null, '#990000'))
+                .data('pcode', _this.code)
+                .data('posi', k);
+            _this.tRElem['__p' + k] = tPIst;
+            _this.onCreateBoxPnt(_this.tRElem['__p' + k]);
+        });
+        return this;
+    };
+    /**
+     * 获取聚焦点
+     * f/m/t
+     */
+    NodeLnPoly.prototype.getFocusPoint = function () {
+        var _a = this.opt, P1 = _a.P1, P2 = _a.P2, len = this.getPLen(P1, P2), tP = this.c.getPointAtLength(len / 2), MPs = this.opt.MPs || [];
+        var psMap = {
+            f: P1,
+            t: P2
+        };
+        var max = 0;
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(MPs, function (k, p) {
+            var kStr = 'm' + k;
+            psMap[kStr] = p;
+            max = k;
+        });
+        // 中间点
+        var psValue = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].jsonValues(psMap);
+        for (var i = 0; i < psValue.length - 1; i++) {
+            max += 1;
+            var kStr = 'm' + max, pV1 = psValue[i], pV2 = psValue[i + 1];
+            psMap[kStr] = {
+                x: pV1.x + Math.abs((pV1.x - pV2.x) / 2),
+                y: pV1.y + Math.abs((pV1.y - pV2.y) / 2),
+            };
+        }
+        return psMap;
     };
     return NodeLnPoly;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
@@ -3586,6 +3672,57 @@ var NodeLnPoly = /** @class */ (function (_super) {
 
 /***/ }),
 /* 20 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/**
+ * 2018年4月13日 星期五
+ * 节点计算算法
+ */
+var NodeUtil = /** @class */ (function () {
+    function NodeUtil() {
+    }
+    /**
+     * 两点转箭头，箭头生成算法
+     * @param P1
+     * @param P2
+     * @param r
+     * @param onlyMidPMk 仅仅中间坐标点
+     */
+    NodeUtil.ps2arrow = function (P1, P2, r, onlyMidPMk) {
+        var atan = Math.atan2(P1.y - P2.y, P2.x - P1.x) * (180 / Math.PI);
+        var centerX = P2.x - r * Math.cos(atan * (Math.PI / 180));
+        var centerY = P2.y + r * Math.sin(atan * (Math.PI / 180));
+        var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
+        var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
+        var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
+        var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
+        var pV1 = [P1, P2], pV2 = [
+            { x: x2, y: y2 },
+            { x: x3, y: y3 },
+            P2
+        ];
+        if (onlyMidPMk) {
+            pV1 = pV2;
+        }
+        else {
+            pV1 = pV1.concat(pV2);
+        }
+        return pV1;
+    };
+    /**
+     * 获取两点间的距离
+     */
+    NodeUtil.getPLen = function (P1, P2) {
+        return Math.pow((Math.pow((P1.x - P2.x), 2) + Math.pow((P1.y - P2.y), 2)), 1 / 2);
+    };
+    return NodeUtil;
+}());
+/* harmony default export */ __webpack_exports__["a"] = (NodeUtil);
+
+
+/***/ }),
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3633,7 +3770,7 @@ var ObjX = /** @class */ (function () {
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";

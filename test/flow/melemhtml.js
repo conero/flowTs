@@ -16,7 +16,7 @@ $(function(){
         // console.log(key)
         var code = key.keyCode
         // console.log(code)
-        var nodeSelEd = $worker.getSelected()
+        var nodeSelEd = $worker.select()
         if(key.shiftKey){
             // 向上 ↑ + shift
             if(38 == code){
