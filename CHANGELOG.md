@@ -3,6 +3,14 @@
 
 ## ***V2.0.x/alpha-date*** alpha 类型模板
 
+### ***V2.0.15/20180415***
+- src/WorkerEditor.ts
+    - ***折线*** 节点移动保持折线的属性，实现走直线；实现端点移动的，折线直线路径调用
+- src/node/NodeLnPoly.ts
+    - 将 ***getFocusPoint*** 方法中任意两点，获取中间点实现直线移动方法移出；***getMiddP*** 
+    - (+) ***mvEndPoint*** 实现端点移动的方法
+
+
 ### ***V2.0.14/20180413***
 - src/WorkerEditor.ts
     - ***getSelected*** 方法更名为 ***select*** 

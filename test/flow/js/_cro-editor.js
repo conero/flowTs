@@ -1013,7 +1013,7 @@ var WorkerEditor = /** @class */ (function () {
             }
             else {
                 var from_code = fromLn.data('from_code'), from_posi = fromLn.data('from_posi'), ps = node.getBBox().ps;
-                fromLn.updAttr({ P1: ps[from_posi] });
+                fromLn.mvEndPoint(ps[from_posi]);
             }
         });
         // 处理终点
@@ -1027,7 +1027,7 @@ var WorkerEditor = /** @class */ (function () {
             else {
                 toLn.updAttr({ P2: { x: x, y: y } });
                 var to_code = toLn.data('to_code'), to_posi = toLn.data('to_posi'), ps = node.getBBox().ps;
-                toLn.updAttr({ P2: ps[to_posi] });
+                toLn.mvEndPoint(ps[to_posi], true);
             }
         });
     };
@@ -1203,6 +1203,8 @@ var WorkerEditor = /** @class */ (function () {
                             });
                         }
                         else {
+                            tmpLnIst.opt.MPs = []; // 删除中间代码
+                            // (<any>tmpLnIst).getMiddP()
                             tmpLnIst.updAttr({
                                 P2: { x: dx, y: dy }
                             });
@@ -3500,9 +3502,8 @@ var NodeLnPoly = /** @class */ (function (_super) {
         }
         else {
             var x1 = P1.x, y1 = P1.y, x2 = P2.x, y2 = P2.y;
-            // 非同x/y 轴            
-            if (x1 != x2 || y1 != y2) {
-                var delMps = { x: x1, y: y2 };
+            var delMps = this.getMiddP(P1, P2);
+            if (delMps) {
                 MPs.push(delMps);
                 pQue.push(delMps);
                 this.opt.MPs = MPs;
@@ -3538,6 +3539,18 @@ var NodeLnPoly = /** @class */ (function (_super) {
             { x: x3, y: y3 },
             P2
         ];
+    };
+    /**
+     * 获取中间点
+     * @param P0
+     * @param P1
+     */
+    NodeLnPoly.prototype.getMiddP = function (P0, P1) {
+        var p;
+        if (P0.x != P1.x && P0.y != P1.y) {
+            p = { x: P0.x, y: P1.y };
+        }
+        return p;
     };
     /**
      * 获取两点间的距离
@@ -3585,23 +3598,67 @@ var NodeLnPoly = /** @class */ (function (_super) {
             f: P1,
             t: P2
         };
-        var max = 0;
+        // 个数统计
+        var num = 0;
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(MPs, function (k, p) {
             var kStr = 'm' + k;
             psMap[kStr] = p;
-            max = k;
+            num = k;
         });
-        // 中间点
-        var psValue = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].jsonValues(psMap);
+        // 中间点        
+        var psValue = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].jsonValues(psMap), rLen = 0;
+        console.log(psValue);
         for (var i = 0; i < psValue.length - 1; i++) {
-            max += 1;
-            var kStr = 'm' + max, pV1 = psValue[i], pV2 = psValue[i + 1];
-            psMap[kStr] = {
-                x: pV1.x + Math.abs((pV1.x - pV2.x) / 2),
-                y: pV1.y + Math.abs((pV1.y - pV2.y) / 2),
-            };
+            num += 1;
+            var kStr = 'm' + num, pV1 = psValue[i], pV2 = psValue[i + 1];
+            //console.log(pV1, pV2) 
+            var cLen = __WEBPACK_IMPORTED_MODULE_1__NodeUtil__["a" /* default */].getPLen(pV1, pV2), pTmp = this.c.getPointAtLength(rLen + cLen / 2);
+            psMap[kStr] = pTmp;
+            // psMap[kStr] = {
+            //     x: pV1.x + Math.abs((pV1.x - pV2.x)/2),
+            //     y: pV1.y + Math.abs((pV1.y - pV2.y)/2),
+            // }
+            rLen += cLen;
         }
         return psMap;
+    };
+    /**
+     * 端点移动
+     */
+    NodeLnPoly.prototype.mvEndPoint = function (p, isEnd) {
+        var tP;
+        var pathArr = this.c.attr('path'), opt = this.opt;
+        if (isEnd) {
+            var pA0 = pathArr[pathArr.length - 2], p0 = {
+                x: pA0[1],
+                y: pA0[2]
+            };
+            tP = this.getMiddP(p0, opt.P2);
+            if (tP) {
+                opt.MPs = opt.MPs ? opt.MPs : [];
+                // opt.MPs.push(tP)
+                if (opt.MPs.length > 0) {
+                    opt.MPs[opt.MPs.length - 1] = tP;
+                }
+            }
+            opt.P2 = p;
+        }
+        else {
+            var pA0 = pathArr[1], p0 = {
+                x: pA0[1],
+                y: pA0[2]
+            };
+            tP = this.getMiddP(opt.P1, p0);
+            if (tP) {
+                opt.MPs = opt.MPs ? opt.MPs : [];
+                //opt.MPs = opt.MPs.concat([tP])
+                if (opt.MPs.length > 0) {
+                    opt.MPs[0] = tP;
+                }
+            }
+            opt.P1 = p;
+        }
+        this.updAttr(opt);
     };
     return NodeLnPoly;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));

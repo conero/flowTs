@@ -160,7 +160,9 @@ export default class WorkerEditor{
                 let from_code = fromLn.data('from_code'),
                     from_posi = fromLn.data('from_posi'),
                     {ps} = node.getBBox()
-                fromLn.updAttr({P1: ps[from_posi]})
+                // fromLn.updAttr({P1: ps[from_posi]})
+                //fromLn.updAttr({P1: ps[from_posi]})
+                ; (<any>fromLn).mvEndPoint(ps[from_posi])
             }
         })
         // 处理终点
@@ -177,7 +179,8 @@ export default class WorkerEditor{
                 let to_code = toLn.data('to_code'),
                     to_posi = toLn.data('to_posi'),
                     {ps} = node.getBBox()
-                toLn.updAttr({P2: ps[to_posi]})
+                // toLn.updAttr({P2: ps[to_posi]})
+                ;(<any>toLn).mvEndPoint(ps[to_posi], true)
             }
         })
     }
@@ -360,6 +363,8 @@ export default class WorkerEditor{
                                     P2: {x: dx, y: dy}
                                 })
                             }else{
+                                tmpLnIst.opt.MPs = [];   // 删除中间代码
+                                // (<any>tmpLnIst).getMiddP()
                                 tmpLnIst.updAttr({
                                     P2: {x: dx, y: dy}
                                 })

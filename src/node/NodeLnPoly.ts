@@ -40,9 +40,8 @@ export default class NodeLnPoly extends NodeAbstract{
         }else{
             let x1 = P1.x, y1 = P1.y,
                 x2 = P2.x, y2 = P2.y
-            // 非同x/y 轴            
-            if(x1 != x2 || y1 != y2){
-                let delMps: rSu.P = {x: x1, y: y2}
+            let delMps: rSu.P = this.getMiddP(P1, P2)
+            if(delMps){
                 MPs.push(delMps)
                 pQue.push(delMps)
                 this.opt.MPs = MPs
@@ -94,6 +93,18 @@ export default class NodeLnPoly extends NodeAbstract{
         ]            
     }    
     /**
+     * 获取中间点
+     * @param P0 
+     * @param P1 
+     */
+    getMiddP(P0: rSu.P, P1: rSu.P): rSu.P{
+        let p: rSu.P
+        if(P0.x != P1.x && P0.y != P1.y){
+            p = {x: P0.x, y: P1.y}
+        }
+        return p
+    }
+    /**
      * 获取两点间的距离
      */
     getLen(nOpt?: rSu.NodeOpt): number{
@@ -143,24 +154,74 @@ export default class NodeLnPoly extends NodeAbstract{
             f: P1,
             t: P2
         }
-        let max: number = 0
+        // 个数统计
+        let num: number = 0
         Util.each(MPs, (k: number, p: rSu.P) => {
             let kStr = 'm' + k
             psMap[kStr] = p
-            max = k
+            num = k
         })
-        // 中间点
-        let psValue: rSu.P[] = Util.jsonValues(psMap)
+        // 中间点        
+        let psValue: rSu.P[] = Util.jsonValues(psMap),
+            rLen: number = 0
+        // console.log(psValue)
+        
         for(var i=0; i<psValue.length-1; i++){
-            max += 1
-            let kStr = 'm' + max,
+            num += 1
+            let kStr = 'm' + num,
                 pV1 = psValue[i],
                 pV2 = psValue[i+1]
-            psMap[kStr] = {
-                x: pV1.x + Math.abs((pV1.x - pV2.x)/2),
-                y: pV1.y + Math.abs((pV1.y - pV2.y)/2),
-            }
+            //console.log(pV1, pV2) 
+            let cLen: number = NodeUtil.getPLen(pV1, pV2),
+                pTmp = this.c.getPointAtLength(rLen + cLen/2)         
+            psMap[kStr] = pTmp
+            // psMap[kStr] = {
+            //     x: pV1.x + Math.abs((pV1.x - pV2.x)/2),
+            //     y: pV1.y + Math.abs((pV1.y - pV2.y)/2),
+            // }
+            rLen += cLen
         }
         return psMap
+    }
+    /**
+     * 端点移动
+     */
+    mvEndPoint(p: rSu.P, isEnd?: boolean){
+        let tP: rSu.P
+        let pathArr = this.c.attr('path'),
+            opt = this.opt
+        if(isEnd){ 
+            let pA0 = pathArr[pathArr.length - 2],
+            p0: rSu.P = {
+                x: pA0[1],
+                y: pA0[2]
+            }
+            tP = this.getMiddP(p0, opt.P2)
+            if(tP){
+                opt.MPs = opt.MPs? opt.MPs: []
+                // opt.MPs.push(tP)
+                if(opt.MPs.length > 0){
+                    opt.MPs[opt.MPs.length-1] = tP
+                }
+            }
+            opt.P2 = p
+        }
+        else{
+            let pA0 = pathArr[1],
+            p0: rSu.P = {
+                x: pA0[1],
+                y: pA0[2]
+            }
+            tP = this.getMiddP(opt.P1, p0)
+            if(tP){
+                opt.MPs = opt.MPs? opt.MPs: []
+                //opt.MPs = opt.MPs.concat([tP])
+                if(opt.MPs.length > 0){
+                    opt.MPs[0] = tP
+                }
+            }
+            opt.P1 = p
+        }
+        this.updAttr(opt)
     }
 }

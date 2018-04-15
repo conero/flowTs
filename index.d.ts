@@ -162,6 +162,11 @@ declare namespace rSu{
         clearTmpElem(key?: string|Array<string>): rSu.Node   
         line(value: string, isEnd?: boolean): rSu.Node     // 节点连接
         rmLine(value: string, isEnd?: boolean): rSu.Node    // 移除连线节点
+
+        // 特殊节点
+            // > NodeLnPoly
+        // getMiddP(P0: rSu.P, P1: rSu.P): rSu.P
+
     }
     // 节点队列 -> class
     export interface NodeQue{
