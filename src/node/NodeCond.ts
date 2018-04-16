@@ -61,14 +61,7 @@ export default class NodeCond extends NodeAbstract{
         var opt = this.opt2Attr()
         this.c.attr('path', this._ps2PathAttr(opt, true))
 
-        // 文字
-        if(this.label){
-            let {x, y} = this._getTextPnt()
-            this.label.attr({
-                x, y
-            })
-        }
-        
+        this.updTextAttr(nOpt.text)  // 文字
         return <rSu.Node>this
     }
 }

@@ -35,15 +35,7 @@ export default class NodeEnd extends NodeAbstract{
             rx: opt.w/2,
             ry: opt.h/2
         })
-        
-        // 文字
-        if(this.label){
-            let {x, y} = this._getTextPnt()
-            this.label.attr({
-                x, y
-            })
-        }
-        
+        this.updTextAttr(nOpt.text)  // 文字
         return <rSu.Node>this
     }
 }

@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -69,6 +69,15 @@
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__confNode__ = __webpack_require__(3);
+/**
+ * 2018年3月26日 星期一
+ * 抽象节点
+ */
+///<reference path="../../index.d.ts"/>
+///<reference path="../types/raphael.ts"/>
+///<reference path="../types/jquery.ts"/>
+
 
 /**
  * @export
@@ -126,13 +135,20 @@ var NodeAbstract = /** @class */ (function () {
         }
     };
     /**
-     * @param {string|number} key _code 特殊属性
+     * @param {string|number|object} key _code 特殊属性
      * @param {*} value
      */
     NodeAbstract.prototype.data = function (key, value) {
+        var _this = this;
         if ('undefined' == typeof value) {
             if ('undefined' == typeof key) {
                 return __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].clone(this._dataQueueDick);
+            }
+            else if ('object' == typeof key) {
+                __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].each(key, function (k, v) {
+                    _this._dataQueueDick[k] = v;
+                });
+                return this;
             }
             return this._dataQueueDick[key];
         }
@@ -151,6 +167,61 @@ var NodeAbstract = /** @class */ (function () {
          */
         get: function () {
             return this._code;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(NodeAbstract.prototype, "name", {
+        /**
+         * 获取 name 做处理判断
+         * @readonly
+         * @type {string}
+         * @memberof NodeAbstract
+         */
+        get: function () {
+            var txt = this.opt.text || '';
+            if (txt && txt.indexOf('\n') > -1) {
+                txt = txt.replace(/\n/g, '');
+            }
+            return txt;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(NodeAbstract.prototype, "_key", {
+        /**
+         * 键值， { cNode } = confNode 映射
+         * @readonly
+         * @type {string}
+         * @memberof NodeAbstract
+         */
+        get: function () {
+            var nt = this.NodeType;
+            if (nt.indexOf('_') > -1) {
+                var aStr_1 = nt.split('_');
+                __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].each(aStr_1, function (idx, v) {
+                    if (idx > 0) {
+                        v = v.substr(0, 1).toLocaleUpperCase() + v.substr(1);
+                        aStr_1[idx] = v;
+                    }
+                });
+                nt = aStr_1.join('');
+            }
+            return nt;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(NodeAbstract.prototype, "type", {
+        /**
+         * 获取类型
+         * @readonly
+         * @type {number}
+         * @memberof NodeAbstract
+         */
+        get: function () {
+            var code = this.code, attr = __WEBPACK_IMPORTED_MODULE_1__confNode__["a" /* cNode */][this._key], tp = attr ? attr.type : null;
+            return tp;
         },
         enumerable: true,
         configurable: true
@@ -202,7 +273,7 @@ var NodeAbstract = /** @class */ (function () {
     };
     /**
      * 连线处理(记录)
-     * @param value
+     * @param value 参数值
      * @param isEnd
      */
     NodeAbstract.prototype.line = function (value, isEnd) {
@@ -254,26 +325,6 @@ var NodeAbstract = /** @class */ (function () {
      * 节点拖动以后处理，调用拖动以后 [接口]
      */
     NodeAbstract.prototype.onDrag = function () { };
-    /**
-     * 公共接口化
-     * NodeBase struct to json 对象， 用于生产节点中 “struct” 的数据结构
-     * @returns {object}
-     */
-    NodeAbstract.prototype.toJson = function () {
-        var _struct = {
-            NodeType: this.NodeType,
-            opt: this.opt,
-            c: {
-                attr: this.c.attr() // 容器属性值
-            }
-        };
-        if (this.label) { // 节点标签
-            _struct.label = {
-                attr: this.label.attr()
-            };
-        }
-        return _struct;
-    };
     /**
      * 获取两点间的距离
      */
@@ -392,12 +443,36 @@ var NodeAbstract = /** @class */ (function () {
         return this;
     };
     /**
+     * 文本属性更新
+     *
+     * @param {string} [text]
+     * @memberof NodeAbstract
+     */
+    NodeAbstract.prototype.updTextAttr = function (text) {
+        var _a = this._getTextPnt(), x = _a.x, y = _a.y;
+        if (this.label) {
+            this.label.attr({
+                x: x, y: y
+            });
+        }
+        // 生成文本
+        if (text) {
+            if (this.label) {
+                this.label.attr('text', text);
+            }
+            else {
+                this.label = this.paper.text(x, y, text);
+            }
+        }
+        return this;
+    };
+    /**
      * 获取处理以后的边框值
      */
     NodeAbstract.prototype.getBBox = function () {
-        var _a = this.c.getBBox(), x = _a.x, y = _a.y, width = _a.width, height = _a.height;
-        x -= 3, y -= 3;
-        width += 6, height += 6;
+        var _a = this.c.getBBox(), x = _a.x, y = _a.y, width = _a.width, height = _a.height, boxPadding = this.feature('boxPadding', null, 3);
+        x -= boxPadding, y -= boxPadding;
+        width += boxPadding * 2, height += boxPadding * 2;
         // 顺时针： 
         var mx = x + width / 2, xx = x + width, my = y + height / 2, xy = y + height, ps = {
             a: { x: x, y: y },
@@ -524,6 +599,7 @@ var NodeAbstract = /** @class */ (function () {
             h: opt.h
         });
         this.select();
+        this.onSize();
         return this;
     };
     /**
@@ -540,6 +616,7 @@ var NodeAbstract = /** @class */ (function () {
             h: opt.h
         });
         this.select();
+        this.onSize();
         return this;
     };
     /**
@@ -568,6 +645,7 @@ var NodeAbstract = /** @class */ (function () {
             this.updAttr(uOpt);
             this.select();
         }
+        this.onSize();
         return this;
     };
     /**
@@ -655,6 +733,11 @@ var NodeAbstract = /** @class */ (function () {
      * 事件接口 [生成边框先关的点] 用于连线
      */
     NodeAbstract.prototype.onCreateBoxPnt = function (rElem) { };
+    /**
+     * 尺寸大小更新
+     * @memberof NodeAbstract
+     */
+    NodeAbstract.prototype.onSize = function () { };
     return NodeAbstract;
 }());
 /* harmony default export */ __webpack_exports__["a"] = (NodeAbstract);
@@ -776,17 +859,17 @@ var Util = /** @class */ (function () {
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return NodeQue; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeBegin__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_NodeTask__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_NodeAudit__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeSign__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_NodeCond__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_NodeSubFlow__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__node_NodeParallel__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__node_NodeMerge__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__node_NodeEnd__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__node_NodeLn__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__node_NodeLnPoly__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeBegin__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_NodeTask__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_NodeAudit__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeSign__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_NodeCond__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_NodeSubFlow__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__node_NodeParallel__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__node_NodeMerge__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__node_NodeEnd__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__node_NodeLn__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__node_NodeLnPoly__ = __webpack_require__(19);
 /**
  * 2018年3月29日 星期四
  * 节点队列
@@ -864,13 +947,63 @@ var NodeQue = /** @class */ (function () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return cNode; });
+/**
+ * 节点常量配置
+ */
+// 1-开始、2-任务、3-判断、4-审核、5-会签、4-并行、5-合并、8-子流程、9-结束
+var cNode = {
+    begin: {
+        type: 1,
+        text: '开始'
+    },
+    task: {
+        type: 2,
+        text: '任务'
+    },
+    cond: {
+        type: 3,
+        text: '判断'
+    },
+    audit: {
+        type: 4,
+        text: '审核'
+    },
+    sign: {
+        type: 5,
+        text: '会签'
+    },
+    parallel: {
+        type: 6,
+        text: '并行'
+    },
+    merge: {
+        type: 7,
+        text: '合并'
+    },
+    subFlow: {
+        type: 8,
+        text: '子流程'
+    },
+    end: {
+        type: 9,
+        text: '结束'
+    }
+};
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__version__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__version__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ToolBar__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ToolBar__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeQue__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__confNode__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__confNode__ = __webpack_require__(3);
 ///<reference path='../index.d.ts' />
 /**
  * 2018年3月1日 星期四
@@ -930,7 +1063,7 @@ var WorkerEditor = /** @class */ (function () {
         // 索引处理字典
         this.idxDick = {
             c: 0,
-            n: 0
+            n: 0 // 节点
         };
         this.nodeDick = {};
         this.connDick = {};
@@ -946,7 +1079,6 @@ var WorkerEditor = /** @class */ (function () {
         // 内部缓存数组件容器： 节点、连接线、独立文本
         this.lineQueues = []; // 连线记录器
         this.textQueues = [];
-        this.tempNodes = []; // 临时节点集
         this.MagneticCore = null; // 连线磁化中心点，用于节点关联，单状态的结构 data: {type: from/to}        
         this._cerateToolBar();
         if (this.config.stepCfg) {
@@ -956,6 +1088,10 @@ var WorkerEditor = /** @class */ (function () {
             catch (error) {
                 console.log(error);
             }
+        }
+        // 数据加载
+        if (config.data) {
+            this.load(config.data);
         }
     }
     /**
@@ -1149,7 +1285,7 @@ var WorkerEditor = /** @class */ (function () {
             nd.onCreateBoxPnt = function (pnt) {
                 var tmpLnIst;
                 // 开启连线模式时
-                if ($this.lineCnMode.isSelEd) {
+                if ($this.lineCnMode && $this.lineCnMode.isSelEd) {
                     //console.log(pnt)
                     var tmpP = { x: 0, y: 0 };
                     pnt.drag(function (dx, dy) {
@@ -1237,6 +1373,104 @@ var WorkerEditor = /** @class */ (function () {
                         // $this.tmpNodeMap['connLnIst'] = tmpLnIst
                     });
                 }
+                // 节点方位拖动大小
+                else {
+                    var tp_1 = { x: 0, y: 0 }, attr_1 = { pcode: null, posi: null };
+                    pnt.drag(function (dx, dy) {
+                        dx += tp_1.x, dy += tp_1.y;
+                        console.log(dx, dy);
+                        var cnode = attr_1.pcode ? $this.nodeDick[attr_1.pcode] : null;
+                        if (cnode && attr_1.pcode && attr_1.posi) {
+                            var opt = cnode.opt, cx = opt.cx, cy = opt.cy, h = opt.h, w = opt.w;
+                            switch (attr_1.posi) {
+                                case 'a':
+                                    /*
+                                    let yt2: number = dy + cnode.feature('boxPadding'),
+                                        xl2: number = dx + cnode.feature('boxPadding'),
+                                        yt: number = cy + h/2,
+                                        xl2: number = cy + h/2
+                                    if(yt1 <= yb){
+                                        let h1: number = Math.abs(yb - yt1),
+                                            cy1: number = yt1 + h1/2
+                                        cnode.updAttr({
+                                            h: h1,
+                                            cy: cy1
+                                        })
+                                        // 同步更新边框，报错 [BUG]
+                                        // cnode.select()
+                                    }
+                                    */
+                                    break;
+                                case 'b': // 上拉 
+                                    var yt1 = dy + cnode.feature('boxPadding'), yb = cy + h / 2;
+                                    if (yt1 <= yb) {
+                                        var h1 = Math.abs(yb - yt1), cy1 = yt1 + h1 / 2;
+                                        cnode.updAttr({
+                                            h: h1,
+                                            cy: cy1
+                                        });
+                                        // 同步更新边框，报错 [BUG]
+                                        // cnode.select()
+                                    }
+                                    break;
+                                case 'c':
+                                    break;
+                                case 'd': // 右拉
+                                    var xr1 = dx - cnode.feature('boxPadding'), xl = cx - w / 2;
+                                    if (xr1 >= xl) {
+                                        var w1 = Math.abs(xl - xr1), cx1 = xr1 - w1 / 2;
+                                        cnode.updAttr({
+                                            w: w1,
+                                            cx: cx1
+                                        });
+                                        // 同步更新边框，报错 [BUG]
+                                        // cnode.select()
+                                    }
+                                    break;
+                                case 'e':
+                                    break;
+                                case 'f': // 下拉
+                                    var yb1 = dy - cnode.feature('boxPadding'), yt = cy - h / 2;
+                                    if (yb1 >= yt) {
+                                        var h1 = Math.abs(yt - yb1), cy1 = yb1 - h1 / 2;
+                                        cnode.updAttr({
+                                            h: h1,
+                                            cy: cy1
+                                        });
+                                        // 同步更新边框，报错 [BUG]
+                                        // cnode.select()
+                                    }
+                                    break;
+                                case 'g':
+                                    break;
+                                case 'h': // 左拉
+                                    var xl1 = dx + cnode.feature('boxPadding'), xr = cx + w / 2;
+                                    if (xl1 <= xr) {
+                                        var w1 = Math.abs(xr - xl1), cx1 = xl1 + w1 / 2;
+                                        cnode.updAttr({
+                                            w: w1,
+                                            cx: cx1
+                                        });
+                                        // 同步更新边框，报错 [BUG]
+                                        // cnode.select()
+                                    }
+                                    break;
+                            }
+                        }
+                    }, function () {
+                        // 处理
+                        tp_1.x = this.attr('cx');
+                        tp_1.y = this.attr('cy');
+                        //console.log(this.data())
+                        attr_1.pcode = this.data('pcode');
+                        attr_1.posi = this.data('posi');
+                    }, function () { });
+                }
+            };
+            // 尺寸自适应
+            nd.onSize = function () {
+                var opt = this.opt;
+                $this._lineMoveSync(opt.cx, opt.cy, this);
             };
         };
         if (node) {
@@ -1411,7 +1645,7 @@ var WorkerEditor = /** @class */ (function () {
         this._rIdx += 1;
         var code = this.config.prefCode + this._rIdx;
         // 判断序列号是否已经存在
-        if (this._code2EidDick[code]) {
+        if (this.nodeDick[code]) {
             code = this._getOrderCode();
         }
         return code;
@@ -1426,24 +1660,24 @@ var WorkerEditor = /** @class */ (function () {
             if ('undefined' != typeof this.idxDick[type]) {
                 this.idxDick[type] += 1;
                 newStr = this.idxDick[type];
+                switch (type) {
+                    case 'c':
+                        if (this.connDick[newStr]) {
+                            newStr = this._order(type, prev);
+                        }
+                        break;
+                    case 'n':
+                        if (this.nodeDick[newStr]) {
+                            newStr = this._order(type, prev);
+                        }
+                        break;
+                }
             }
         }
         if (prev) {
             newStr = prev + newStr;
         }
         return newStr;
-    };
-    /**
-     * 删除临时节点
-     * @returns {this}
-     */
-    WorkerEditor.prototype.removeTempNodes = function () {
-        // 临时节点
-        var tempNodes = this.tempNodes;
-        for (var j = 0; j < tempNodes.length; j++) {
-            var tNode = tempNodes[j];
-            tNode.remove();
-        }
     };
     /**
      * 获取最新的节点
@@ -1562,214 +1796,9 @@ var WorkerEditor = /** @class */ (function () {
         return newNode;
     };
     /**
-     * // d2rw
-     * 移除碰撞属性
-     */
-    WorkerEditor.prototype.removeIntersectMk = function () {
-        var nodes = this.nodeQueues;
-        var IntersectEl = null;
-        for (var i = 0; i < nodes.length; i++) {
-            var node = nodes[i];
-            if (node._IntersectMk) {
-                node._IntersectMk = false;
-                var _type = node.NodeType;
-                var pkgClr = this.config.pkgClr;
-                if (pkgClr[_type]) {
-                    node.c.attr('fill', pkgClr[_type]);
-                }
-                else {
-                    _type = node.c.data('type');
-                    if (1 == _type) {
-                        node.c.attr('fill', pkgClr.start);
-                    }
-                    else if (9 == _type) {
-                        node.c.attr('fill', pkgClr.end);
-                    }
-                }
-                IntersectEl = node;
-            }
-        }
-        return IntersectEl;
-    };
-    /**
-     * d2rw
-     * 移除连接检测线，用于连接线与节点关联时删除就的关联
-     * @param {NodeBase} lineIst
-     * @param {string} type from/to
-     * @returns {bool}
-     */
-    WorkerEditor.prototype.removeConLine = function (lineIst, type) {
-        var isSuccess = false;
-        if (lineIst && type) {
-            var nodes = this.nodeQueues;
-            var refId = lineIst.c.id;
-            for (var i = 0; i < nodes.length; i++) {
-                var node = nodes[i];
-                var lineType = type + 'Line';
-                // 只检测为数组的类型
-                if (node[lineType] && node[lineType].length) {
-                    var lineQues = node[lineType];
-                    var nLineQues = [];
-                    for (var j = 0; j < lineQues.length; j++) {
-                        var lineQue = lineQues[j];
-                        if (refId != lineQue.c.id) {
-                            nLineQues.push(lineQue);
-                        }
-                    }
-                    node[lineType] = nLineQues;
-                }
-            }
-        }
-        return isSuccess;
-    };
-    /**
-     * 删除所有对象
-     * @returns {this}
-     */
-    WorkerEditor.prototype.removeAll = function () {
-        this.removeAllText();
-        this.removeAllLine();
-        this.removeAllNode();
-        return this;
-    };
-    /**
-     * 删除所有节点
-     * @returns {this}
-     */
-    WorkerEditor.prototype.removeAllNode = function () {
-        var nodes = this.nodeQueues;
-        for (var i = 0; i < nodes.length; i++) {
-            var node = nodes[i];
-            if (node.label) {
-                node.label.remove();
-            }
-            node.c.remove();
-        }
-        this.nodeQueues = [];
-        return this;
-    };
-    /**
-     * 删除所有直线
-     * @returns {this}
-     */
-    WorkerEditor.prototype.removeAllLine = function () {
-        var lines = this.lineQueues;
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i];
-            line.c.remove();
-        }
-        this.lineQueues = [];
-        return this;
-    };
-    /**
-     * 删除所有文本
-     * @returns {this}
-     */
-    WorkerEditor.prototype.removeAllText = function () {
-        var texts = this.textQueues;
-        for (var i = 0; i < texts.length; i++) {
-            var text = texts[i];
-            text.remove();
-        }
-        this.textQueues = [];
-        return this;
-    };
-    /**
-     * 通过节点代码获取节点
-     * @param {string} code  NodeBase.c.data('code')
-     * @returns {NodeBase|null}
-     */
-    WorkerEditor.prototype.getNodeByCode = function (code) {
-        var nodeIst = null;
-        var nodes = this.nodeQueues;
-        for (var i = 0; i < nodes.length; i++) {
-            var node = nodes[i];
-            if (node.c.data('code') == code) {
-                nodeIst = node;
-                break;
-            }
-        }
-        return nodeIst;
-    };
-    /**
-    * 通过节点代码获取节点
-    * @param {string} code  NodeBase.c.id
-    * @returns {NodeBase|null}
-    */
-    WorkerEditor.prototype.getNodeByEid = function (code) {
-        var nodeIst = null;
-        var nodes = this.nodeQueues;
-        for (var i = 0; i < nodes.length; i++) {
-            var node = nodes[i];
-            if (node.c.id == code) {
-                nodeIst = node;
-                break;
-            }
-        }
-        return nodeIst;
-    };
-    /**
-     * 代码与id对应，不同时传入值；设置字典
-     * @param {string|null} code
-     * @param {string|null} id
-     * @returns {string|null|this}
-     */
-    WorkerEditor.prototype.code2Id = function (code, id) {
-        // 通过 code 获取 Id
-        if (code && !id) {
-            return this._code2EidDick[code] || null;
-        }
-        // 通过id 获取 code
-        else if (id && !code) {
-            var dick = this._code2EidDick;
-            for (var prefCode in dick) {
-                if (id == dick[prefCode]) {
-                    return prefCode;
-                }
-            }
-            return null;
-        }
-        else if (id && code) {
-            this._code2EidDick[code] = id;
-            return this;
-        }
-    };
-    /**
-     * 设置指定/当前选择节点对象属性
-     * @param {object} option {text}
-     * @param {RaphaelElement|string|null} code REle.id
-     * @returns {bool}
-     */
-    WorkerEditor.prototype.setOption = function (option, code) {
-        var isSuccess = false;
-        if (option) {
-            if ('object' != typeof option) { // 默认为文本，快速设置文本
-                option = { text: option };
-            }
-            if (!code) {
-                code = this.select();
-            }
-            var node = 'object' == typeof code ? code : this.getNodeByCode(code);
-            // 文本属性
-            if (node && option.text) {
-                if (node.label) {
-                    node.label.attr('text', option.text);
-                    node.opt = node.opt || {};
-                    node.opt.text = option.text; // NodeBase 的文本属性值
-                    // 自动适应文本的宽度
-                    if ('function' == typeof node.resizeByText) {
-                        node.resizeByText();
-                    }
-                }
-            }
-        }
-        return isSuccess;
-    };
-    /**
      * 获取选中的实例
      */
     WorkerEditor.prototype.select = function () {
-        var nodes = this.nodeQueues;
         var selectedNode = null;
         // 节点扫描
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (k, node) {
@@ -1790,108 +1819,128 @@ var WorkerEditor = /** @class */ (function () {
         return selectedNode;
     };
     /**
-     * 获取最新生成的节点
-     * @returns {NodeBase}
+     * 获取节点属性
+     * @memberof WorkerEditor
      */
-    WorkerEditor.prototype.getLastElem = function () {
-        var lastElem = null;
-        var nodes = this.nodeQueues;
-        if (nodes.length > 0) {
-            lastElem = nodes[nodes.length - 1];
+    WorkerEditor.prototype.step = function (node) {
+        var _this = this;
+        if ('object' != typeof node) {
+            node = this.connDick[node];
         }
-        return lastElem;
-    };
-    /**
-     * 获取工作流步骤,用于保存工作流的数据结构
-     * @returns {array}
-     */
-    WorkerEditor.prototype.getFlowStep = function () {
-        var step = [];
-        var nodes = this.nodeQueues;
-        for (var i = 0; i < nodes.length; i++) {
-            var node = nodes[i];
-            var stepAttr = this.getFlowJson(node);
-            step.push(stepAttr);
-        }
-        return step;
-    };
-    /**
-     * 获取节点业务需求的数据结构
-     * @param {NodeBase|null} node 节点实例， 为空时为当前选中的节点
-     * @returns {object|null}
-     */
-    WorkerEditor.prototype.getFlowJson = function (node) {
-        if (!node) {
-            node = this.select();
-        }
-        var fjson = {};
+        var data;
         if (node) {
-            var label = node.label || null;
-            var c = node.c;
-            fjson = {
-                name: label ? label.attr('text') : '',
-                code: c.data('code'),
-                type: c.data('type'),
-                _struct: node.toJson()
+            var conLns = node.conLns, from = conLns.from, to = conLns.to, fromQue_1 = [], toQue_1 = [];
+            // 起点
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(from, function (idx, cc) {
+                var cnIst = _this.connDick[cc];
+                if (cnIst) {
+                    var tCode = cnIst.data('to_code'), tPosi = cnIst.data('to_posi');
+                    toQue_1.push(cnIst.data('to_code'));
+                }
+            });
+            // 终点
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(to, function (idx, cc) {
+                var cnIst = _this.connDick[cc];
+                if (cnIst) {
+                    var fCode = cnIst.data('from_code'), fPosi = cnIst.data('from_posi');
+                    fromQue_1.push(cnIst.data('from_code'));
+                }
+            });
+            data = {};
+            // 正式数据
+            data.code = node.code;
+            data.name = node.name;
+            data.type = node.type;
+            data.prev = toQue_1.join(',');
+            data.next = fromQue_1.join(',');
+            // 坐标点属性值
+            data._srroo = {
+                opt: node.opt,
+                NodeType: node.NodeType
             };
-            // 终点
-            var toLines = node.toLine;
-            var toLineArr = [];
-            for (var j = 0; j < toLines.length; j++) {
-                var code = this.getLineCntCode('from', toLines[j].c.id, node);
-                if (code) {
-                    toLineArr.push(code);
-                }
-            }
-            fjson.prev = toLineArr.length > 0 ? toLineArr.join(',') : '';
-            // 终点
-            var fromLines = node.fromLine;
-            var fromLineArr = [];
-            for (var k = 0; k < fromLines.length; k++) {
-                var code = this.getLineCntCode('to', fromLines[k].c.id, node);
-                if (code) {
-                    fromLineArr.push(code);
-                }
-            }
-            fjson.next = fromLineArr.length > 0 ? fromLineArr.join(',') : '';
         }
-        else {
-            fjson = null;
-        }
-        return fjson;
+        return data;
     };
     /**
-     * 获取连接线端点的节点代码
-     * @param {string} type from/to
-     * @param {string} lineId 直线代码
-     * @param {NodeBase|null|string} refIst 参照id/NodeBase attr= {code}
-     * @returns {string}
+     * 保存，且获取数据
+     *
+     * @memberof WorkerEditor
      */
-    WorkerEditor.prototype.getLineCntCode = function (type, lineId, refIst) {
-        var code = null;
-        if (type && lineId) {
-            var nodes = this.nodeQueues;
-            var refId = null;
-            if (refIst) {
-                refId = 'string' == typeof refIst ? refIst : refIst.c.data('code');
-            }
-            var typeName = type + 'Line';
-            for (var i = 0; i < nodes.length; i++) {
-                var node = nodes[i];
-                var cId = node.c.data('code');
-                if (refId == cId) { // 跳过自身检测
-                    continue;
+    WorkerEditor.prototype.save = function () {
+        var _this = this;
+        var stepStru = [];
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (code, node) {
+            stepStru.push(_this.step(node));
+        });
+        var _srroo = {}, line = {};
+        // 连线
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.connDick, function (cd, ist) {
+            line[cd] = {
+                data: ist.data(),
+                NodeType: ist.NodeType,
+                opt: ist.opt
+            };
+        });
+        _srroo = { line: line };
+        return {
+            step: stepStru,
+            _srroo: _srroo
+        };
+    };
+    /**
+     * 数据加载
+     * @param {any} data
+     * @returns
+     * @memberof WorkerEditor
+     */
+    WorkerEditor.prototype.load = function (data) {
+        var _this = this;
+        var $this = this, lineQue = {};
+        var step = data.step, _srroo = data._srroo;
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(step, function (i, _step) {
+            var code = _step.code, srroo = _step._srroo, prev = srroo.prev, next = srroo.next;
+            // 节点生成
+            var $node = _this.ndMer.make(srroo.NodeType, srroo.opt)
+                .creator()
+                .moveable({
+                afterUpd: function (x, y, node) {
+                    $this._lineMoveSync(x, y, node);
                 }
-                var typeLines = node[typeName];
-                for (var j = 0; j < typeLines.length; j++) {
-                    var typeLine = typeLines[j];
-                    if (lineId == typeLine.c.id) {
-                        return cId;
-                    }
+            });
+            // 保存到字典中
+            $node.data('_code', code);
+            _this._nodeBindEvt($node);
+            $this.nodeDick[code] = $node;
+        });
+        // 连线生成处理
+        // console.log(_srroo.line)
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(_srroo.line, function (cd, ln) {
+            var _data = ln.data;
+            var $ln = _this.ndMer.make(ln.NodeType, ln.opt)
+                .creator()
+                .moveable({
+                afterUpd: function (x, y, node) {
+                    $this._lineMoveSync(x, y, node);
                 }
+            });
+            $ln.data('_code', cd);
+            $ln.data(_data);
+            var fCode = _data.from_code, tCode = _data.to_code;
+            var fIst = _this.nodeDick[fCode], tIst = _this.nodeDick[tCode];
+            _this._lineBindEvt($ln);
+            _this.connDick[cd] = $ln;
+            if (fIst) {
+                fIst.line(cd);
             }
-        }
-        return code;
+            if (tIst) {
+                tIst.line(cd, true);
+            }
+        });
+        // 当前运行的节点
+        // 文件加载以后才显示
+        var curCode = this.config.curCode || null;
+        if (curCode && this.nodeDick[curCode]) { }
+        return this;
     };
     // removeTmpNode(value?: any){
     WorkerEditor.prototype.removeTmpNode = function (value) {
@@ -1956,7 +2005,7 @@ var WorkerEditor = /** @class */ (function () {
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2028,10 +2077,10 @@ var H = /** @class */ (function () {
 }());
 /* harmony default export */ __webpack_exports__["a"] = (H);
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(5)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(6)))
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -2221,21 +2270,21 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 6 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.0.15", "release": "20180415", "author": "Joshua Conero" };
-
-
-/***/ }),
 /* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
+var LibVersion = { "version": "2.1.0", "release": "20180416", "author": "Joshua Conero" };
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeQue__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ObjX__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ObjX__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
 
 
@@ -2552,7 +2601,7 @@ var ToolBar = /** @class */ (function () {
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2608,13 +2657,7 @@ var NodeBegin = /** @class */ (function (_super) {
             rx: opt.w / 2,
             ry: opt.h / 2
         });
-        // 文字
-        if (this.label) {
-            var _a = this._getTextPnt(), x = _a.x, y = _a.y;
-            this.label.attr({
-                x: x, y: y
-            });
-        }
+        this.updTextAttr(nOpt.text); // 文字
         return this;
     };
     return NodeBegin;
@@ -2623,7 +2666,7 @@ var NodeBegin = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2688,13 +2731,7 @@ var NodeTask = /** @class */ (function (_super) {
             height: opt.h
         };
         this.c.attr(cAttr);
-        // 文字
-        if (this.label) {
-            var _a = this._getTextPnt(), x = _a.x, y = _a.y;
-            this.label.attr({
-                x: x, y: y
-            });
-        }
+        this.updTextAttr(nOpt.text); // 文字
         return this;
     };
     return NodeTask;
@@ -2703,7 +2740,7 @@ var NodeTask = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2777,13 +2814,7 @@ var NodeAudit = /** @class */ (function (_super) {
         this._updAttr(nOpt);
         var opt = this.opt2Attr();
         this.c.attr('path', this._ps2PathAttr(opt, true));
-        // 文字
-        if (this.label) {
-            var _a = this._getTextPnt(), x = _a.x, y = _a.y;
-            this.label.attr({
-                x: x, y: y
-            });
-        }
+        this.updTextAttr(nOpt.text); // 文字
         return this;
     };
     return NodeAudit;
@@ -2792,7 +2823,7 @@ var NodeAudit = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2866,13 +2897,7 @@ var NodeSign = /** @class */ (function (_super) {
         this._updAttr(nOpt);
         var opt = this.opt2Attr();
         this.c.attr('path', this._ps2PathAttr(opt, true));
-        // 文字
-        if (this.label) {
-            var _a = this._getTextPnt(), x = _a.x, y = _a.y;
-            this.label.attr({
-                x: x, y: y
-            });
-        }
+        this.updTextAttr(nOpt.text); // 文字
         return this;
     };
     return NodeSign;
@@ -2881,7 +2906,7 @@ var NodeSign = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2954,13 +2979,7 @@ var NodeCond = /** @class */ (function (_super) {
         this._updAttr(nOpt);
         var opt = this.opt2Attr();
         this.c.attr('path', this._ps2PathAttr(opt, true));
-        // 文字
-        if (this.label) {
-            var _a = this._getTextPnt(), x = _a.x, y = _a.y;
-            this.label.attr({
-                x: x, y: y
-            });
-        }
+        this.updTextAttr(nOpt.text); // 文字
         return this;
     };
     return NodeCond;
@@ -2969,7 +2988,7 @@ var NodeCond = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3047,13 +3066,7 @@ var NodeSubFlow = /** @class */ (function (_super) {
         });
         this.inlinesEle[0].attr('path', this._ps2PathAttr(lLine));
         this.inlinesEle[1].attr('path', this._ps2PathAttr(rLine));
-        // 文字
-        if (this.label) {
-            var _b = this._getTextPnt(), x = _b.x, y = _b.y;
-            this.label.attr({
-                x: x, y: y
-            });
-        }
+        this.updTextAttr(nOpt.text); // 文字
         return this;
     };
     return NodeSubFlow;
@@ -3062,7 +3075,7 @@ var NodeSubFlow = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3147,7 +3160,7 @@ var NodeParallel = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3240,7 +3253,7 @@ var NodeMerge = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3295,13 +3308,7 @@ var NodeEnd = /** @class */ (function (_super) {
             rx: opt.w / 2,
             ry: opt.h / 2
         });
-        // 文字
-        if (this.label) {
-            var _a = this._getTextPnt(), x = _a.x, y = _a.y;
-            this.label.attr({
-                x: x, y: y
-            });
-        }
+        this.updTextAttr(nOpt.text); // 文字
         return this;
     };
     return NodeEnd;
@@ -3310,7 +3317,7 @@ var NodeEnd = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3425,12 +3432,12 @@ var NodeLn = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeUtil__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeUtil__ = __webpack_require__(20);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -3644,7 +3651,7 @@ var NodeLnPoly = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3695,7 +3702,7 @@ var NodeUtil = /** @class */ (function () {
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3740,56 +3747,6 @@ var ObjX = /** @class */ (function () {
     return ObjX;
 }());
 /* harmony default export */ __webpack_exports__["a"] = (ObjX);
-
-
-/***/ }),
-/* 21 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return cNode; });
-/**
- * 节点常量配置
- */
-// 1-开始、2-任务、3-判断、4-审核、5-会签、4-并行、5-合并、8-子流程、9-结束
-var cNode = {
-    begin: {
-        type: 1,
-        text: '开始'
-    },
-    task: {
-        type: 2,
-        text: '任务'
-    },
-    cond: {
-        type: 3,
-        text: '判断'
-    },
-    audit: {
-        type: 4,
-        text: '审核'
-    },
-    sign: {
-        type: 5,
-        text: '会签'
-    },
-    parallel: {
-        type: 6,
-        text: '并行'
-    },
-    merge: {
-        type: 7,
-        text: '合并'
-    },
-    subFlow: {
-        type: 8,
-        text: '子流程'
-    },
-    end: {
-        type: 9,
-        text: '结束'
-    }
-};
 
 
 /***/ })

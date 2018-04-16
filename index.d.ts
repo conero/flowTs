@@ -111,7 +111,24 @@ declare namespace rSu{
         },
         ps: rSu.bsMap
     }
-
+    // 节点属性参数
+    export interface Step{
+        code: string    // 代码
+        type: number    // 乐行
+        name: string    // 文本/标签
+        prev: string    // 父节点
+        next: string    // 子节点
+        _srroo: {
+            opt: rSu.NodeOpt
+            prev: {
+                [k: string]: any
+            }
+            next: {
+                [k: string]: any
+            },
+            NodeType: string
+        }
+    }
     // 节点信息 -> class
     export interface Node{
         //--------> 属性
@@ -130,13 +147,16 @@ declare namespace rSu{
         xRate?: number           // 移除边框百分比
         inlinesEle?: RaphaelElement[]    // 合并
         inlineEle?: RaphaelElement       // 并行
-        code?: string                    // 只读属性
+        readonly code?: string                    // 只读属性
+        readonly type?: number                    // 只读属性
+        readonly name?: string
 
         //--------> 方法
         // NodeAbstract => NodeAbstract
         // 节点生成器，外部可访问接口
         creator(opt?: rSu.NodeOpt): Node
         onDrag(): any
+        onSize(): void
         // 获取两点间的距离
         getPLen(P1: rSu.P, P2: rSu.P): number
         delete(): void
@@ -144,6 +164,7 @@ declare namespace rSu{
         show(): Node
         moveable(data?: rSu.bsMap): rSu.Node
         updAttr(nOpt?: rSu.NodeOpt): Node
+        updTextAttr(text?: string): rSu.Node
         getBBox(): BoxAttr
         select(): Node  // 选中节点        
         magnCore(px: number, py: number): RaphaelElement

@@ -16,7 +16,9 @@
 
 - 节点选择边框点
     - 圆形 circle ， data 参数值包括 {pcode: 节点代码, posi: 连接点位置(a-h)}
-
+- 特征值
+    - boxPadding 3  内边距
+    
 ### NodeLn 直线
 
 - 特殊连接点: 三点连线式
@@ -73,10 +75,21 @@
             aDownSrc: '箭头向上图片地址：默认 arrow_down.png',
             lnSeledBkg: ' 选择颜色码'
             lnDefBkg: ' 默认颜色码'
-        }
+        },
+        data: 'obejct'  // 保存的历史数据
+        curCode: 'string|string[]'   // 显示当前到的节点代码
     }
 ```
 
+```js
+// config.data 格式
+{
+    step: []    // 步骤信息
+    _srroo: {
+        line: {}    // 连接线
+    }
+}
+```
 ## src/WorkerEditor.ts 编辑器
 - 属性说明
     - tmpNodeMap 临时字典

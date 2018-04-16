@@ -1,5 +1,3 @@
-import { Util } from "../util";
-
 /**
  * 2018年3月26日 星期一
  * 抽象节点
@@ -12,6 +10,8 @@ import { Util } from "../util";
 // declare var $: jquery
     // BUG[180331]  <reference path="../types/jquery.ts"/> 无效
 declare var $: any
+import { Util } from "../util"
+import {cNode} from '../confNode'
 
 
 /**
@@ -21,7 +21,7 @@ declare var $: any
  */
 export default abstract class NodeAbstract{
     conLns: {
-        from?: string[]    // [{code: '', posi: ''}] 
+        from?: string[]    // [code: string] 
         to?: string[]
     }
     NodeType: string            // 节点类型
@@ -88,13 +88,19 @@ export default abstract class NodeAbstract{
         }
     }
     /**
-     * @param {string|number} key _code 特殊属性
+     * @param {string|number|object} key _code 特殊属性
      * @param {*} value 
      */
     data(key?:any, value?:any): any{        
         if('undefined' == typeof value){
             if('undefined' == typeof key){
                 return Util.clone(this._dataQueueDick)
+            }
+            else if('object' == typeof key){
+                Util.each(key, (k: any, v: any) => {
+                    this._dataQueueDick[k] = v
+                })
+                return this
             }
             return this._dataQueueDick[key]
         }else{
@@ -111,6 +117,51 @@ export default abstract class NodeAbstract{
      */
     get code():string{
         return this._code
+    }
+    /**
+     * 获取 name 做处理判断
+     * @readonly
+     * @type {string}
+     * @memberof NodeAbstract
+     */
+    get name(): string{
+        let txt = this.opt.text || ''
+        if(txt && txt.indexOf('\n') > -1){
+            txt = txt.replace(/\n/g, '')
+        }
+        return txt
+    }
+    /**
+     * 键值， { cNode } = confNode 映射
+     * @readonly
+     * @type {string}
+     * @memberof NodeAbstract
+     */
+    get _key(): string{
+        let nt = this.NodeType
+        if(nt.indexOf('_') > -1){
+            let aStr = nt.split('_')
+            Util.each(aStr, (idx: number, v: string) => {
+                if(idx > 0){
+                    v = v.substr(0, 1).toLocaleUpperCase() + v.substr(1)
+                    aStr[idx] = v
+                }
+            })
+            nt = aStr.join('')
+        }
+        return nt
+    }
+    /**
+     * 获取类型
+     * @readonly
+     * @type {number}
+     * @memberof NodeAbstract
+     */
+    get type(): number{
+        let code = this.code,
+            attr = cNode[this._key],
+            tp: number = attr? attr.type : null
+        return tp
     }
     /**
      * 节点生成器，外部可访问接口
@@ -159,7 +210,7 @@ export default abstract class NodeAbstract{
     }
     /**
      * 连线处理(记录)
-     * @param value 
+     * @param value 参数值
      * @param isEnd 
      */
     line(value: string, isEnd?: boolean): rSu.Node{
@@ -211,26 +262,6 @@ export default abstract class NodeAbstract{
      * 节点拖动以后处理，调用拖动以后 [接口]
      */
     onDrag(){}
-    /**
-     * 公共接口化
-     * NodeBase struct to json 对象， 用于生产节点中 “struct” 的数据结构
-     * @returns {object}
-     */
-    toJson(){
-        var _struct: Flower.StepStru = {
-            NodeType: this.NodeType,            // 节点类型
-            opt: this.opt,                      // 数据属性
-            c: {
-                attr: this.c.attr()              // 容器属性值
-            }            
-        }
-        if(this.label){                         // 节点标签
-            _struct.label = {
-                attr: this.label.attr()
-            }
-        }
-        return _struct
-    }
     /**
      * 获取两点间的距离
      */
@@ -356,12 +387,36 @@ export default abstract class NodeAbstract{
         return <rSu.Node>this
     }    
     /**
+     * 文本属性更新
+     * 
+     * @param {string} [text] 
+     * @memberof NodeAbstract
+     */
+    updTextAttr(text?: string): rSu.Node{
+        let {x, y} = this._getTextPnt()
+        if(this.label){
+            this.label.attr({
+                x, y
+            })
+        }
+        // 生成文本
+        if(text){
+            if(this.label){
+                this.label.attr('text', text)
+            }else{
+                this.label = this.paper.text(x, y, text)
+            }
+        }
+        return <rSu.Node>this
+    }
+    /**
      * 获取处理以后的边框值
      */
     getBBox(): rSu.BoxAttr{
-        let {x, y, width, height} = this.c.getBBox()
-        x -= 3, y -= 3
-        width += 6, height += 6
+        let {x, y, width, height} = this.c.getBBox(),
+            boxPadding = this.feature('boxPadding', null, 3)
+        x -= boxPadding, y -= boxPadding
+        width += boxPadding*2, height += boxPadding*2
 
         // 顺时针： 
         let mx = x + width/2, 
@@ -511,6 +566,7 @@ export default abstract class NodeAbstract{
             h: opt.h
         })
         this.select()
+        this.onSize()
         return <rSu.Node>this
     }
     /**
@@ -527,6 +583,7 @@ export default abstract class NodeAbstract{
             h: opt.h
         })
         this.select()
+        this.onSize()
         return <rSu.Node>this
     }
     /**
@@ -556,6 +613,7 @@ export default abstract class NodeAbstract{
             this.updAttr(uOpt)
             this.select()
         }
+        this.onSize()
         return <rSu.Node>this
     }
     /**
@@ -640,4 +698,9 @@ export default abstract class NodeAbstract{
      * 事件接口 [生成边框先关的点] 用于连线
      */
     onCreateBoxPnt(rElem: RaphaelElement){}
+    /**
+     * 尺寸大小更新
+     * @memberof NodeAbstract
+     */
+    onSize(){}
 }

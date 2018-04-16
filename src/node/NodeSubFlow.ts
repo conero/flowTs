@@ -71,14 +71,7 @@ export default class NodeSubFlow extends NodeAbstract{
         this.inlinesEle[0].attr('path', this._ps2PathAttr(lLine))
         this.inlinesEle[1].attr('path', this._ps2PathAttr(rLine))
 
-        // 文字
-        if(this.label){
-            let {x, y} = this._getTextPnt()
-            this.label.attr({
-                x, y
-            })
-        }
-        
+        this.updTextAttr(nOpt.text)  // 文字
         return <rSu.Node>this
     }
 }

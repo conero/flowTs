@@ -62,10 +62,8 @@ export default class WorkerEditor{
         [k: string]: string
     }
     _LineDragingP:any
-    nodeQueues: any
     lineQueues: any
     textQueues: any
-    tempNodes: any
     MagneticCore: any
     toolbarCtrl?: rSu.ToolBar       // 工具栏控制器
     
@@ -92,8 +90,8 @@ export default class WorkerEditor{
     constructor(config: any){  
         // 索引处理字典
         this.idxDick = {
-            c: 0,
-            n: 0
+            c: 0,                   // 连接线
+            n: 0                    // 节点
         }
         this.nodeDick = {}      
         this.connDick = {}
@@ -109,7 +107,6 @@ export default class WorkerEditor{
         // 内部缓存数组件容器： 节点、连接线、独立文本
         this.lineQueues = []                    // 连线记录器
         this.textQueues = []
-        this.tempNodes = []                     // 临时节点集
         this.MagneticCore = null                // 连线磁化中心点，用于节点关联，单状态的结构 data: {type: from/to}        
         this._cerateToolBar()
         if(this.config.stepCfg){
@@ -118,6 +115,10 @@ export default class WorkerEditor{
             } catch (error) {
                 console.log(error)
             }
+        }
+        // 数据加载
+        if(config.data){
+            this.load(config.data)
         }
     }
     /**
@@ -332,7 +333,7 @@ export default class WorkerEditor{
             nd.onCreateBoxPnt = function(pnt: RaphaelElement){
                 var tmpLnIst: rSu.Node             
                 // 开启连线模式时
-                if($this.lineCnMode.isSelEd){
+                if($this.lineCnMode && $this.lineCnMode.isSelEd){
                     //console.log(pnt)
                     var tmpP = {x: 0, y: 0}
                     pnt.drag(
@@ -431,6 +432,119 @@ export default class WorkerEditor{
                         }
                     )
                 }
+                // 节点方位拖动大小
+                else{
+                    let tp: rSu.P = {x: 0, y: 0},
+                        attr: rSu.bsMap = {pcode: null, posi: null}
+                    pnt.drag(
+                        function(dx: number, dy: number){
+                            dx += tp.x, dy += tp.y
+                            console.log(dx, dy)
+                            let cnode: rSu.Node = attr.pcode? $this.nodeDick[attr.pcode]: null
+                            if(cnode && attr.pcode && attr.posi){
+                                let opt = cnode.opt,
+                                    {cx, cy, h, w} = opt
+                                switch(attr.posi){
+                                    case 'a':
+                                        /*
+                                        let yt2: number = dy + cnode.feature('boxPadding'),
+                                            xl2: number = dx + cnode.feature('boxPadding'),
+                                            yt: number = cy + h/2,
+                                            xl2: number = cy + h/2
+                                        if(yt1 <= yb){
+                                            let h1: number = Math.abs(yb - yt1),
+                                                cy1: number = yt1 + h1/2
+                                            cnode.updAttr({
+                                                h: h1,
+                                                cy: cy1
+                                            })  
+                                            // 同步更新边框，报错 [BUG]
+                                            // cnode.select()
+                                        }
+                                        */
+                                        break
+                                    case 'b':   // 上拉 
+                                        let yt1: number = dy + cnode.feature('boxPadding'),
+                                            yb: number = cy + h/2
+                                        if(yt1 <= yb){
+                                            let h1: number = Math.abs(yb - yt1),
+                                                cy1: number = yt1 + h1/2
+                                            cnode.updAttr({
+                                                h: h1,
+                                                cy: cy1
+                                            })  
+                                            // 同步更新边框，报错 [BUG]
+                                            // cnode.select()
+                                        }
+                                        break
+                                    case 'c':
+                                        break
+                                    case 'd':   // 右拉
+                                        let xr1: number = dx - cnode.feature('boxPadding'),
+                                            xl: number = cx - w/2
+                                        if(xr1 >= xl){
+                                            let w1: number = Math.abs(xl - xr1),
+                                                cx1: number = xr1 - w1/2
+                                            cnode.updAttr({
+                                                w: w1,
+                                                cx: cx1
+                                            })
+                                            // 同步更新边框，报错 [BUG]
+                                            // cnode.select()
+                                        }
+                                        break
+                                    case 'e':
+                                        break
+                                    case 'f':   // 下拉
+                                        let yb1: number = dy - cnode.feature('boxPadding'),
+                                            yt: number = cy - h/2
+                                        if(yb1 >= yt){
+                                            let h1: number = Math.abs(yt - yb1),
+                                                cy1: number = yb1 - h1/2
+                                            cnode.updAttr({
+                                                h: h1,
+                                                cy: cy1
+                                            })  
+                                            // 同步更新边框，报错 [BUG]
+                                            // cnode.select()
+                                        }
+                                        break
+                                    case 'g':
+                                        break
+                                    case 'h':   // 左拉
+                                        let xl1: number = dx + cnode.feature('boxPadding'),
+                                            xr: number = cx + w/2
+                                        if(xl1 <= xr){
+                                            let w1: number = Math.abs(xr - xl1),
+                                                cx1: number = xl1 + w1/2
+                                            cnode.updAttr({
+                                                w: w1,
+                                                cx: cx1
+                                            })
+                                            // 同步更新边框，报错 [BUG]
+                                            // cnode.select()
+                                        }
+                                        break
+                                }
+                            }
+                        },
+                        function(){
+                            // 处理
+                            tp.x = this.attr('cx')
+                            tp.y = this.attr('cy')
+                            //console.log(this.data())
+
+                            attr.pcode = this.data('pcode')
+                            attr.posi = this.data('posi')
+                        },
+                        function(){}
+                    )
+                }
+            }
+            // 尺寸自适应
+            nd.onSize = function(){
+                let opt = this.opt
+                $this._lineMoveSync(opt.cx, opt.cy, this)
             }
         }
         if(node){
@@ -623,7 +737,7 @@ export default class WorkerEditor{
         this._rIdx += 1
         var code = this.config.prefCode + this._rIdx
         // 判断序列号是否已经存在
-        if(this._code2EidDick[code]){
+        if(this.nodeDick[code]){
             code = this._getOrderCode()
         }
         return code
@@ -638,24 +752,24 @@ export default class WorkerEditor{
             if('undefined' != typeof this.idxDick[type]){
                 this.idxDick[type] += 1
                 newStr = this.idxDick[type]
+                switch(type){
+                    case 'c':
+                        if(this.connDick[newStr]){
+                            newStr = this._order(type, prev)
+                        }
+                        break
+                    case 'n':
+                        if(this.nodeDick[newStr]){
+                            newStr = this._order(type, prev)
+                        }
+                        break
+                }
             }
         }
         if(prev){
             newStr = prev + newStr
         }
         return newStr
-    }
-    /**
-     * 删除临时节点
-     * @returns {this}
-     */
-    removeTempNodes(){
-        // 临时节点
-        var tempNodes = this.tempNodes
-        for(var j=0; j<tempNodes.length; j++){
-            var tNode = tempNodes[j]
-            tNode.remove()
-        }
     }
     /**
      * 获取最新的节点
@@ -778,214 +892,9 @@ export default class WorkerEditor{
         return newNode
     }
     /**
-     * // d2rw
-     * 移除碰撞属性
-     */
-    removeIntersectMk(){
-        var nodes = this.nodeQueues
-        var IntersectEl = null
-        for(var i=0; i<nodes.length; i++){
-            var node = nodes[i]
-            if(node._IntersectMk){
-                node._IntersectMk = false       
-                var _type = node.NodeType
-                var pkgClr = this.config.pkgClr
-                if(pkgClr[_type]){
-                    node.c.attr('fill', pkgClr[_type])
-                }else{
-                    _type = node.c.data('type')
-                    if(1 == _type){
-                        node.c.attr('fill', pkgClr.start)
-                    }
-                    else if(9 == _type){
-                        node.c.attr('fill', pkgClr.end)
-                    }
-                }
-                IntersectEl = node         
-
-            }
-        }
-        return IntersectEl
-    }
-    /**
-     * d2rw
-     * 移除连接检测线，用于连接线与节点关联时删除就的关联
-     * @param {NodeBase} lineIst 
-     * @param {string} type from/to
-     * @returns {bool}
-     */
-    removeConLine(lineIst: any, type: string){
-        var isSuccess = false
-        if(lineIst && type){
-            var nodes = this.nodeQueues
-            var refId = lineIst.c.id
-            for(var i=0; i<nodes.length; i++){
-                var node = nodes[i]
-                var lineType = type + 'Line'
-                // 只检测为数组的类型
-                if(node[lineType] && node[lineType].length){
-                    var lineQues = node[lineType]
-                    var nLineQues = []
-                    for(var j=0; j<lineQues.length; j++){
-                        var lineQue = lineQues[j]
-                        if(refId != lineQue.c.id){
-                            nLineQues.push(lineQue)
-                        }
-                    }
-                    node[lineType] = nLineQues
-                }
-            }
-        }
-        return isSuccess
-    }
-    /**
-     * 删除所有对象
-     * @returns {this}
-     */
-    removeAll(){        
-        this.removeAllText()
-        this.removeAllLine()
-        this.removeAllNode()
-        return this
-    }
-    /**
-     * 删除所有节点
-     * @returns {this}
-     */
-    removeAllNode(){
-        var nodes = this.nodeQueues
-        for(var i=0; i<nodes.length; i++){
-            var node = nodes[i]
-            if(node.label){
-                node.label.remove()
-            }
-            node.c.remove()
-        }
-        this.nodeQueues = []
-        return this
-    }
-    /**
-     * 删除所有直线
-     * @returns {this}
-     */
-    removeAllLine(){
-        var lines = this.lineQueues
-        for(var i=0; i<lines.length; i++){
-            var line = lines[i]
-            line.c.remove()
-        }
-        this.lineQueues = []
-        return this
-    }
-    /**
-     * 删除所有文本
-     * @returns {this}
-     */
-    removeAllText(){
-        var texts = this.textQueues
-        for(var i=0; i<texts.length; i++){
-            var text = texts[i]
-            text.remove()
-        }
-        this.textQueues = []
-        return this
-    }
-    /**
-     * 通过节点代码获取节点
-     * @param {string} code  NodeBase.c.data('code')
-     * @returns {NodeBase|null}
-     */
-    getNodeByCode(code: any){
-        var nodeIst = null
-        var nodes = this.nodeQueues
-        for(var i=0; i<nodes.length; i++){
-            var node = nodes[i]
-            if(node.c.data('code') == code){
-                nodeIst = node
-                break
-            }
-        }
-        return nodeIst
-    }
-     /**
-     * 通过节点代码获取节点
-     * @param {string} code  NodeBase.c.id
-     * @returns {NodeBase|null}
-     */
-    getNodeByEid(code: string){
-        var nodeIst = null
-        var nodes = this.nodeQueues
-        for(var i=0; i<nodes.length; i++){
-            var node = nodes[i]
-            if(node.c.id == code){
-                nodeIst = node
-                break
-            }
-        }
-        return nodeIst
-    }
-    /**
-     * 代码与id对应，不同时传入值；设置字典
-     * @param {string|null} code 
-     * @param {string|null} id 
-     * @returns {string|null|this}
-     */
-    code2Id(code: string, id:string){
-        // 通过 code 获取 Id
-        if(code && !id){
-            return this._code2EidDick[code] || null
-        }
-        // 通过id 获取 code
-        else if(id && !code){
-            var dick = this._code2EidDick
-            for(var prefCode in dick){
-                if(id == dick[prefCode]){
-                    return prefCode
-                }
-            }
-            return null
-        }
-        else if(id && code){
-            this._code2EidDick[code] = id
-            return this
-        }
-    }
-    /**
-     * 设置指定/当前选择节点对象属性
-     * @param {object} option {text}
-     * @param {RaphaelElement|string|null} code REle.id
-     * @returns {bool}
-     */
-    setOption(option: any, code: any){
-        var isSuccess = false
-        if(option){
-            if('object' != typeof option){  // 默认为文本，快速设置文本
-                option = {text: option}
-            }
-            if(!code){
-                code = this.select()
-            }
-            var node = 'object' == typeof code? code : this.getNodeByCode(code)
-            // 文本属性
-            if(node && option.text){
-                if(node.label){
-                    node.label.attr('text', option.text)
-                    node.opt = node.opt || {}
-                    node.opt.text = option.text     // NodeBase 的文本属性值
-                    // 自动适应文本的宽度
-                    if('function' == typeof node.resizeByText){
-                        node.resizeByText()
-                    }
-                }
-            }
-        }
-        return isSuccess
-    }
-    /**
      * 获取选中的实例
      */
-    select(): rSu.Node{
-        var nodes = this.nodeQueues
+    select(): rSu.Node{     
         var selectedNode: rSu.Node = null
         // 节点扫描
         Util.each(this.nodeDick, (k: string, node: rSu.Node) => {
@@ -1004,111 +913,143 @@ export default class WorkerEditor{
             })
         }
         return selectedNode
-    }    
-    /**
-     * 获取最新生成的节点
-     * @returns {NodeBase}
-     */
-    getLastElem(){
-        var lastElem = null
-        var nodes = this.nodeQueues
-        if(nodes.length > 0){
-            lastElem = nodes[nodes.length - 1]
-        }
-        return lastElem
     }
     /**
-     * 获取工作流步骤,用于保存工作流的数据结构
-     * @returns {array}
+     * 获取节点属性
+     * @memberof WorkerEditor
      */
-    getFlowStep(){
-        var step = []
-        var nodes = this.nodeQueues
-        for(var i=0; i<nodes.length; i++){
-            var node = nodes[i]
-            var stepAttr = this.getFlowJson(node)
-            step.push(stepAttr)
+    step(node: string | rSu.Node){
+        if('object' != typeof node){
+            node = this.connDick[<string>node]
         }
-        return step
-    }
-    /**
-     * 获取节点业务需求的数据结构
-     * @param {NodeBase|null} node 节点实例， 为空时为当前选中的节点
-     * @returns {object|null}
-     */
-    getFlowJson(node: any){
-        if(!node){
-            node = this.select()
-        }
-        var fjson: Flower.StepStr = {}
+        let data: rSu.bsMap
         if(node){
-            var label = node.label || null
-            var c = node.c
-            fjson = {
-                name: label? label.attr('text'):'',
-                code: c.data('code'),
-                type: c.data('type'),
-                _struct: node.toJson()
-            }
-            // 终点
-            var toLines = node.toLine
-            var toLineArr = []
-            for(var j=0; j<toLines.length; j++){
-                var code = this.getLineCntCode('from', toLines[j].c.id, node)
-                if(code){
-                    toLineArr.push(code)
+            let {conLns} = node,
+                {from, to} = conLns,
+                fromQue: string[] = [],
+                toQue: string[] = []
+            // 起点
+            Util.each(from, (idx: number, cc: string) => {
+                let cnIst = this.connDick[cc]
+                if(cnIst){
+                    let tCode = cnIst.data('to_code'),
+                        tPosi = cnIst.data('to_posi')
+                    toQue.push(cnIst.data('to_code'))
                 }
-            }
-            fjson.prev = toLineArr.length > 0? toLineArr.join(',') : '' 
-
+            })
             // 终点
-            var fromLines = node.fromLine
-            var fromLineArr = []
-            for(var k=0; k<fromLines.length; k++){
-                var code = this.getLineCntCode('to', fromLines[k].c.id, node)
-                if(code){
-                    fromLineArr.push(code)
+            Util.each(to, (idx: number, cc: string) => {
+                let cnIst = this.connDick[cc]
+                if(cnIst){
+                    let fCode = cnIst.data('from_code'),
+                        fPosi = cnIst.data('from_posi')
+                    fromQue.push(cnIst.data('from_code'))
                 }
+            })
+            data = {}
+            // 正式数据
+            data.code = node.code
+            data.name = node.name
+            data.type = node.type            
+            data.prev = toQue.join(',')
+            data.next = fromQue.join(',')
+            // 坐标点属性值
+            data._srroo = {
+                opt: node.opt,
+                NodeType: node.NodeType
             }
-            fjson.next = fromLineArr.length > 0? fromLineArr.join(',') : '' 
         }
-        else{
-            fjson = null
-        }
-        return fjson
+        return data
     }
     /**
-     * 获取连接线端点的节点代码
-     * @param {string} type from/to
-     * @param {string} lineId 直线代码
-     * @param {NodeBase|null|string} refIst 参照id/NodeBase attr= {code}
-     * @returns {string}
+     * 保存，且获取数据
+     * 
+     * @memberof WorkerEditor
      */
-    getLineCntCode(type: string, lineId: string, refIst?: any){
-        var code = null
-        if(type && lineId){
-            var nodes = this.nodeQueues
-            var refId = null
-            if(refIst){
-                refId = 'string' == typeof refIst? refIst : refIst.c.data('code')
+    save(){
+        var stepStru: any[] = []
+        Util.each(this.nodeDick, (code: string, node: rSu.Node) => {
+            stepStru.push(this.step(node))
+        })
+        var _srroo: rSu.bsMap = {},
+            line: rSu.bsMap = {}
+        // 连线
+        Util.each(this.connDick, (cd: string, ist: rSu.Node) => {
+            line[cd] = {
+                data: ist.data(),
+                NodeType: ist.NodeType,
+                opt: ist.opt
             }
-            var typeName = type + 'Line'
-            for(var i=0; i<nodes.length; i++){
-                var node = nodes[i]
-                var cId = node.c.data('code')
-                if(refId == cId){   // 跳过自身检测
-                    continue
-                }
-                var typeLines = node[typeName]
-                for(var j=0; j<typeLines.length; j++){
-                    var typeLine = typeLines[j]
-                    if(lineId == typeLine.c.id){
-                        return cId
-                    }
-                }
-            }
+        })
+        _srroo = {line}
+        return {
+            step: stepStru,
+            _srroo
         }
-        return code
+    }
+    /**
+     * 数据加载
+     * @param {any} data 
+     * @returns 
+     * @memberof WorkerEditor
+     */
+    load(data: any){        
+        let $this = this,
+            lineQue: rSu.bsMap = {}
+        let {step, _srroo} = data
+        Util.each(step, (i: number, _step: rSu.Step) => {
+            let {code} = _step,
+                srroo = _step._srroo,
+                {prev, next} = srroo
+            // 节点生成
+            let $node = this.ndMer.make(srroo.NodeType, srroo.opt)
+                .creator()
+                .moveable({
+                    afterUpd: function(x: number, y: number, node: rSu.Node){
+                        $this._lineMoveSync(x, y, node)
+                    }
+                })
+            // 保存到字典中
+            $node.data('_code', code)
+            this._nodeBindEvt($node)
+            $this.nodeDick[code] = $node
+        })
+
+        // 连线生成处理
+        // console.log(_srroo.line)
+        Util.each(_srroo.line, (cd: string, ln: rSu.bsMap)=>{
+            let _data = ln.data
+            let $ln = this.ndMer.make(ln.NodeType, ln.opt)
+                .creator()
+                .moveable({
+                    afterUpd: function(x: number, y: number, node: rSu.Node){
+                        $this._lineMoveSync(x, y, node)
+                    }
+                })
+            $ln.data('_code', cd)            
+            $ln.data(_data)
+            
+            let fCode = _data.from_code,
+                tCode = _data.to_code
+            let fIst = this.nodeDick[fCode],
+                tIst = this.nodeDick[tCode]
+
+            this._lineBindEvt($ln)
+            this.connDick[cd] = $ln
+
+            if(fIst){
+                fIst.line(cd)
+            }
+            if(tIst){
+                tIst.line(cd, true)
+            }
+        })
+
+        // 当前运行的节点
+        // 文件加载以后才显示
+        let curCode = this.config.curCode || null
+        if(curCode && this.nodeDick[curCode]){}
+        return this
     }
     // removeTmpNode(value?: any){
     removeTmpNode(value?: string | string[]){
@@ -1133,11 +1074,11 @@ export default class WorkerEditor{
            })
        }
        return this
-   }
+    }
    /**
     * 通过点坐标计算相碰撞的元素
     */
-   collisionByP(x: number|rSu.NodeOpt, y?: number): rSu.Node{
+    collisionByP(x: number|rSu.NodeOpt, y?: number): rSu.Node{
        let tmpNode: rSu.Node
        // 点坐标自动转换
        if('object' == typeof x){
@@ -1163,8 +1104,7 @@ export default class WorkerEditor{
            })
        }
        return tmpNode
-   }
-
+    }
     /**
      * 事件处理接口
      * @param {NodeBase} nodeIst 
