@@ -1080,17 +1080,14 @@ var WorkerEditor = /** @class */ (function () {
         this.textQueues = [];
         this.MagneticCore = null; // 连线磁化中心点，用于节点关联，单状态的结构 data: {type: from/to}        
         this._cerateToolBar();
-        if (this.config.stepCfg) {
+        // 数据加载
+        if (config.data) {
             try {
-                // this.loadStep(this.config.stepCfg)
+                this.load(config.data);
             }
             catch (error) {
                 console.log(error);
             }
-        }
-        // 数据加载
-        if (config.data) {
-            this.load(config.data);
         }
     }
     /**
@@ -1278,6 +1275,11 @@ var WorkerEditor = /** @class */ (function () {
             nd.c.click(function () {
                 $this.removeAllSeled();
                 nd.select();
+                $this.onClick(nd);
+            });
+            // 双击
+            nd.c.dblclick(function () {
+                $this.onDbClick(nd);
             });
             //nd
             // 处理接口            
@@ -2092,7 +2094,7 @@ var WorkerEditor = /** @class */ (function () {
         var $this = this, lineQue = {};
         var step = data.step, _srroo = data._srroo;
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(step, function (i, _step) {
-            var code = _step.code, srroo = _step._srroo, prev = srroo.prev, next = srroo.next;
+            var code = _step.code, srroo = _step._srroo;
             // 节点生成
             var $node = _this.ndMer.make(srroo.NodeType, srroo.opt)
                 .creator()
@@ -2186,10 +2188,15 @@ var WorkerEditor = /** @class */ (function () {
         return tmpNode;
     };
     /**
-     * 事件处理接口
-     * @param {NodeBase} nodeIst
+     * 双击事件
+     * @param node
      */
-    WorkerEditor.prototype.onNodeClick = function (nodeIst) { };
+    WorkerEditor.prototype.onDbClick = function (node) { };
+    /**
+     * 点击事件
+     * @param node
+     */
+    WorkerEditor.prototype.onClick = function (node) { };
     // toolNodeIstQue: any[]     // 工具栏部件节点队列
     // 静态属性
     WorkerEditor.version = __WEBPACK_IMPORTED_MODULE_1__version__["a" /* LibVersion */];
