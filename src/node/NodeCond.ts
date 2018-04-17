@@ -62,6 +62,7 @@ export default class NodeCond extends NodeAbstract{
         this.c.attr('path', this._ps2PathAttr(opt, true))
 
         this.updTextAttr(nOpt.text)  // 文字
+        this.onSize()
         return <rSu.Node>this
     }
 }

@@ -80,6 +80,7 @@ export default class WorkerEditor{
         lnIst?: rSu.Node                  // 连线实例
     }
     private tmpNodeMap: rSu.mapNode     // 临时节点字典
+    private tmpMapRElm: rSu.MapRElm     // 临时节点
     // toolNodeIstQue: any[]     // 工具栏部件节点队列
     // 静态属性
     static version: VersionStruct = LibVersion
@@ -96,6 +97,7 @@ export default class WorkerEditor{
         this.nodeDick = {}      
         this.connDick = {}
         this.tmpNodeMap = {}
+        this.tmpMapRElm = {}
         this.config = config            // 系统配置参数
         this.paper = H.createInstance(config) // Raphael 对象        
         this.ndMer = new NodeQue(this.paper)
@@ -319,7 +321,7 @@ export default class WorkerEditor{
      */
     private _nodeBindEvt(node?: rSu.Node){
         var $this = this,
-            {ndMer} = this
+            {ndMer, config} = this            
         ;
         // 事件绑定处理
         var toBindNodeEvts = (nd: rSu.Node) => {
@@ -433,42 +435,48 @@ export default class WorkerEditor{
                     )
                 }
                 // 节点方位拖动大小
-                else{
+                else if(!config.disEpDragble){
                     let tp: rSu.P = {x: 0, y: 0},
                         attr: rSu.bsMap = {pcode: null, posi: null}
                     pnt.drag(
                         function(dx: number, dy: number){
                             dx += tp.x, dy += tp.y
-                            console.log(dx, dy)
                             let cnode: rSu.Node = attr.pcode? $this.nodeDick[attr.pcode]: null
                             if(cnode && attr.pcode && attr.posi){
                                 let opt = cnode.opt,
-                                    {cx, cy, h, w} = opt
+                                    {cx, cy, h, w} = opt,
+                                    boxPadding: number = cnode.feature('boxPadding')
+                                    
+                                // 数据申明
+                                let yt: number, yb: number, xl: number, xr:  number
+                                // 新值
+                                let yt1: number, yb1: number, xl1: number, xr1: number
+                                let cx1: number, cy1: number, h1: number, w1: number
                                 switch(attr.posi){
-                                    case 'a':
-                                        /*
-                                        let yt2: number = dy + cnode.feature('boxPadding'),
-                                            xl2: number = dx + cnode.feature('boxPadding'),
-                                            yt: number = cy + h/2,
-                                            xl2: number = cy + h/2
-                                        if(yt1 <= yb){
-                                            let h1: number = Math.abs(yb - yt1),
-                                                cy1: number = yt1 + h1/2
+                                    case 'a':   // 左上角移动
+                                        yt1 = dy + boxPadding
+                                        xl1 = dx + boxPadding
+                                        yb = cy + h/2
+                                        xr = cx + w/2
+                                        if(yt1 <= yb && xl1 <= xr){
+                                            h1 = Math.abs(yt1 - yb)
+                                            w1 = Math.abs(xl1 - xr)
+                                            cx1 = xl1 + w1/2
+                                            cy1 = yt1 + h1/2
                                             cnode.updAttr({
                                                 h: h1,
+                                                w: w1,
+                                                cx: cx1,
                                                 cy: cy1
                                             })  
-                                            // 同步更新边框，报错 [BUG]
-                                            // cnode.select()
                                         }
-                                        */
                                         break
                                     case 'b':   // 上拉 
-                                        let yt1: number = dy + cnode.feature('boxPadding'),
-                                            yb: number = cy + h/2
+                                        yt1 = dy + boxPadding
+                                        yb = cy + h/2
                                         if(yt1 <= yb){
-                                            let h1: number = Math.abs(yb - yt1),
-                                                cy1: number = yt1 + h1/2
+                                            h1 = Math.abs(yb - yt1)
+                                            cy1 = yt1 + h1/2
                                             cnode.updAttr({
                                                 h: h1,
                                                 cy: cy1
@@ -477,14 +485,30 @@ export default class WorkerEditor{
                                             // cnode.select()
                                         }
                                         break
-                                    case 'c':
+                                    case 'c':   // 右上角
+                                        yt1 = dy + boxPadding
+                                        xr1 = dx - boxPadding
+                                        yb = cy + h/2
+                                        xl = cx - w/2
+                                        if(yt1 <= yb && xr1 >= xl){
+                                            h1 = Math.abs(yt1 - yb)
+                                            w1 = Math.abs(xr1 - xl)
+                                            cx1 = xr1 - w1/2
+                                            cy1 = yt1 + h1/2
+                                            cnode.updAttr({
+                                                h: h1,
+                                                w: w1,
+                                                cx: cx1,
+                                                cy: cy1
+                                            })  
+                                        }
                                         break
                                     case 'd':   // 右拉
-                                        let xr1: number = dx - cnode.feature('boxPadding'),
-                                            xl: number = cx - w/2
+                                        xr1 = dx - boxPadding
+                                        xl = cx - w/2
                                         if(xr1 >= xl){
-                                            let w1: number = Math.abs(xl - xr1),
-                                                cx1: number = xr1 - w1/2
+                                            w1 = Math.abs(xl - xr1),
+                                            cx1 = xr1 - w1/2
                                             cnode.updAttr({
                                                 w: w1,
                                                 cx: cx1
@@ -493,14 +517,30 @@ export default class WorkerEditor{
                                             // cnode.select()
                                         }
                                         break
-                                    case 'e':
+                                    case 'e':   // 右下角
+                                        yb1 = dy - boxPadding
+                                        xr1 = dx - boxPadding
+                                        yt = cy - h/2
+                                        xl = cx - w/2
+                                        if(yb1 >= yt && xr1 >= xl){
+                                            h1 = Math.abs(yb1 - yt)
+                                            w1 = Math.abs(xr1 - xl)
+                                            cx1 = xr1 - w1/2
+                                            cy1 = yb1 - h1/2
+                                            cnode.updAttr({
+                                                h: h1,
+                                                w: w1,
+                                                cx: cx1,
+                                                cy: cy1
+                                            }) 
+                                        }
                                         break
                                     case 'f':   // 下拉
-                                        let yb1: number = dy - cnode.feature('boxPadding'),
-                                            yt: number = cy - h/2
+                                        yb1 = dy - boxPadding,
+                                        yt = cy - h/2
                                         if(yb1 >= yt){
-                                            let h1: number = Math.abs(yt - yb1),
-                                                cy1: number = yb1 - h1/2
+                                            h1 = Math.abs(yt - yb1),
+                                            cy1 = yb1 - h1/2
                                             cnode.updAttr({
                                                 h: h1,
                                                 cy: cy1
@@ -509,14 +549,30 @@ export default class WorkerEditor{
                                             // cnode.select()
                                         }
                                         break
-                                    case 'g':
+                                    case 'g':   // 左下角
+                                        yb1 = dy - boxPadding
+                                        xl1 = dx + boxPadding
+                                        yt = cy - h/2
+                                        xr = cx + w/2
+                                        if(yb1 >= yt && xl1 <= xr){
+                                            h1 = Math.abs(yb1 - yt)
+                                            w1 = Math.abs(xl1 - xr)
+                                            cx1 = xl1 + w1/2
+                                            cy1 = yb1 - h1/2
+                                            cnode.updAttr({
+                                                h: h1,
+                                                w: w1,
+                                                cx: cx1,
+                                                cy: cy1
+                                            }) 
+                                        } 
                                         break
                                     case 'h':   // 左拉
-                                        let xl1: number = dx + cnode.feature('boxPadding'),
-                                            xr: number = cx + w/2
+                                        xl1 = dx + boxPadding,
+                                        xr = cx + w/2
                                         if(xl1 <= xr){
-                                            let w1: number = Math.abs(xr - xl1),
-                                                cx1: number = xl1 + w1/2
+                                            w1 = Math.abs(xr - xl1)
+                                            cx1  = xl1 + w1/2
                                             cnode.updAttr({
                                                 w: w1,
                                                 cx: cx1
@@ -685,19 +741,108 @@ export default class WorkerEditor{
     removeAllSeled(){
         this.rmAllNdSeled()
         this.rmAllLnSeled()
+        this.rmTempElem('allBorde')
     }
     /**
      * 全选
      */
     allSelect(){
+        // 标记选中状态
         this.allNodeSelect()
+        this.allLineSelect()
+        let {x, y, w, h} = this.getAllSelPs()
+        let $this = this
+        // 生成全选遮挡层
+        this.rmTempElem('allBorde')
+        var tP: rSu.P = {x: 0, y: 0},
+            pS: rSu.MapP = {}
+        let allBorde = this.paper.rect(x, y, w, h)
+            .attr('fill-opacity', 0.75)
+            .attr('fill', '#9999FF')
+            .dblclick(function(){   // 双击移除遮蔽层
+                $this.removeAllSeled()
+            })
+            .drag(
+                function(dx: number, dy: number){
+                    // 自身移动
+                    this.attr('x', tP.x + dx)
+                    this.attr('y', tP.y + dy)
+                    // 全部节点迁移
+                    // 等比例移动法
+                    Util.each($this.nodeDick, (k: string, node: rSu.Node) => {
+                        let nTp = pS[k]
+                        node.updAttr({
+                            cx: nTp.x + dx,
+                            cy: nTp.y + dy
+                        })
+                        node.select()
+                    })
+                    $this.allLineSelect()
+                },
+                function(){
+                    tP.x = this.attr('x')
+                    tP.y = this.attr('y')
+                    // 节点中心点坐标
+                    Util.each($this.nodeDick, (k: string, node: rSu.Node) => {
+                        let opt = node.opt
+                        pS[k] = {
+                            x: opt.cx,
+                            y: opt.cy
+                        }
+                    })
+                },
+                function(){}
+            )
+        this.tmpMapRElm['allBorde'] = allBorde
+    }
+    /**
+     * 全选是相关端点
+     */
+    getAllSelPs(){
+        // 获取所有节点边框
+        let t: number = 0, b: number = 0, l: number = 0, r: number = 0
+        let boxPadding: number
+        Util.each(this.nodeDick, (k: string, node: rSu.Node) => {
+            let c = node.c,
+                {attr} = node.getBBox(),
+                {x, y, width, height} = attr,
+                t1: number = y, b1: number = y + height, l1: number = x, r1: number = x + width
+            if(!boxPadding) boxPadding = node.feature('boxPadding', null, 3)
+            if(t == 0) t = t1
+            if(b == 0) b = b1
+            if(l == 0) l = l1
+            if(r == 0) r = r1
+
+            // 上边框
+            if(t > t1) t = t1
+            // 下边框
+            if(b < b1) b = b1
+            // 左边框
+            if(l > l1) l = l1
+            // 右边框
+            if(r < r1) r = r1
+        })
+        let x1 = l, y1 = t, w1 = Math.abs(l - r), h1 = Math.abs(t - b)
+        boxPadding = boxPadding * 2
+        let boxPadding2 = boxPadding*2
+        return {
+            x: x1 - boxPadding,
+            y: y1 - boxPadding,
+            w: w1 + boxPadding2,
+            h: h1 + boxPadding2
+        }
     }
     // 所有节点选中
     allNodeSelect(){
-        for(var key in this.nodeDick){
-            let nd: rSu.Node = this.nodeDick[key]
-            nd.select()
-        }
+        Util.each(this.nodeDick, (k: string, node: rSu.Node) => {
+            node.select()
+        })
+    }
+    // 所有连线选择
+    allLineSelect(){
+        Util.each(this.connDick, (k: string, node: rSu.Node) => {
+            node.select()
+        })
     }
     /**
      * 移除所有节点选中状态
@@ -721,7 +866,22 @@ export default class WorkerEditor{
             }
         }
     }
-
+    // 删除所有节点
+    rmAllNode(){
+        Util.each(this.nodeDick, (k: string, node: rSu.Node) => {
+            this.remove(node)
+        })
+    }
+    // 删除所有连线
+    rmAllLine(){
+        Util.each(this.connDick, (k: string, node: rSu.Node) => {
+            this.remove(node)
+        })
+    }
+    allRemove(){
+        this.rmAllLine()
+        this.rmAllNode()
+    }
     /**
      * 设置统一变化管理
      */
@@ -772,6 +932,29 @@ export default class WorkerEditor{
         return newStr
     }
     /**
+     * 移除临时元素字典（支持模糊查询）
+     * @param key 
+     * @param isLike 模糊查询
+     */
+    rmTempElem(key?: string, isLike?: string){
+        if(key && !isLike){
+            if(this.tmpMapRElm[key]){
+                this.tmpMapRElm[key].remove()
+            }
+        }else{
+            Util.each(this.tmpMapRElm, (k: string, elem: RaphaelElement) => {
+                if(isLike && key){
+                    if(k.indexOf(key) > -1){
+                        this.rmTempElem(k)
+                    }
+                }
+                else{
+                    this.rmTempElem(k)
+                }
+            })
+        }
+    }
+    /**
      * 获取最新的节点
      */
     last(): rSu.Node{
@@ -784,14 +967,14 @@ export default class WorkerEditor{
     /**
      * 删除节点
      */
-    remove(code?: string){
+    remove(code?: string| rSu.Node){
         let isSuccess = false
         // 删除节点
         var removeNode = (node: rSu.Node) => {
             if(node){
                 let NodeType = node.NodeType,
                     value = node.code
-                if('ln' == NodeType){   // 连线删除
+                if('ln' == NodeType || 'ln_poly' == NodeType){   // 连线删除
                     let fCode = node.data('from_code'),
                         tCode = node.data('to_code')               
                     this.nodeDick[fCode].rmLine(value)
@@ -815,6 +998,8 @@ export default class WorkerEditor{
         }
         if(!code){
             removeNode(this.select())
+        }else if('object' == typeof code){
+            removeNode(code)
         }else{
             removeNode(this.nodeDick[code])
         }

@@ -78,6 +78,7 @@
         },
         data: 'obejct'  // 保存的历史数据
         curCode: 'string|string[]'   // 显示当前到的节点代码
+        disEpDragble: '端点禁止拖动大小'
     }
 ```
 

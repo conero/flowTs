@@ -72,6 +72,7 @@ export default class NodeSubFlow extends NodeAbstract{
         this.inlinesEle[1].attr('path', this._ps2PathAttr(rLine))
 
         this.updTextAttr(nOpt.text)  // 文字
+        this.onSize()
         return <rSu.Node>this
     }
 }

@@ -66,6 +66,10 @@ declare namespace rSu{
         x: number
         y: number
     }
+    // 点坐标字典
+    export interface MapP{
+        [k: string]: rSu.P
+    }
     // RaphaelElement map 类型
     export interface MapRElm{
         [key: string]: RaphaelElement
@@ -73,7 +77,7 @@ declare namespace rSu{
     // Node map 类型
     export interface mapNode{
         [key: string]: Node
-    }
+    }    
     // 节点属性
     export interface NodeOpt{
         cx?: number             // 中心坐标点 x 轴坐标

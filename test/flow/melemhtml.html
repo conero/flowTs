@@ -11,27 +11,53 @@
     <style>
         body{margin: 0px; padding: 0px;}        
         #workflow{
-            margin-top: 60px;
             width: 85%;
             height: 60%;
             float: right;
-            /* background-color:aquamarine; */
+        }
+        .srroo-top{
+            background-color: black;
+            min-height: 30px;
+            width: 100%;
+            color: white;
+            text-align: center;
+        }
+        .srroo-left{
+            background-color: burlywood;
+            min-width: 50px;
+            min-height: 700px;
+            height: 100%;     
+            width: 15%;       
+            float: left;
+            font-size: 0.78em;
+        }
+        .srroo-left ul{
+            margin: 0px;padding-left: 20px;
         }
     </style>
 </head>
 <body>
-    <div style="margin: 0px; padding: 0px;">
-        <div style="width:9%;height: 100%;background-color: aquamarine;padding-left:0px;padding-left: 10px; font-size: 0.57em;">
-                shift + 方向键： 方向移动
-            <br>shift + V 复制选中
-            <br>shift + D 删除选中
-            <br>shift + T tab 选择切换
-            <br>shift + +/- 放大或缩小
-            <br>shift + S 保存模拟
-        </div>
-        <div style="width:10%;height: 10%;float: right;min-width: 50px;background-color: bisque;"></div>
-        <div id="workflow" class="flow-body"></div>
+    <div class="srroo-top">
+        Version 2.1.1
     </div>
+    <div class="srroo-left">
+        快捷键
+        <ul>
+            <li>shift + 方向键： 方向移动</li>
+            <li>shift + V 复制选中</li>
+            <li>shift + D 删除选中</li>
+            <li>shift + T tab 选择切换</li>
+            <li>shift + +/- 放大或缩小</li>
+            <li>shift + S 保存模拟</li>
+            <li>shift + A 选中所有</li>
+            <li>shift + R 删除所有</li>
+        </ul>
+        其他功能
+        <ul>
+            <li>支持端点拖动</li>
+        </ul>
+    </div>
+    <div id="workflow" class="flow-body"></div>
     <script src="./js/_cro-melemhtml.js"></script>
 </body>
 </html>

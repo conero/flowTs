@@ -63,7 +63,8 @@ export default class NodeAudit extends NodeAbstract{
         this._updAttr(nOpt)
         var opt = this.opt2Attr()
         this.c.attr('path', this._ps2PathAttr(opt, true))
-        this.updTextAttr(nOpt.text)  // 文字
+        this.updTextAttr(nOpt.text)  // 文字        
+        this.onSize()
         return <rSu.Node>this
     }
 }

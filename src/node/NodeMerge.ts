@@ -76,6 +76,7 @@ export default class NodeMerge extends NodeAbstract{
         this.c.attr('path', this._ps2PathAttr(cAttr, true))
         this.inlinesEle[0].attr('path', this._ps2PathAttr(vLine))
         this.inlinesEle[1].attr('path', this._ps2PathAttr(hLine))
+        this.onSize()
         return <rSu.Node>this
     }
 }

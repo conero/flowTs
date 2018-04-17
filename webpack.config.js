@@ -90,7 +90,8 @@ class Queue{
     var _json = {
         version: Pkg.version,
         release: Pkg.release,
-        author: Pkg.author
+        author: Pkg.author,
+        name: Pkg.name
     }
     
     // 版本信息脚本
@@ -99,6 +100,7 @@ class Queue{
         version?: string
         release?: string
         author?: string
+        name?: string
     }
     export const LibVersion: VersionStruct = ${JSON.stringify(_json)}
     `

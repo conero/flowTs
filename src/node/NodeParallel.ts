@@ -68,6 +68,7 @@ export default class NodeParallel extends NodeAbstract{
         var {cAttr, inLine} = this.opt2Attr()
         this.c.attr('path', this._ps2PathAttr(cAttr, true))
         this.inlineEle.attr('path', this._ps2PathAttr(inLine))
+        this.onSize()
         return <rSu.Node>this
     }
 }

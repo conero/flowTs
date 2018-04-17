@@ -54,6 +54,7 @@ export default class NodeTask extends NodeAbstract{
         }
         this.c.attr(cAttr)
         this.updTextAttr(nOpt.text)  // 文字
+        this.onSize()
         return <rSu.Node>this
     }
 }

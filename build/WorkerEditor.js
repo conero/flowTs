@@ -543,6 +543,7 @@ var NodeAbstract = /** @class */ (function () {
         return rElem;
     };
     /**
+     * [BUG20180417] 端点拖动以后报错： Uncaught TypeError: Cannot read property 'nextSibling' of null
      * 选中
      */
     NodeAbstract.prototype.select = function () {
@@ -599,7 +600,6 @@ var NodeAbstract = /** @class */ (function () {
             h: opt.h
         });
         this.select();
-        this.onSize();
         return this;
     };
     /**
@@ -616,7 +616,6 @@ var NodeAbstract = /** @class */ (function () {
             h: opt.h
         });
         this.select();
-        this.onSize();
         return this;
     };
     /**
@@ -645,7 +644,6 @@ var NodeAbstract = /** @class */ (function () {
             this.updAttr(uOpt);
             this.select();
         }
-        this.onSize();
         return this;
     };
     /**
@@ -1068,6 +1066,7 @@ var WorkerEditor = /** @class */ (function () {
         this.nodeDick = {};
         this.connDick = {};
         this.tmpNodeMap = {};
+        this.tmpMapRElm = {};
         this.config = config; // 系统配置参数
         this.paper = __WEBPACK_IMPORTED_MODULE_0__helper__["a" /* default */].createInstance(config); // Raphael 对象        
         this.ndMer = new __WEBPACK_IMPORTED_MODULE_4__NodeQue__["a" /* NodeQue */](this.paper);
@@ -1272,7 +1271,7 @@ var WorkerEditor = /** @class */ (function () {
      * @param {rSu.Node} node 输入为空时绑定所有值
      */
     WorkerEditor.prototype._nodeBindEvt = function (node) {
-        var $this = this, ndMer = this.ndMer;
+        var $this = this, _a = this, ndMer = _a.ndMer, config = _a.config;
         // 事件绑定处理
         var toBindNodeEvts = function (nd) {
             // 点击
@@ -1374,37 +1373,43 @@ var WorkerEditor = /** @class */ (function () {
                     });
                 }
                 // 节点方位拖动大小
-                else {
+                else if (!config.disEpDragble) {
                     var tp_1 = { x: 0, y: 0 }, attr_1 = { pcode: null, posi: null };
                     pnt.drag(function (dx, dy) {
                         dx += tp_1.x, dy += tp_1.y;
-                        console.log(dx, dy);
                         var cnode = attr_1.pcode ? $this.nodeDick[attr_1.pcode] : null;
                         if (cnode && attr_1.pcode && attr_1.posi) {
-                            var opt = cnode.opt, cx = opt.cx, cy = opt.cy, h = opt.h, w = opt.w;
+                            var opt = cnode.opt, cx = opt.cx, cy = opt.cy, h = opt.h, w = opt.w, boxPadding = cnode.feature('boxPadding');
+                            // 数据申明
+                            var yt = void 0, yb = void 0, xl = void 0, xr = void 0;
+                            // 新值
+                            var yt1 = void 0, yb1 = void 0, xl1 = void 0, xr1 = void 0;
+                            var cx1 = void 0, cy1 = void 0, h1 = void 0, w1 = void 0;
                             switch (attr_1.posi) {
-                                case 'a':
-                                    /*
-                                    let yt2: number = dy + cnode.feature('boxPadding'),
-                                        xl2: number = dx + cnode.feature('boxPadding'),
-                                        yt: number = cy + h/2,
-                                        xl2: number = cy + h/2
-                                    if(yt1 <= yb){
-                                        let h1: number = Math.abs(yb - yt1),
-                                            cy1: number = yt1 + h1/2
+                                case 'a': // 左上角移动
+                                    yt1 = dy + boxPadding;
+                                    xl1 = dx + boxPadding;
+                                    yb = cy + h / 2;
+                                    xr = cx + w / 2;
+                                    if (yt1 <= yb && xl1 <= xr) {
+                                        h1 = Math.abs(yt1 - yb);
+                                        w1 = Math.abs(xl1 - xr);
+                                        cx1 = xl1 + w1 / 2;
+                                        cy1 = yt1 + h1 / 2;
                                         cnode.updAttr({
                                             h: h1,
+                                            w: w1,
+                                            cx: cx1,
                                             cy: cy1
-                                        })
-                                        // 同步更新边框，报错 [BUG]
-                                        // cnode.select()
+                                        });
                                     }
-                                    */
                                     break;
                                 case 'b': // 上拉 
-                                    var yt1 = dy + cnode.feature('boxPadding'), yb = cy + h / 2;
+                                    yt1 = dy + boxPadding;
+                                    yb = cy + h / 2;
                                     if (yt1 <= yb) {
-                                        var h1 = Math.abs(yb - yt1), cy1 = yt1 + h1 / 2;
+                                        h1 = Math.abs(yb - yt1);
+                                        cy1 = yt1 + h1 / 2;
                                         cnode.updAttr({
                                             h: h1,
                                             cy: cy1
@@ -1413,12 +1418,30 @@ var WorkerEditor = /** @class */ (function () {
                                         // cnode.select()
                                     }
                                     break;
-                                case 'c':
+                                case 'c': // 右上角
+                                    yt1 = dy + boxPadding;
+                                    xr1 = dx - boxPadding;
+                                    yb = cy + h / 2;
+                                    xl = cx - w / 2;
+                                    if (yt1 <= yb && xr1 >= xl) {
+                                        h1 = Math.abs(yt1 - yb);
+                                        w1 = Math.abs(xr1 - xl);
+                                        cx1 = xr1 - w1 / 2;
+                                        cy1 = yt1 + h1 / 2;
+                                        cnode.updAttr({
+                                            h: h1,
+                                            w: w1,
+                                            cx: cx1,
+                                            cy: cy1
+                                        });
+                                    }
                                     break;
                                 case 'd': // 右拉
-                                    var xr1 = dx - cnode.feature('boxPadding'), xl = cx - w / 2;
+                                    xr1 = dx - boxPadding;
+                                    xl = cx - w / 2;
                                     if (xr1 >= xl) {
-                                        var w1 = Math.abs(xl - xr1), cx1 = xr1 - w1 / 2;
+                                        w1 = Math.abs(xl - xr1),
+                                            cx1 = xr1 - w1 / 2;
                                         cnode.updAttr({
                                             w: w1,
                                             cx: cx1
@@ -1427,12 +1450,30 @@ var WorkerEditor = /** @class */ (function () {
                                         // cnode.select()
                                     }
                                     break;
-                                case 'e':
+                                case 'e': // 右下角
+                                    yb1 = dy - boxPadding;
+                                    xr1 = dx - boxPadding;
+                                    yt = cy - h / 2;
+                                    xl = cx - w / 2;
+                                    if (yb1 >= yt && xr1 >= xl) {
+                                        h1 = Math.abs(yb1 - yt);
+                                        w1 = Math.abs(xr1 - xl);
+                                        cx1 = xr1 - w1 / 2;
+                                        cy1 = yb1 - h1 / 2;
+                                        cnode.updAttr({
+                                            h: h1,
+                                            w: w1,
+                                            cx: cx1,
+                                            cy: cy1
+                                        });
+                                    }
                                     break;
                                 case 'f': // 下拉
-                                    var yb1 = dy - cnode.feature('boxPadding'), yt = cy - h / 2;
+                                    yb1 = dy - boxPadding,
+                                        yt = cy - h / 2;
                                     if (yb1 >= yt) {
-                                        var h1 = Math.abs(yt - yb1), cy1 = yb1 - h1 / 2;
+                                        h1 = Math.abs(yt - yb1),
+                                            cy1 = yb1 - h1 / 2;
                                         cnode.updAttr({
                                             h: h1,
                                             cy: cy1
@@ -1441,12 +1482,30 @@ var WorkerEditor = /** @class */ (function () {
                                         // cnode.select()
                                     }
                                     break;
-                                case 'g':
+                                case 'g': // 左下角
+                                    yb1 = dy - boxPadding;
+                                    xl1 = dx + boxPadding;
+                                    yt = cy - h / 2;
+                                    xr = cx + w / 2;
+                                    if (yb1 >= yt && xl1 <= xr) {
+                                        h1 = Math.abs(yb1 - yt);
+                                        w1 = Math.abs(xl1 - xr);
+                                        cx1 = xl1 + w1 / 2;
+                                        cy1 = yb1 - h1 / 2;
+                                        cnode.updAttr({
+                                            h: h1,
+                                            w: w1,
+                                            cx: cx1,
+                                            cy: cy1
+                                        });
+                                    }
                                     break;
                                 case 'h': // 左拉
-                                    var xl1 = dx + cnode.feature('boxPadding'), xr = cx + w / 2;
+                                    xl1 = dx + boxPadding,
+                                        xr = cx + w / 2;
                                     if (xl1 <= xr) {
-                                        var w1 = Math.abs(xr - xl1), cx1 = xl1 + w1 / 2;
+                                        w1 = Math.abs(xr - xl1);
+                                        cx1 = xl1 + w1 / 2;
                                         cnode.updAttr({
                                             w: w1,
                                             cx: cx1
@@ -1594,19 +1653,108 @@ var WorkerEditor = /** @class */ (function () {
     WorkerEditor.prototype.removeAllSeled = function () {
         this.rmAllNdSeled();
         this.rmAllLnSeled();
+        this.rmTempElem('allBorde');
     };
     /**
      * 全选
      */
     WorkerEditor.prototype.allSelect = function () {
+        // 标记选中状态
         this.allNodeSelect();
+        this.allLineSelect();
+        var _a = this.getAllSelPs(), x = _a.x, y = _a.y, w = _a.w, h = _a.h;
+        var $this = this;
+        // 生成全选遮挡层
+        this.rmTempElem('allBorde');
+        var tP = { x: 0, y: 0 }, pS = {};
+        var allBorde = this.paper.rect(x, y, w, h)
+            .attr('fill-opacity', 0.75)
+            .attr('fill', '#9999FF')
+            .dblclick(function () {
+            $this.removeAllSeled();
+        })
+            .drag(function (dx, dy) {
+            // 自身移动
+            this.attr('x', tP.x + dx);
+            this.attr('y', tP.y + dy);
+            // 全部节点迁移
+            // 等比例移动法
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each($this.nodeDick, function (k, node) {
+                var nTp = pS[k];
+                node.updAttr({
+                    cx: nTp.x + dx,
+                    cy: nTp.y + dy
+                });
+                node.select();
+            });
+            $this.allLineSelect();
+        }, function () {
+            tP.x = this.attr('x');
+            tP.y = this.attr('y');
+            // 节点中心点坐标
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each($this.nodeDick, function (k, node) {
+                var opt = node.opt;
+                pS[k] = {
+                    x: opt.cx,
+                    y: opt.cy
+                };
+            });
+        }, function () { });
+        this.tmpMapRElm['allBorde'] = allBorde;
+    };
+    /**
+     * 全选是相关端点
+     */
+    WorkerEditor.prototype.getAllSelPs = function () {
+        // 获取所有节点边框
+        var t = 0, b = 0, l = 0, r = 0;
+        var boxPadding;
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (k, node) {
+            var c = node.c, attr = node.getBBox().attr, x = attr.x, y = attr.y, width = attr.width, height = attr.height, t1 = y, b1 = y + height, l1 = x, r1 = x + width;
+            if (!boxPadding)
+                boxPadding = node.feature('boxPadding', null, 3);
+            if (t == 0)
+                t = t1;
+            if (b == 0)
+                b = b1;
+            if (l == 0)
+                l = l1;
+            if (r == 0)
+                r = r1;
+            // 上边框
+            if (t > t1)
+                t = t1;
+            // 下边框
+            if (b < b1)
+                b = b1;
+            // 左边框
+            if (l > l1)
+                l = l1;
+            // 右边框
+            if (r < r1)
+                r = r1;
+        });
+        var x1 = l, y1 = t, w1 = Math.abs(l - r), h1 = Math.abs(t - b);
+        boxPadding = boxPadding * 2;
+        var boxPadding2 = boxPadding * 2;
+        return {
+            x: x1 - boxPadding,
+            y: y1 - boxPadding,
+            w: w1 + boxPadding2,
+            h: h1 + boxPadding2
+        };
     };
     // 所有节点选中
     WorkerEditor.prototype.allNodeSelect = function () {
-        for (var key in this.nodeDick) {
-            var nd = this.nodeDick[key];
-            nd.select();
-        }
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (k, node) {
+            node.select();
+        });
+    };
+    // 所有连线选择
+    WorkerEditor.prototype.allLineSelect = function () {
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.connDick, function (k, node) {
+            node.select();
+        });
     };
     /**
      * 移除所有节点选中状态
@@ -1629,6 +1777,24 @@ var WorkerEditor = /** @class */ (function () {
                 nd.removeBox();
             }
         }
+    };
+    // 删除所有节点
+    WorkerEditor.prototype.rmAllNode = function () {
+        var _this = this;
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (k, node) {
+            _this.remove(node);
+        });
+    };
+    // 删除所有连线
+    WorkerEditor.prototype.rmAllLine = function () {
+        var _this = this;
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.connDick, function (k, node) {
+            _this.remove(node);
+        });
+    };
+    WorkerEditor.prototype.allRemove = function () {
+        this.rmAllLine();
+        this.rmAllNode();
     };
     /**
      * 设置统一变化管理
@@ -1680,6 +1846,31 @@ var WorkerEditor = /** @class */ (function () {
         return newStr;
     };
     /**
+     * 移除临时元素字典（支持模糊查询）
+     * @param key
+     * @param isLike 模糊查询
+     */
+    WorkerEditor.prototype.rmTempElem = function (key, isLike) {
+        var _this = this;
+        if (key && !isLike) {
+            if (this.tmpMapRElm[key]) {
+                this.tmpMapRElm[key].remove();
+            }
+        }
+        else {
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.tmpMapRElm, function (k, elem) {
+                if (isLike && key) {
+                    if (k.indexOf(key) > -1) {
+                        _this.rmTempElem(k);
+                    }
+                }
+                else {
+                    _this.rmTempElem(k);
+                }
+            });
+        }
+    };
+    /**
      * 获取最新的节点
      */
     WorkerEditor.prototype.last = function () {
@@ -1699,7 +1890,7 @@ var WorkerEditor = /** @class */ (function () {
         var removeNode = function (node) {
             if (node) {
                 var NodeType = node.NodeType, value = node.code;
-                if ('ln' == NodeType) { // 连线删除
+                if ('ln' == NodeType || 'ln_poly' == NodeType) { // 连线删除
                     var fCode = node.data('from_code'), tCode = node.data('to_code');
                     _this.nodeDick[fCode].rmLine(value);
                     _this.nodeDick[tCode].rmLine(value, true);
@@ -1721,6 +1912,9 @@ var WorkerEditor = /** @class */ (function () {
         };
         if (!code) {
             removeNode(this.select());
+        }
+        else if ('object' == typeof code) {
+            removeNode(code);
         }
         else {
             removeNode(this.nodeDick[code]);
@@ -2275,7 +2469,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.1.0", "release": "20180416", "author": "Joshua Conero" };
+var LibVersion = { "version": "2.1.1", "release": "20180417", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),
@@ -2658,6 +2852,7 @@ var NodeBegin = /** @class */ (function (_super) {
             ry: opt.h / 2
         });
         this.updTextAttr(nOpt.text); // 文字
+        this.onSize();
         return this;
     };
     return NodeBegin;
@@ -2732,6 +2927,7 @@ var NodeTask = /** @class */ (function (_super) {
         };
         this.c.attr(cAttr);
         this.updTextAttr(nOpt.text); // 文字
+        this.onSize();
         return this;
     };
     return NodeTask;
@@ -2814,7 +3010,8 @@ var NodeAudit = /** @class */ (function (_super) {
         this._updAttr(nOpt);
         var opt = this.opt2Attr();
         this.c.attr('path', this._ps2PathAttr(opt, true));
-        this.updTextAttr(nOpt.text); // 文字
+        this.updTextAttr(nOpt.text); // 文字        
+        this.onSize();
         return this;
     };
     return NodeAudit;
@@ -2898,6 +3095,7 @@ var NodeSign = /** @class */ (function (_super) {
         var opt = this.opt2Attr();
         this.c.attr('path', this._ps2PathAttr(opt, true));
         this.updTextAttr(nOpt.text); // 文字
+        this.onSize();
         return this;
     };
     return NodeSign;
@@ -2980,6 +3178,7 @@ var NodeCond = /** @class */ (function (_super) {
         var opt = this.opt2Attr();
         this.c.attr('path', this._ps2PathAttr(opt, true));
         this.updTextAttr(nOpt.text); // 文字
+        this.onSize();
         return this;
     };
     return NodeCond;
@@ -3067,6 +3266,7 @@ var NodeSubFlow = /** @class */ (function (_super) {
         this.inlinesEle[0].attr('path', this._ps2PathAttr(lLine));
         this.inlinesEle[1].attr('path', this._ps2PathAttr(rLine));
         this.updTextAttr(nOpt.text); // 文字
+        this.onSize();
         return this;
     };
     return NodeSubFlow;
@@ -3152,6 +3352,7 @@ var NodeParallel = /** @class */ (function (_super) {
         var _a = this.opt2Attr(), cAttr = _a.cAttr, inLine = _a.inLine;
         this.c.attr('path', this._ps2PathAttr(cAttr, true));
         this.inlineEle.attr('path', this._ps2PathAttr(inLine));
+        this.onSize();
         return this;
     };
     return NodeParallel;
@@ -3245,6 +3446,7 @@ var NodeMerge = /** @class */ (function (_super) {
         this.c.attr('path', this._ps2PathAttr(cAttr, true));
         this.inlinesEle[0].attr('path', this._ps2PathAttr(vLine));
         this.inlinesEle[1].attr('path', this._ps2PathAttr(hLine));
+        this.onSize();
         return this;
     };
     return NodeMerge;
@@ -3309,6 +3511,7 @@ var NodeEnd = /** @class */ (function (_super) {
             ry: opt.h / 2
         });
         this.updTextAttr(nOpt.text); // 文字
+        this.onSize();
         return this;
     };
     return NodeEnd;

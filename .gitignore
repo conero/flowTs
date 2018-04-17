@@ -9,3 +9,6 @@ node_modules
 
 # 私有文件夹
 private/
+
+# Windows 运行临时文件
+~$$

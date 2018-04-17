@@ -504,6 +504,7 @@ export default abstract class NodeAbstract{
         return rElem
     }
     /**
+     * [BUG20180417] 端点拖动以后报错： Uncaught TypeError: Cannot read property 'nextSibling' of null
      * 选中
      */    
     select(): rSu.Node{
@@ -566,7 +567,6 @@ export default abstract class NodeAbstract{
             h: opt.h
         })
         this.select()
-        this.onSize()
         return <rSu.Node>this
     }
     /**
@@ -583,7 +583,6 @@ export default abstract class NodeAbstract{
             h: opt.h
         })
         this.select()
-        this.onSize()
         return <rSu.Node>this
     }
     /**
@@ -613,7 +612,6 @@ export default abstract class NodeAbstract{
             this.updAttr(uOpt)
             this.select()
         }
-        this.onSize()
         return <rSu.Node>this
     }
     /**

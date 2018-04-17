@@ -39,6 +39,7 @@ export default class NodeBegin extends NodeAbstract{
             ry: opt.h/2
         })
         this.updTextAttr(nOpt.text)  // 文字
+        this.onSize()
         return <rSu.Node>this
     }
 }
