@@ -1105,7 +1105,8 @@ export default class WorkerEditor{
      * 获取节点属性
      * @memberof WorkerEditor
      */
-    step(node: string | rSu.Node){
+    step(node?: string | rSu.Node){
+        node = node? node: this.select()
         if('object' != typeof node){
             node = this.connDick[<string>node]
         }
@@ -1144,6 +1145,10 @@ export default class WorkerEditor{
             data._srroo = {
                 opt: node.opt,
                 NodeType: node.NodeType
+            }
+            let nData = this.onStep(node, data)
+            if(nData){
+                data = <rSu.bsMap>nData
             }
         }
         return data
@@ -1233,8 +1238,20 @@ export default class WorkerEditor{
 
         // 当前运行的节点
         // 文件加载以后才显示
-        let curCode = this.config.curCode || null
-        if(curCode && this.nodeDick[curCode]){}
+        let config = this.config,
+            rCodes: string| string[] = config.rCodes || null,
+            bkg: rSu.bsMap = config.bkg || {},
+            ranNodeBkg = bkg.ranNode || '#C1CDCD'                  // 默认值
+        if(rCodes){
+            rCodes = 'object' == typeof rCodes? rCodes: [rCodes]
+            Util.each(rCodes, (idx: number, code: string) => {
+                let cnode: rSu.Node
+                if(cnode = this.nodeDick[code]){
+                    //console.log(cnode)
+                    cnode.c.attr('fill', ranNodeBkg)
+                }
+            })
+        }
         return this
     }
     // removeTmpNode(value?: any){
@@ -1301,4 +1318,12 @@ export default class WorkerEditor{
      * @param node 
      */
     onClick(node: rSu.Node){}
+    /**
+     * 节点保存时处理事件
+     * @param node 
+     * @return {object|null} 返回值时可以覆盖参数
+     */
+    onStep(node: rSu.Node, data: any): any{
+        return data
+    }
 }

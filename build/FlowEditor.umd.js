@@ -2055,6 +2055,7 @@ var WorkerEditor = /** @class */ (function () {
      */
     WorkerEditor.prototype.step = function (node) {
         var _this = this;
+        node = node ? node : this.select();
         if ('object' != typeof node) {
             node = this.connDick[node];
         }
@@ -2089,6 +2090,10 @@ var WorkerEditor = /** @class */ (function () {
                 opt: node.opt,
                 NodeType: node.NodeType
             };
+            var nData = this.onStep(node, data);
+            if (nData) {
+                data = nData;
+            }
         }
         return data;
     };
@@ -2169,8 +2174,17 @@ var WorkerEditor = /** @class */ (function () {
         });
         // 当前运行的节点
         // 文件加载以后才显示
-        var curCode = this.config.curCode || null;
-        if (curCode && this.nodeDick[curCode]) { }
+        var config = this.config, rCodes = config.rCodes || null, bkg = config.bkg || {}, ranNodeBkg = bkg.ranNode || '#C1CDCD'; // 默认值
+        if (rCodes) {
+            rCodes = 'object' == typeof rCodes ? rCodes : [rCodes];
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(rCodes, function (idx, code) {
+                var cnode;
+                if (cnode = _this.nodeDick[code]) {
+                    //console.log(cnode)
+                    cnode.c.attr('fill', ranNodeBkg);
+                }
+            });
+        }
         return this;
     };
     // removeTmpNode(value?: any){
@@ -2232,6 +2246,14 @@ var WorkerEditor = /** @class */ (function () {
      * @param node
      */
     WorkerEditor.prototype.onClick = function (node) { };
+    /**
+     * 节点保存时处理事件
+     * @param node
+     * @return {object|null} 返回值时可以覆盖参数
+     */
+    WorkerEditor.prototype.onStep = function (node, data) {
+        return data;
+    };
     // toolNodeIstQue: any[]     // 工具栏部件节点队列
     // 静态属性
     WorkerEditor.version = __WEBPACK_IMPORTED_MODULE_1__version__["a" /* LibVersion */];
@@ -2511,7 +2533,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.1.1", "release": "20180417", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.1.2", "release": "20180418", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),

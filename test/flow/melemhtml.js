@@ -22,6 +22,7 @@ $(function(){
         data: cacheDt
         // , noToolBar: true
         // noToolBar: true
+        , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10']
     })
     
 
