@@ -23,6 +23,7 @@ $(function(){
         // , noToolBar: true
         // noToolBar: true
         , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10']
+        , bindOEvts: true
     })
     
 
@@ -44,6 +45,9 @@ $(function(){
         }
         domListener(){
             // 事件处理
+            //this.keydownEvt()
+        }
+        keydownEvt(){
             $(document).keydown(function(key){
                 // console.log(key)
                 var code = key.keyCode

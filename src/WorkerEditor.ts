@@ -119,6 +119,10 @@ export default class WorkerEditor{
                 console.log(error)
             }            
         }
+        // 绑定协助事件
+        if(this.config.bindOEvts){
+            this.operHelpEvts()
+        }
     }
     /**
      * 配置参数与默认参数和合并处理
@@ -1307,6 +1311,54 @@ export default class WorkerEditor{
            })
        }
        return tmpNode
+    }
+    /**
+     * 操作助手事件
+     */
+    operHelpEvts(){
+        let {dom} = this.config,
+            $this = this
+        // tabindex ="0" 是元素可以聚焦，outline 取消边框
+        dom.attr('tabindex', '0')
+            .css({'outline':'none'})
+        dom.off('keydown').on('keydown', function(evt: any){
+            let code = evt.keyCode
+            // console.log(code)
+            // shift + 
+            if(evt.shiftKey){
+                // 基本操作
+                if(68 == code){	// shift + D	删除当前的选择节点
+                    $this.remove()
+                }
+                else if(84 == code){ // shitf + T tab 循环
+					$this.tab()
+                }
+                else if(65 == code){ // shift + A 全选择
+					$this.allSelect()
+                }
+                else if(82 == code){    // shift + R 删除
+					$this.allRemove();
+                }
+                else if(86 == code){ // shitf + v 克隆
+					$this.clone();
+                }
+                
+                // 移动，方向移动：缩放
+                else if($.inArray(code, [38, 40, 37, 39, 107, 109]) > -1){
+                    var nodeSelEd: rSu.Node = $this.select()
+                    if(nodeSelEd){
+                        switch(code){
+                            case 38: nodeSelEd.move2T(); break;
+                            case 40: nodeSelEd.move2B(); break;
+                            case 37: nodeSelEd.move2L(); break;
+                            case 39: nodeSelEd.move2R(); break;
+                            case 107: nodeSelEd.zoomOut(); break;
+                            case 109: nodeSelEd.zoomIn(); break;
+                        }
+                    }
+                }
+            }
+        })
     }
     /**
      * 双击事件

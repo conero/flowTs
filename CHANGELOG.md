@@ -3,6 +3,14 @@
 
 ## ***V2.1.x/alpha-date*** alpha 类型模板
 
+### ***V2.1.3/20180419***
+- src/WorkerEditor.ts
+    - (+) 添加配置参数 ***bindOEvts*** 用于绑定操作事件
+    - (+) 添加 ***operHelpEvts*** 方法，实现 “shift+”辅助快捷键，需要通过 bindOEvts 参数开启
+        - 包括基本，操作，方位移动和缩放
+- src/node/
+    - (+) 添加 ***文本/text*** 节点，主要是时期与其他节点配合使用        
+
 ### ***V2.1.2/20180418***
 - src/WorkerEditor.ts
     - ***step*** 方法参数可为空，为空时为当前选中的节点，便于测试

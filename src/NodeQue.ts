@@ -16,6 +16,7 @@ import NodeMerge from "./node/NodeMerge";
 import NodeEnd from "./node/NodeEnd";
 import NodeLn from "./node/NodeLn";
 import NodeLnPoly from "./node/NodeLnPoly";
+import NodeText from "./node/NodeText";
 //export 
 export class NodeQue{
     paper: RaphaelPaper
@@ -65,6 +66,9 @@ export class NodeQue{
                 break
             case 'LnPoly':
                 ist = <rSu.Node>new NodeLnPoly(paper, nOpt)
+                break
+            case 'Text':
+                ist = <rSu.Node>new NodeText(paper, nOpt)
                 break
         }
         return ist

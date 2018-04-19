@@ -868,10 +868,12 @@ var Util = /** @class */ (function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__node_NodeEnd__ = __webpack_require__(18);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__node_NodeLn__ = __webpack_require__(19);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__node_NodeLnPoly__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__node_NodeText__ = __webpack_require__(23);
 /**
  * 2018年3月29日 星期四
  * 节点队列
  */
+
 
 
 
@@ -931,6 +933,9 @@ var NodeQue = /** @class */ (function () {
                 break;
             case 'LnPoly':
                 ist = new __WEBPACK_IMPORTED_MODULE_11__node_NodeLnPoly__["a" /* default */](paper, nOpt);
+                break;
+            case 'Text':
+                ist = new __WEBPACK_IMPORTED_MODULE_12__node_NodeText__["a" /* default */](paper, nOpt);
                 break;
         }
         return ist;
@@ -1022,6 +1027,7 @@ $(function(){
         // , noToolBar: true
         // noToolBar: true
         , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10']
+        , bindOEvts: true
     })
     
 
@@ -1043,6 +1049,9 @@ $(function(){
         }
         domListener(){
             // 事件处理
+            //this.keydownEvt()
+        }
+        keydownEvt(){
             $(document).keydown(function(key){
                 // console.log(key)
                 var code = key.keyCode
@@ -1210,6 +1219,10 @@ var WorkerEditor = /** @class */ (function () {
             catch (error) {
                 console.log(error);
             }
+        }
+        // 绑定协助事件
+        if (this.config.bindOEvts) {
+            this.operHelpEvts();
         }
     }
     /**
@@ -2322,6 +2335,64 @@ var WorkerEditor = /** @class */ (function () {
             });
         }
         return tmpNode;
+    };
+    /**
+     * 操作助手事件
+     */
+    WorkerEditor.prototype.operHelpEvts = function () {
+        var dom = this.config.dom, $this = this;
+        // tabindex ="0" 是元素可以聚焦，outline 取消边框
+        dom.attr('tabindex', '0')
+            .css({ 'outline': 'none' });
+        dom.off('keydown').on('keydown', function (evt) {
+            var code = evt.keyCode;
+            // console.log(code)
+            // shift + 
+            if (evt.shiftKey) {
+                // 基本操作
+                if (68 == code) { // shift + D	删除当前的选择节点
+                    $this.remove();
+                }
+                else if (84 == code) { // shitf + T tab 循环
+                    $this.tab();
+                }
+                else if (65 == code) { // shift + A 全选择
+                    $this.allSelect();
+                }
+                else if (82 == code) { // shift + R 删除
+                    $this.allRemove();
+                }
+                else if (86 == code) { // shitf + v 克隆
+                    $this.clone();
+                }
+                // 移动，方向移动：缩放
+                else if ($.inArray(code, [38, 40, 37, 39, 107, 109]) > -1) {
+                    var nodeSelEd = $this.select();
+                    if (nodeSelEd) {
+                        switch (code) {
+                            case 38:
+                                nodeSelEd.move2T();
+                                break;
+                            case 40:
+                                nodeSelEd.move2B();
+                                break;
+                            case 37:
+                                nodeSelEd.move2L();
+                                break;
+                            case 39:
+                                nodeSelEd.move2R();
+                                break;
+                            case 107:
+                                nodeSelEd.zoomOut();
+                                break;
+                            case 109:
+                                nodeSelEd.zoomIn();
+                                break;
+                        }
+                    }
+                }
+            }
+        });
     };
     /**
      * 双击事件
@@ -4101,6 +4172,58 @@ var ObjX = /** @class */ (function () {
     return ObjX;
 }());
 /* harmony default export */ __webpack_exports__["a"] = (ObjX);
+
+
+/***/ }),
+/* 23 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
+/**
+ * 2018年4月19日 星期四
+ * 文本节点
+ */
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var NodeText = /** @class */ (function (_super) {
+    __extends(NodeText, _super);
+    function NodeText() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    NodeText.prototype._onInit = function () {
+        this.NodeType = 'text';
+    };
+    NodeText.prototype._whenCreatorEvt = function () {
+        var opt = this.opt.opt, cx = opt.cx, cy = opt.cy, text = opt.text;
+        this.c = this.paper.text(cx, cy, text);
+    };
+    /**
+     * 更新属性
+     * @param nOpt
+     */
+    NodeText.prototype.updAttr = function (nOpt) {
+        this._updAttr(nOpt);
+        var opt = this.opt;
+        this.c.attr({
+            x: opt.cx,
+            y: opt.cy,
+            text: opt.text
+        });
+        return this;
+    };
+    return NodeText;
+}(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
+/* harmony default export */ __webpack_exports__["a"] = (NodeText);
 
 
 /***/ })

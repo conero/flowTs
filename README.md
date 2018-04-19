@@ -83,6 +83,7 @@
             ranNode: '' // 运行过的节点
         }
         disEpDragble: '端点禁止拖动大小'
+        bindOEvts: 'bool-绑定操作事件'
     }
 ```
 
