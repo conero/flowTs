@@ -1,6 +1,7 @@
 import { NodeQue } from "./NodeQue";
 import ObjX from "./ObjX";
 import { Util } from "./util";
+import { cNode } from "./confNode";
 
 /**
  * 2018年3月29日 星期四
@@ -96,6 +97,15 @@ export default class ToolBar{
             
         
         this.nodeElems = {}
+        let menuSeting: any = config.menu || false          // 菜单设置性
+        if(!menuSeting){        // 默认菜单项
+            menuSeting = [
+                'begin', 'task', 'sign', 'cond', 
+                'subFlow', 'parallel', 'merge', 'end',
+                'text'
+            ]
+            ;
+        }
 
         y += th1
         // data: toggle => H/S
@@ -120,67 +130,56 @@ export default class ToolBar{
                 }
             })
         this.nodeElems['icon'] = paper.image(config.aUpSrc, x+cw*0.7, y+1, 20, 20)
-        
-        nh = y
+
+        nh = y        
         y += 23
         this.nodeElems['tBody'] = paper.rect(x, y, cw, 250)
             .attr('fill', '#ffffff')
         
-        // 开始
-        x += 20, y += 10
-        ist = ndMer.make('begin', {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        tBodyNds.begin = ist
+        // 数据处理
+        x += 32
+        Util.each(menuSeting, (mk: string|number, row: any) => {
+            if('object' != typeof row){
+                mk = row
+                row = {}
+            }
+            if(!cNode[mk]){
+                return
+            }
+            // console.log(mk)
+            y += 32
+            let text = row.text || cNode[mk].text,
+                cx = x,
+                cy = y
+            
+            // 特殊坐标调整（坐标修正）
+            if('parallel' == mk){
+                cy += 5
+                cx += 20
+            }
+            else if('merge' == mk){
+                cy += 5
+                cx += 20
+            }
 
-        // 任务
-        y += 20
-        ist = ndMer.make('task', {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        tBodyNds.task = ist
-        
-        // 审核
-        y += 20
-        ist = ndMer.make('audit', {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        tBodyNds.audit = ist
-
-        // 会签
-        y += 20
-        ist = ndMer.make('sign', {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        tBodyNds.sign = ist
-       
-        // 判断
-        y += 20
-        ist = ndMer.make('cond', {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        tBodyNds.cond = ist
-
-        // 子流程
-        y += 20
-        ist = ndMer.make('subFlow', {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        tBodyNds.subFlow = ist
-        
-
-        // 并行
-        y += 30
-        ist = ndMer.make('parallel', {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        tBodyNds.parallel = ist
-       
-        // 合并
-        y += 20
-        ist = ndMer.make('merge', {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        tBodyNds.merge = ist
-      
-        // 结束
-        y += 20
-        ist = ndMer.make('end', {cx: x, cy: y, w: 16, h: 12})
-            .creator()
-        tBodyNds.end  = ist
+            ist = ndMer.make(<string>mk, {cx, cy, w: 40, h: 20, text: text})
+                .creator()
+            if(ist.label){
+                ist.label.attr('fill', '#FF8C00')
+                // ist.label.attr('fill', '#FFA500')
                 
+            }
+            // 特殊节点处理
+            if('text' == mk){
+                ist.c.attr({
+                    'font-size': 15,
+                    'stroke': 'none'
+                })
+            }
+
+            tBodyNds[<string>mk] = ist
+        })
+
         this.tBodyNds = tBodyNds
         this.rData.nh = y - nh
         this.nodeElems['tBody'].attr('height', this.rData.nh)

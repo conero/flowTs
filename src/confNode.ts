@@ -38,5 +38,9 @@ export var cNode: rSu.bsMap = {
     end: {
         type: 9,
         text: '结束'
+    },
+    text: { // 特殊文本
+        type: 9994,
+        text: '文本'
     }
 }

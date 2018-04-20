@@ -23,7 +23,19 @@ $(function(){
         // , noToolBar: true
         // noToolBar: true
         , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10']
+
+        // 事件绑定
         , bindOEvts: true
+        , onKeydown: function(code, $self){
+            // console.log(code)
+            switch(code){
+                case 83:
+                    let data = $self.save()
+                    localStorage.setItem(strClsKey, JSON.stringify(data))
+                    alert('数据已经保存')
+                    break
+            }
+        }
     })
     
 

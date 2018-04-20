@@ -75,15 +75,23 @@
             aUpSrc: '箭头向下图片地址：默认 arrow_up.png',
             aDownSrc: '箭头向上图片地址：默认 arrow_down.png',
             lnSeledBkg: ' 选择颜色码'
-            lnDefBkg: ' 默认颜色码'
+            lnDefBkg: ' 默认颜色码',
+            // 菜单
+            menu: [
+                // 默认
+                [key]: {text: '名称'},
+                [value]: string
+            ]
         },
         data: 'obejct'  // 保存的历史数据
         rCodes: 'string|string[]'   // 运行过的节点代码
         bkg: {  // 背景色
-            ranNode: '' // 运行过的节点
+            ranNode: '' // 运行过的节点(仅仅用于显示，不可拖动)
         }
         disEpDragble: '端点禁止拖动大小'
+        disConnNode: '禁止节点连线'
         bindOEvts: 'bool-绑定操作事件'
+        onKeydown: (code) => {} //  bindOEvts 绑定事件以后
     }
 ```
 

@@ -9,7 +9,7 @@ export default class NodeText extends NodeAbstract{
         this.NodeType = 'text'
     }
     protected _whenCreatorEvt(){
-        let {opt} = this.opt,
+        let {opt} = this,
             {cx, cy, text} = opt
         this.c = this.paper.text(cx, cy, text)
     }

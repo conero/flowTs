@@ -13,43 +13,6 @@ import {cNode} from './confNode'
 // 什么jQuery/RaphaelJs
 declare var $: any;
 
-// 配置参数常量 , type 1801 为特殊类型
-const Conf = {
-    start: {
-        type: 1,
-        text: '开始'
-    },
-    opera: {
-        type: 2,
-        text: '任务'
-    },
-    judge: {
-        type: 3,
-        text: '判断'
-    },
-    end: {
-        type: 9,
-        text: '结束'
-    },
-    arrow: {
-        type: 1801,
-        text: '箭头'
-    },
-    text: {
-        type: 1802,
-        text: '文本框',
-        size: 10,            // 默认大小
-        selected:{              // 选择属性
-            'font-size':20,
-            'fill':'red'
-        },
-        // 默认属性
-        defAtrr:{
-            'font-size':10,
-            'fill':'black'
-        }
-    }
-}
 /**
  * 工作流编辑器轻量级
  */
@@ -62,8 +25,6 @@ export default class WorkerEditor{
         [k: string]: string
     }
     _LineDragingP:any
-    lineQueues: any
-    textQueues: any
     MagneticCore: any
     toolbarCtrl?: rSu.ToolBar       // 工具栏控制器
     
@@ -71,6 +32,7 @@ export default class WorkerEditor{
     private ndMer: rSu.NodeQue
     private nodeDick: rSu.mapNode       // 节点字典
     private connDick: rSu.mapNode       // 连线字典 c{index}
+    private textDick: rSu.mapNode       // 文本字典 t{index}
     private idxDick: rSu.bsMap          // 连线处理栈 {c: numer-连线, a: number-字母}
     private lineCnMode: {               // 直线连接模式
         isSelEd: boolean,
@@ -92,10 +54,12 @@ export default class WorkerEditor{
         // 索引处理字典
         this.idxDick = {
             c: 0,                   // 连接线
-            n: 0                    // 节点
+            n: 0,                   // 节点
+            t: 0                    // 文本
         }
         this.nodeDick = {}      
         this.connDick = {}
+        this.textDick = {}
         this.tmpNodeMap = {}
         this.tmpMapRElm = {}
         this.config = config            // 系统配置参数
@@ -107,8 +71,6 @@ export default class WorkerEditor{
         this._code2EidDick = {}                 // 内部代码与元素id的映射字段
         this._LineDragingP = null               // RaphaelElement 直线正在拖动记录点
         // 内部缓存数组件容器： 节点、连接线、独立文本
-        this.lineQueues = []                    // 连线记录器
-        this.textQueues = []
         this.MagneticCore = null                // 连线磁化中心点，用于节点关联，单状态的结构 data: {type: from/to}        
         this._cerateToolBar()
         // 数据加载
@@ -235,10 +197,18 @@ export default class WorkerEditor{
                         }
                     })
                 $this._nodeBindEvt(ndAst)
-                let _index = $this._getOrderCode()
-                // 保存到字典中
-                ndAst.data('_code', _index)
-                $this.nodeDick[_index] = ndAst
+                if('text' == ndAst.NodeType){
+                    let tIdx = $this._order('t', 'T')
+                    // 保存到字典中
+                    ndAst.data('_code', tIdx)
+                    $this.textDick[tIdx] = ndAst
+                }
+                else{
+                    let _index = $this._order('n', 'A')
+                    // 保存到字典中
+                    ndAst.data('_code', _index)
+                    $this.nodeDick[_index] = ndAst
+                }
             },
             function(): any{
                 console.log(this, '测试：end')
@@ -342,7 +312,10 @@ export default class WorkerEditor{
                 var tmpLnIst: rSu.Node             
                 // 开启连线模式时
                 if($this.lineCnMode && $this.lineCnMode.isSelEd){
-                    //console.log(pnt)
+                    // 配置，禁止节点之间连线
+                    if(config.disConnNode){
+                        return null
+                    }
                     var tmpP = {x: 0, y: 0}
                     pnt.drag(
                         function(dx: number, dy: number){   // moving
@@ -383,7 +356,7 @@ export default class WorkerEditor{
                             // 历史节点处理                            
                             $this.removeTmpNode('connLnIst')
                             // 删除所有联系那选中状态
-                            $this.rmAllLnSeled()
+                            $this.removeAllSeled('conn')
                             // 处理
                             tmpP.x = this.attr('cx')
                             tmpP.y = this.attr('cy')
@@ -744,9 +717,31 @@ export default class WorkerEditor{
     /**
      * 移除所有选中中元素
      */
-    removeAllSeled(){
-        this.rmAllNdSeled()
-        this.rmAllLnSeled()
+    removeAllSeled(type?: string|string[]){
+        // 删除所有节点
+        let removeAllSeledNodeFn = (dick: rSu.mapNode) => {
+            Util.each(dick, (cd: string, ist: rSu.Node) => {
+                if(ist.isSelEd){
+                    ist.removeBox()
+                }
+            })
+        }
+        type = type? ('object' == typeof type? type: [type]): ''
+        if(!type){
+            type = ['c', 't', 'n']
+        }
+        //console.log(type)
+        Util.each(type, (idx: number, tp: string) => {
+            let dick: rSu.mapNode = {}
+            if('c' == tp || 'conn' == tp){
+                dick = this.connDick
+            }else if('t' == tp || 'text' == tp){
+                dick = this.textDick
+            }else{
+                dick = this.nodeDick
+            }
+            removeAllSeledNodeFn(dick)
+        })
         this.rmTempElem('allBorde')
     }
     /**
@@ -754,8 +749,7 @@ export default class WorkerEditor{
      */
     allSelect(){
         // 标记选中状态
-        this.allNodeSelect()
-        this.allLineSelect()
+        this.allNdSeled()
         let {x, y, w, h} = this.getAllSelPs()
         let $this = this
         // 生成全选遮挡层
@@ -783,7 +777,7 @@ export default class WorkerEditor{
                         })
                         node.select()
                     })
-                    $this.allLineSelect()
+                    $this.allNdSeled('conn')
                 },
                 function(){
                     tP.x = this.attr('x')
@@ -838,39 +832,29 @@ export default class WorkerEditor{
             h: h1 + boxPadding2
         }
     }
-    // 所有节点选中
-    allNodeSelect(){
-        Util.each(this.nodeDick, (k: string, node: rSu.Node) => {
-            node.select()
-        })
-    }
-    // 所有连线选择
-    allLineSelect(){
-        Util.each(this.connDick, (k: string, node: rSu.Node) => {
-            node.select()
-        })
-    }
     /**
-     * 移除所有节点选中状态
+     * 选中所有节点
+     * @param type 
      */
-    rmAllNdSeled(){
-        for(var key in this.nodeDick){
-            let nd: rSu.Node = this.nodeDick[key]
-            if(nd.isSelEd){
-                nd.removeBox()
-            }
+    allNdSeled(type?: string | string[]){
+        if(type){
+            type = 'object' == typeof type? type: [type]
+        }else{
+            type = ['c', 't', 'n']
         }
-    }
-    /**
-     * 移除所有连线选中状态
-     */
-    rmAllLnSeled(){
-        for(var key in this.connDick){
-            let nd: rSu.Node = this.connDick[key]
-            if(nd.isSelEd){
-                nd.removeBox()
+        Util.each(type, (idx: number, tp: string) => {
+            let dick: rSu.mapNode = {}
+            if('c' == tp || 'conn' == tp){
+                dick = this.connDick
+            }else if('t' == tp || 'text' == tp){
+                dick = this.textDick
+            }else{
+                dick = this.nodeDick
             }
-        }
+            Util.each(dick, (k: string, node: rSu.Node) => {
+                node.select()
+            })
+        })
     }
     // 删除所有节点
     rmAllNode(){
@@ -897,27 +881,16 @@ export default class WorkerEditor{
         })
     }
     /**
-     * 获取
-     */
-    private _getOrderCode(){
-        this._rIdx += 1
-        var code = this.config.prefCode + this._rIdx
-        // 判断序列号是否已经存在
-        if(this.nodeDick[code]){
-            code = this._getOrderCode()
-        }
-        return code
-    }
-    /**
      * 序列号获取
      * @param type 
      */
     private _order(type: string, prev?: string): string|number{
         let newStr: string|number
+        prev = prev? prev: ''
         if(type){
             if('undefined' != typeof this.idxDick[type]){
                 this.idxDick[type] += 1
-                newStr = this.idxDick[type]
+                newStr = prev + this.idxDick[type]
                 switch(type){
                     case 'c':
                         if(this.connDick[newStr]){
@@ -929,11 +902,13 @@ export default class WorkerEditor{
                             newStr = this._order(type, prev)
                         }
                         break
+                    case 't':
+                        if(this.textDick[newStr]){
+                            newStr = this._order(type, prev)
+                        }
+                        break
                 }
             }
-        }
-        if(prev){
-            newStr = prev + newStr
         }
         return newStr
     }
@@ -992,6 +967,8 @@ export default class WorkerEditor{
                     delete this.nodeDick[value]
                 }else if(this.connDick[value]){
                     delete this.connDick[value]
+                }else if(this.textDick[value]){
+                    delete this.textDick[value]
                 }
                 isSuccess = true
                 // 选择切换
@@ -1075,10 +1052,19 @@ export default class WorkerEditor{
             this.removeAllSeled()
             newNode.select()
             this._nodeBindEvt(newNode)
-            let _index = this._getOrderCode()
-            // 保存到字典中
-            newNode.data('_code', _index)
-            this.nodeDick[_index] = newNode
+            let ndType = newNode.NodeType
+            if('text' == ndType){
+                let tIdx = this._order('t', 'T')
+                newNode.data('_code', tIdx)
+                this.textDick[tIdx] = newNode
+            }
+            else{
+                let _index = this._order('n', 'A')
+                // 保存到字典中
+                newNode.data('_code', _index)
+                this.nodeDick[_index] = newNode
+            }
+            
         }
         return newNode
     }
@@ -1097,6 +1083,15 @@ export default class WorkerEditor{
         // 连线扫描
         if(!selectedNode){
             Util.each(this.connDick, (k: string, node: rSu.Node) => {
+                if(node.isSelEd){
+                    selectedNode = node
+                    return false
+                }
+            })
+        }
+        // 扫描文本
+        if(!selectedNode){
+            Util.each(this.textDick, (k: string, node: rSu.Node) => {
                 if(node.isSelEd){
                     selectedNode = node
                     return false
@@ -1143,8 +1138,8 @@ export default class WorkerEditor{
             data.code = node.code
             data.name = node.name
             data.type = node.type            
-            data.prev = toQue.join(',')
-            data.next = fromQue.join(',')
+            data.next = toQue.join(',')
+            data.prev = fromQue.join(',')
             // 坐标点属性值
             data._srroo = {
                 opt: node.opt,
@@ -1168,7 +1163,8 @@ export default class WorkerEditor{
             stepStru.push(this.step(node))
         })
         var _srroo: rSu.bsMap = {},
-            line: rSu.bsMap = {}
+            line: rSu.bsMap = {},
+            text: rSu.bsMap = {}
         // 连线
         Util.each(this.connDick, (cd: string, ist: rSu.Node) => {
             line[cd] = {
@@ -1177,7 +1173,15 @@ export default class WorkerEditor{
                 opt: ist.opt
             }
         })
-        _srroo = {line}
+        // 文本
+        Util.each(this.textDick, (cd: string, ist: rSu.Node) => {
+            text[cd] = {
+                data: ist.data(),
+                NodeType: ist.NodeType,
+                opt: ist.opt
+            }
+        })
+        _srroo = {line, text}
         return {
             step: stepStru,
             _srroo
@@ -1239,13 +1243,34 @@ export default class WorkerEditor{
                 tIst.line(cd, true)
             }
         })
+        // 文本生成
+        Util.each(_srroo.text, (cd: string, dd: rSu.bsMap) => {
+            let _data = dd.data
+            let $ist = this.ndMer.make(dd.NodeType, dd.opt)
+                .creator()
+                .moveable({
+                    afterUpd: function(x: number, y: number, node: rSu.Node){
+                        $this._lineMoveSync(x, y, node)
+                    }
+                })
+            $ist.data('_code', cd)            
+            $ist.data(_data)
+
+            this._nodeBindEvt($ist)
+            this.textDick[cd] = $ist
+        })
 
         // 当前运行的节点
         // 文件加载以后才显示
         let config = this.config,
             rCodes: string| string[] = config.rCodes || null,
             bkg: rSu.bsMap = config.bkg || {},
-            ranNodeBkg = bkg.ranNode || '#C1CDCD'                  // 默认值
+            ranNodeBkg = bkg.ranNode || ''                  
+        if(!ranNodeBkg){        // 默认值，且更新值
+            ranNodeBkg = '#C1CDCD'
+            bkg.ranNode = ranNodeBkg
+            this.config.bkg = bkg
+        }
         if(rCodes){
             rCodes = 'object' == typeof rCodes? rCodes: [rCodes]
             Util.each(rCodes, (idx: number, code: string) => {
@@ -1316,7 +1341,8 @@ export default class WorkerEditor{
      * 操作助手事件
      */
     operHelpEvts(){
-        let {dom} = this.config,
+        let {config} = this,
+            {dom} = config,
             $this = this
         // tabindex ="0" 是元素可以聚焦，outline 取消边框
         dom.attr('tabindex', '0')
@@ -1355,6 +1381,12 @@ export default class WorkerEditor{
                             case 107: nodeSelEd.zoomOut(); break;
                             case 109: nodeSelEd.zoomIn(); break;
                         }
+                    }
+                }
+                else{
+                    // 键盘
+                    if(config.onKeydown && 'function' == typeof config.onKeydown){
+                        config.onKeydown(code, $this)
                     }
                 }
             }
