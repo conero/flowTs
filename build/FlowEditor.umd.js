@@ -1572,73 +1572,81 @@ var WorkerEditor = /** @class */ (function () {
     WorkerEditor.prototype._lineBindEvt = function (ln) {
         var $this = this;
         if (ln) {
+            // 起点移动处理
+            var startPFn = function (elem) {
+                var p1 = { x: 0, y: 0 };
+                elem.drag(function (dx, dy) {
+                    dx += p1.x;
+                    dy += p1.y;
+                    // 节点碰撞
+                    var collNode = $this.collisionByP(dx, dy), fCode = ln.data('from_code'), lnCode = ln.code;
+                    if (fCode) {
+                        $this.nodeDick[fCode].rmLine(lnCode);
+                    }
+                    $this.allBackground();
+                    if (collNode) {
+                        var rElem = collNode.magnCore(dx, dy);
+                        if (rElem) {
+                            dx = rElem.attr('cx');
+                            dy = rElem.attr('cy');
+                            ln.data('from_code', rElem.data('pcode'))
+                                .data('from_posi', rElem.data('posi'));
+                        }
+                        collNode.background('magn');
+                        collNode.line(lnCode);
+                    }
+                    else {
+                        ln.data('from_code', null)
+                            .data('from_posi', null);
+                    }
+                    ln.updAttr({ P1: { x: dx, y: dy } });
+                }, function () {
+                    p1.x = this.attr('cx');
+                    p1.y = this.attr('cy');
+                }, function () { });
+            };
+            // 终点移动处理
+            var endPFn = function (elem) {
+                var p1 = { x: 0, y: 0 };
+                elem.drag(function (dx, dy) {
+                    dx += p1.x;
+                    dy += p1.y;
+                    // 节点碰撞
+                    var collNode = $this.collisionByP(dx, dy), fCode = ln.data('to_code'), lnCode = ln.code;
+                    if (fCode) {
+                        $this.nodeDick[fCode].rmLine(lnCode, true);
+                    }
+                    $this.allBackground();
+                    if (collNode) {
+                        var rElem = collNode.magnCore(dx, dy);
+                        if (rElem) {
+                            dx = rElem.attr('cx');
+                            dy = rElem.attr('cy');
+                            ln.data('to_code', rElem.data('pcode'))
+                                .data('to_posi', rElem.data('posi'));
+                        }
+                        collNode.background('magn');
+                        collNode.line(lnCode, true);
+                    }
+                    else {
+                        ln.data('to_code', null)
+                            .data('to_posi', null);
+                    }
+                    ln.updAttr({ P2: { x: dx, y: dy } });
+                }, function () {
+                    p1.x = this.attr('cx');
+                    p1.y = this.attr('cy');
+                }, function () { });
+            };
             if ('ln' == ln.NodeType) {
                 ln.onCreateBoxPnt = function (pElem) {
                     var pcode = pElem.data('pcode'), posi = pElem.data('posi');
                     // 起点
                     if ('f' == posi) {
-                        var p1_1 = { x: 0, y: 0 };
-                        pElem.drag(function (dx, dy) {
-                            dx += p1_1.x;
-                            dy += p1_1.y;
-                            // 节点碰撞
-                            var collNode = $this.collisionByP(dx, dy), fCode = ln.data('from_code'), lnCode = ln.code;
-                            if (fCode) {
-                                $this.nodeDick[fCode].rmLine(lnCode);
-                            }
-                            $this.allBackground();
-                            if (collNode) {
-                                var rElem = collNode.magnCore(dx, dy);
-                                if (rElem) {
-                                    dx = rElem.attr('cx');
-                                    dy = rElem.attr('cy');
-                                    ln.data('from_code', rElem.data('pcode'))
-                                        .data('from_posi', rElem.data('posi'));
-                                }
-                                collNode.background('magn');
-                                collNode.line(lnCode);
-                            }
-                            else {
-                                ln.data('from_code', null)
-                                    .data('from_posi', null);
-                            }
-                            ln.updAttr({ P1: { x: dx, y: dy } });
-                        }, function () {
-                            p1_1.x = this.attr('cx');
-                            p1_1.y = this.attr('cy');
-                        }, function () { });
+                        startPFn(pElem);
                     }
                     else if ('t' == posi) {
-                        var p1_2 = { x: 0, y: 0 };
-                        pElem.drag(function (dx, dy) {
-                            dx += p1_2.x;
-                            dy += p1_2.y;
-                            // 节点碰撞
-                            var collNode = $this.collisionByP(dx, dy), fCode = ln.data('to_code'), lnCode = ln.code;
-                            if (fCode) {
-                                $this.nodeDick[fCode].rmLine(lnCode, true);
-                            }
-                            $this.allBackground();
-                            if (collNode) {
-                                var rElem = collNode.magnCore(dx, dy);
-                                if (rElem) {
-                                    dx = rElem.attr('cx');
-                                    dy = rElem.attr('cy');
-                                    ln.data('to_code', rElem.data('pcode'))
-                                        .data('to_posi', rElem.data('posi'));
-                                }
-                                collNode.background('magn');
-                                collNode.line(lnCode, true);
-                            }
-                            else {
-                                ln.data('to_code', null)
-                                    .data('to_posi', null);
-                            }
-                            ln.updAttr({ P2: { x: dx, y: dy } });
-                        }, function () {
-                            p1_2.x = this.attr('cx');
-                            p1_2.y = this.attr('cy');
-                        }, function () { });
+                        endPFn(pElem);
                     }
                 };
                 // 连线选中
@@ -1653,6 +1661,36 @@ var WorkerEditor = /** @class */ (function () {
                     $this.removeAllSeled();
                     ln.select();
                 });
+                // 边框点
+                ln.onCreateBoxPnt = function (pElem) {
+                    var pcode = pElem.data('pcode'), posi = pElem.data('posi');
+                    if ('f' == posi) { // 起点
+                        startPFn(pElem);
+                    }
+                    else if ('t' == posi) { // 终点
+                        endPFn(pElem);
+                    }
+                    else { // 中间点
+                        var tP_1 = { x: 0, y: 0 }, MPsTmp = [], MPsLn = void 0; // 中间点串联成的临时连线
+                        pElem.drag(function (dx, dy) {
+                            dx += tP_1.x;
+                            dy += tP_1.y;
+                            /*
+                            console.log(dx, dy, posi)
+                            console.log(ln.opt.MPs)
+                            */
+                            //let mpsIdx: number = posi.replace('m', '') * 1 - 1
+                            //let MPs = ln.opt.MPs
+                            //this
+                        }, function () {
+                            tP_1.x = this.attr('cx');
+                            tP_1.y = this.attr('cy');
+                            // let idx: number = posi.replace('m', '') * 1 - 1,
+                            //     {MPs} = ln.opt
+                            // console.log(idx)
+                        }, function () { });
+                    }
+                };
             }
             // 公共鼠标选中事件
             ln.c.hover(function () {
@@ -1925,8 +1963,14 @@ var WorkerEditor = /** @class */ (function () {
                 var NodeType = node.NodeType, value = node.code;
                 if ('ln' == NodeType || 'ln_poly' == NodeType) { // 连线删除
                     var fCode = node.data('from_code'), tCode = node.data('to_code');
-                    _this.nodeDick[fCode].rmLine(value);
-                    _this.nodeDick[tCode].rmLine(value, true);
+                    var fNodeIst = _this.nodeDick[fCode], tNodeIst = _this.nodeDick[tCode];
+                    // 先删除节点后删除连线，连线不存在
+                    if (fNodeIst) {
+                        fNodeIst.rmLine(value);
+                    }
+                    if (tNodeIst) {
+                        tNodeIst.rmLine(value, true);
+                    }
                 }
                 node.delete();
                 if (_this.nodeDick[value]) {
@@ -1959,33 +2003,50 @@ var WorkerEditor = /** @class */ (function () {
     };
     /**
      * 循环获取节点， tab 节点选择切换
+     * @param {string|null} type 类型 c-conn, t-text
      */
-    WorkerEditor.prototype.tab = function () {
+    WorkerEditor.prototype.tab = function (type) {
+        var _this = this;
         var cSelEd = this.select(), code = cSelEd ? cSelEd.code : null, findLastMk = false, // 找到最后一个
         successMk = false; // 匹配到标志
-        for (var key in this.nodeDick) {
-            var nd = this.nodeDick[key];
-            if (!cSelEd) { // 没有的从第一个开始
-                nd.select();
+        // 节点选择处理函数            
+        var handlerNodeSelFn = function (cd, node) {
+            if (!cSelEd) {
+                node.select();
                 successMk = true;
-                break;
+                return false;
             }
             else {
                 if (findLastMk) { // 正好遍历到
-                    this.removeAllSeled();
-                    nd.select();
+                    _this.removeAllSeled();
+                    node.select();
                     successMk = true;
-                    break;
+                    return false;
                 }
-                else if (code == nd.code) {
+                else if (code == node.code) {
                     findLastMk = true;
                 }
             }
+        };
+        if ('c' == type) {
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.connDick, function (cd, node) {
+                return handlerNodeSelFn(cd, node);
+            });
+        }
+        else if ('t' == type) {
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.textDick, function (cd, node) {
+                return handlerNodeSelFn(cd, node);
+            });
+        }
+        else {
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (cd, node) {
+                return handlerNodeSelFn(cd, node);
+            });
         }
         // 没有找到时从新开始，且存在元素
         if (findLastMk && !successMk) {
             this.removeAllSeled();
-            this.tab();
+            this.tab(type);
         }
     };
     /**
@@ -2299,6 +2360,12 @@ var WorkerEditor = /** @class */ (function () {
                 }
                 else if (84 == code) { // shitf + T tab 循环
                     $this.tab();
+                }
+                else if (67 == code) { // shift + C tab 循环 conn
+                    $this.tab('c');
+                }
+                else if (76 == code) { // shift + L tab 循环 text/lable
+                    $this.tab('t');
                 }
                 else if (65 == code) { // shift + A 全选择
                     $this.allSelect();
@@ -2641,7 +2708,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.1.4", "release": "20180420", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.1.5", "release": "20180423", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),
@@ -3880,28 +3947,6 @@ var NodeLnPoly = /** @class */ (function (_super) {
         }
         return { pQue: pQue, arrowPs: arrowPs };
     };
-    NodeLnPoly.prototype.__opt2Attr = function (nOpt) {
-        var opt = nOpt ? nOpt : this.opt, P1 = opt.P1, P2 = opt.P2, h = opt.h || 4, rX = opt.rX || 0.35, l = this.getLen(), r = opt.r || (l * (1 - rX) * 0.2);
-        var nP1 = { x: P1.x + l * rX, y: P1.y + h };
-        // 箭头计算
-        var atan = Math.atan2(nP1.y - P2.y, P2.x - nP1.x) * (180 / Math.PI);
-        var centerX = P2.x - r * Math.cos(atan * (Math.PI / 180));
-        var centerY = P2.y + r * Math.sin(atan * (Math.PI / 180));
-        var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
-        var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
-        var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
-        var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
-        return [
-            P1,
-            { x: P1.x + l * rX, y: P1.y },
-            nP1,
-            nP1,
-            P2,
-            { x: x2, y: y2 },
-            { x: x3, y: y3 },
-            P2
-        ];
-    };
     /**
      * 获取中间点
      * @param P0
@@ -3955,10 +4000,9 @@ var NodeLnPoly = /** @class */ (function (_super) {
      * f/m/t
      */
     NodeLnPoly.prototype.getFocusPoint = function () {
-        var _a = this.opt, P1 = _a.P1, P2 = _a.P2, len = this.getPLen(P1, P2), tP = this.c.getPointAtLength(len / 2), MPs = this.opt.MPs || [];
+        var _a = this.opt, P1 = _a.P1, P2 = _a.P2, MPs = this.opt.MPs || [];
         var psMap = {
-            f: P1,
-            t: P2
+            f: P1
         };
         // 个数统计
         var num = 0;
@@ -3967,20 +4011,15 @@ var NodeLnPoly = /** @class */ (function (_super) {
             psMap[kStr] = p;
             num = k;
         });
+        psMap.t = P2;
         // 中间点        
-        var psValue = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].jsonValues(psMap), rLen = 0;
-        // console.log(psValue)
-        for (var i = 0; i < psValue.length - 1; i++) {
+        var psValue = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].jsonValues(psMap), psCtt = psValue.length; // 节点统计个数
+        for (var i = 0; i < psCtt - 1; i++) {
+            if (i == 0) { }
             num += 1;
             var kStr = 'm' + num, pV1 = psValue[i], pV2 = psValue[i + 1];
-            //console.log(pV1, pV2) 
-            var cLen = __WEBPACK_IMPORTED_MODULE_1__NodeUtil__["a" /* default */].getPLen(pV1, pV2), pTmp = this.c.getPointAtLength(rLen + cLen / 2);
-            psMap[kStr] = pTmp;
-            // psMap[kStr] = {
-            //     x: pV1.x + Math.abs((pV1.x - pV2.x)/2),
-            //     y: pV1.y + Math.abs((pV1.y - pV2.y)/2),
-            // }
-            rLen += cLen;
+            // 中点坐标公式
+            psMap[kStr] = { x: (pV1.x + pV2.x) / 2, y: (pV1.y + pV2.y) / 2 };
         }
         return psMap;
     };
@@ -3990,7 +4029,7 @@ var NodeLnPoly = /** @class */ (function (_super) {
     NodeLnPoly.prototype.mvEndPoint = function (p, isEnd) {
         var tP;
         var pathArr = this.c.attr('path'), opt = this.opt;
-        if (isEnd) {
+        if (isEnd) { // 终点
             var pA0 = pathArr[pathArr.length - 2], p0 = {
                 x: pA0[1],
                 y: pA0[2]
@@ -3998,14 +4037,16 @@ var NodeLnPoly = /** @class */ (function (_super) {
             tP = this.getMiddP(p0, opt.P2);
             if (tP) {
                 opt.MPs = opt.MPs ? opt.MPs : [];
-                // opt.MPs.push(tP)
                 if (opt.MPs.length > 0) {
                     opt.MPs[opt.MPs.length - 1] = tP;
                 }
             }
+            else {
+                opt.MPs = [];
+            }
             opt.P2 = p;
         }
-        else {
+        else { // 起点
             var pA0 = pathArr[1], p0 = {
                 x: pA0[1],
                 y: pA0[2]
@@ -4013,10 +4054,12 @@ var NodeLnPoly = /** @class */ (function (_super) {
             tP = this.getMiddP(opt.P1, p0);
             if (tP) {
                 opt.MPs = opt.MPs ? opt.MPs : [];
-                //opt.MPs = opt.MPs.concat([tP])
                 if (opt.MPs.length > 0) {
                     opt.MPs[0] = tP;
                 }
+            }
+            else {
+                opt.MPs = [];
             }
             opt.P1 = p;
         }

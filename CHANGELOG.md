@@ -3,6 +3,16 @@
 
 ## ***V2.1.x/alpha-date*** alpha 类型模板
 
+### ***V2.1.5/20180423***
+- src/WorkerEditor.ts
+    - (修复) ***remove*** 先删除节点后删除连线，连线端点节点不存在报错
+    - (优化) ***直线*** 端点移动，以及实现折线端点移动算法
+    - (优化) ***tab*** 方法实现 ***连线/文本*** 等 tab 循环选中
+    - (优化) ***operHelpEvts*** 方法新增 “shift+C/L” 快捷键
+- src/node/NodeLnPoly.ts
+    - (优化) ***getFocusPoint*** 方法采用 “中点坐标公式” 算法生成焦点
+    - (修复) ***mvEndPoint*** 端点移动折线未完全达到直角走法
+
 ### ***V2.1.4/20180420***
 - src/WorkerEditor.ts
     - (+) 添加配置属性 ***disConnNode/禁止连接节点***，***onKeydown*** 开启事件的绑定

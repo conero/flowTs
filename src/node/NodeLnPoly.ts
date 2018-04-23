@@ -58,40 +58,6 @@ export default class NodeLnPoly extends NodeAbstract{
 
         return {pQue, arrowPs}
     }
-    __opt2Attr(nOpt?: rSu.NodeOpt){
-        var opt = nOpt? nOpt : this.opt,
-            P1 = opt.P1,
-            P2 = opt.P2,
-            h = opt.h || 4,
-            rX = opt.rX || 0.35,
-            l = this.getLen(),
-            r = opt.r || (l * (1 - rX) * 0.2)
-
-        var nP1: rSu.P = {x: P1.x + l * rX, y: P1.y + h}
-
-        // 箭头计算
-        var atan = Math.atan2(nP1.y - P2.y, P2.x - nP1.x) * (180 / Math.PI);
-
-        var centerX = P2.x - r * Math.cos(atan * (Math.PI / 180));
-        var centerY = P2.y + r * Math.sin(atan * (Math.PI / 180));
-
-        var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
-        var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
-
-        var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
-        var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
-
-        return [
-            P1,
-            {x: P1.x + l * rX, y: P1.y},
-            nP1,
-            nP1,
-            P2,
-            {x: x2, y: y2},
-            {x: x3, y: y3},
-            P2
-        ]            
-    }    
     /**
      * 获取中间点
      * @param P0 
@@ -147,12 +113,9 @@ export default class NodeLnPoly extends NodeAbstract{
      */
     getFocusPoint(){
         let {P1, P2} = this.opt,
-            len = this.getPLen(P1, P2),
-            tP = this.c.getPointAtLength(len/2),
             MPs = this.opt.MPs || []
         let psMap: rSu.pMap = {
-            f: P1,
-            t: P2
+            f: P1
         }
         // 个数统计
         let num: number = 0
@@ -161,25 +124,21 @@ export default class NodeLnPoly extends NodeAbstract{
             psMap[kStr] = p
             num = k
         })
+        psMap.t = P2
         // 中间点        
         let psValue: rSu.P[] = Util.jsonValues(psMap),
-            rLen: number = 0
-        // console.log(psValue)
+            psCtt: number = psValue.length  // 节点统计个数
         
-        for(var i=0; i<psValue.length-1; i++){
+        for(var i=0; i<psCtt-1; i++){
+            if(i == 0){}
             num += 1
             let kStr = 'm' + num,
                 pV1 = psValue[i],
                 pV2 = psValue[i+1]
-            //console.log(pV1, pV2) 
-            let cLen: number = NodeUtil.getPLen(pV1, pV2),
-                pTmp = this.c.getPointAtLength(rLen + cLen/2)         
-            psMap[kStr] = pTmp
-            // psMap[kStr] = {
-            //     x: pV1.x + Math.abs((pV1.x - pV2.x)/2),
-            //     y: pV1.y + Math.abs((pV1.y - pV2.y)/2),
-            // }
-            rLen += cLen
+            
+            // 中点坐标公式
+            psMap[kStr] = {x: (pV1.x + pV2.x)/2, y: (pV1.y + pV2.y)/2}
+
         }
         return psMap
     }
@@ -190,7 +149,7 @@ export default class NodeLnPoly extends NodeAbstract{
         let tP: rSu.P
         let pathArr = this.c.attr('path'),
             opt = this.opt
-        if(isEnd){ 
+        if(isEnd){      // 终点
             let pA0 = pathArr[pathArr.length - 2],
             p0: rSu.P = {
                 x: pA0[1],
@@ -199,14 +158,15 @@ export default class NodeLnPoly extends NodeAbstract{
             tP = this.getMiddP(p0, opt.P2)
             if(tP){
                 opt.MPs = opt.MPs? opt.MPs: []
-                // opt.MPs.push(tP)
                 if(opt.MPs.length > 0){
                     opt.MPs[opt.MPs.length-1] = tP
                 }
+            }else{
+                opt.MPs = []
             }
             opt.P2 = p
         }
-        else{
+        else{       // 起点
             let pA0 = pathArr[1],
             p0: rSu.P = {
                 x: pA0[1],
@@ -215,10 +175,11 @@ export default class NodeLnPoly extends NodeAbstract{
             tP = this.getMiddP(opt.P1, p0)
             if(tP){
                 opt.MPs = opt.MPs? opt.MPs: []
-                //opt.MPs = opt.MPs.concat([tP])
                 if(opt.MPs.length > 0){
                     opt.MPs[0] = tP
                 }
+            }else{
+                opt.MPs = []
             }
             opt.P1 = p
         }

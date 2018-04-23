@@ -126,8 +126,6 @@ export default class WorkerEditor{
                 let from_code = fromLn.data('from_code'),
                     from_posi = fromLn.data('from_posi'),
                     {ps} = node.getBBox()
-                // fromLn.updAttr({P1: ps[from_posi]})
-                //fromLn.updAttr({P1: ps[from_posi]})
                 ; (<any>fromLn).mvEndPoint(ps[from_posi])
             }
         })
@@ -597,88 +595,96 @@ export default class WorkerEditor{
     private _lineBindEvt(ln?: rSu.Node){
         let $this = this
         if(ln){
+            // 起点移动处理
+            var startPFn = (elem: RaphaelElement) => {
+                let p1: rSu.P = {x: 0, y: 0}
+                elem.drag(
+                    function(dx: number, dy: number){
+                        dx += p1.x
+                        dy += p1.y
+
+                        // 节点碰撞
+                        let collNode: rSu.Node = $this.collisionByP(dx, dy),
+                            fCode = ln.data('from_code'),
+                            lnCode = ln.code
+                        if(fCode){
+                            $this.nodeDick[fCode].rmLine(lnCode)
+                        }
+                        $this.allBackground()
+
+                        if(collNode){                                
+                            let rElem = collNode.magnCore(dx, dy)
+                            if(rElem){
+                                dx = rElem.attr('cx')
+                                dy = rElem.attr('cy')
+                                ln.data('from_code', rElem.data('pcode'))
+                                    .data('from_posi', rElem.data('posi'))
+                            }                                
+                            collNode.background('magn')
+                            collNode.line(lnCode)
+                        }else{
+                            ln.data('from_code', null)
+                                .data('from_posi', null)
+                        }
+                        ln.updAttr({P1: {x: dx, y: dy}})
+                    },
+                    function(){
+                        p1.x = this.attr('cx')                                
+                        p1.y = this.attr('cy')                                
+                    },
+                    function(){}
+                )
+            }
+            // 终点移动处理
+            var endPFn = (elem: RaphaelElement) => {
+                let p1: rSu.P = {x: 0, y: 0}
+                elem.drag(
+                    function(dx: number, dy: number){
+                        dx += p1.x
+                        dy += p1.y
+
+                        // 节点碰撞
+                        let collNode: rSu.Node = $this.collisionByP(dx, dy),
+                            fCode = ln.data('to_code'),
+                            lnCode = ln.code
+                        if(fCode){
+                            $this.nodeDick[fCode].rmLine(lnCode, true)
+                        }
+                        $this.allBackground()
+
+                        if(collNode){                                
+                            let rElem = collNode.magnCore(dx, dy)
+                            if(rElem){
+                                dx = rElem.attr('cx')
+                                dy = rElem.attr('cy')
+                                ln.data('to_code', rElem.data('pcode'))
+                                    .data('to_posi', rElem.data('posi'))
+                            }                                
+                            collNode.background('magn')
+                            collNode.line(lnCode, true)
+                        }else{
+                            ln.data('to_code', null)
+                                .data('to_posi', null)
+                        }
+                        ln.updAttr({P2: {x: dx, y: dy}})
+                    },
+                    function(){
+                        p1.x = this.attr('cx')                                
+                        p1.y = this.attr('cy')                                
+                    },
+                    function(){}
+                )
+            }
             if('ln' == ln.NodeType){
                 ln.onCreateBoxPnt = function(pElem: RaphaelElement){
                     let pcode = pElem.data('pcode'),
                         posi = pElem.data('posi')
                     // 起点
                     if('f' == posi){
-                        let p1: rSu.P = {x: 0, y: 0}
-                        pElem.drag(
-                            function(dx: number, dy: number){
-                                dx += p1.x
-                                dy += p1.y
-
-                                // 节点碰撞
-                                let collNode: rSu.Node = $this.collisionByP(dx, dy),
-                                    fCode = ln.data('from_code'),
-                                    lnCode = ln.code
-                                if(fCode){
-                                    $this.nodeDick[fCode].rmLine(lnCode)
-                                }
-                                $this.allBackground()
-
-                                if(collNode){                                
-                                    let rElem = collNode.magnCore(dx, dy)
-                                    if(rElem){
-                                        dx = rElem.attr('cx')
-                                        dy = rElem.attr('cy')
-                                        ln.data('from_code', rElem.data('pcode'))
-                                            .data('from_posi', rElem.data('posi'))
-                                    }                                
-                                    collNode.background('magn')
-                                    collNode.line(lnCode)
-                                }else{
-                                    ln.data('from_code', null)
-                                        .data('from_posi', null)
-                                }
-                                ln.updAttr({P1: {x: dx, y: dy}})
-                            },
-                            function(){
-                                p1.x = this.attr('cx')                                
-                                p1.y = this.attr('cy')                                
-                            },
-                            function(){}
-                        )
+                        startPFn(pElem)
                     }
                     else if('t' == posi){
-                        let p1: rSu.P = {x: 0, y: 0}
-                        pElem.drag(
-                            function(dx: number, dy: number){
-                                dx += p1.x
-                                dy += p1.y
-
-                                // 节点碰撞
-                                let collNode: rSu.Node = $this.collisionByP(dx, dy),
-                                    fCode = ln.data('to_code'),
-                                    lnCode = ln.code
-                                if(fCode){
-                                    $this.nodeDick[fCode].rmLine(lnCode, true)
-                                }
-                                $this.allBackground()
-
-                                if(collNode){                                
-                                    let rElem = collNode.magnCore(dx, dy)
-                                    if(rElem){
-                                        dx = rElem.attr('cx')
-                                        dy = rElem.attr('cy')
-                                        ln.data('to_code', rElem.data('pcode'))
-                                            .data('to_posi', rElem.data('posi'))
-                                    }                                
-                                    collNode.background('magn')
-                                    collNode.line(lnCode, true)
-                                }else{
-                                    ln.data('to_code', null)
-                                        .data('to_posi', null)
-                                }
-                                ln.updAttr({P2: {x: dx, y: dy}})
-                            },
-                            function(){
-                                p1.x = this.attr('cx')                                
-                                p1.y = this.attr('cy')                                
-                            },
-                            function(){}
-                        )
+                        endPFn(pElem)
                     }
                 }
                 // 连线选中
@@ -692,6 +698,44 @@ export default class WorkerEditor{
                     $this.removeAllSeled()
                     ln.select()
                 })
+                // 边框点
+                ln.onCreateBoxPnt = function(pElem: RaphaelElement){
+                    let pcode = pElem.data('pcode'),
+                        posi = pElem.data('posi')
+                    if('f' == posi){    // 起点
+                        startPFn(pElem)
+                    }
+                    else if('t' == posi){   // 终点
+                        endPFn(pElem)
+                    }
+                    else{   // 中间点
+                        let tP: rSu.P = {x: 0, y: 0},
+                            MPsTmp: rSu.P[] = [],
+                            MPsLn: RaphaelElement   // 中间点串联成的临时连线
+
+                        pElem.drag(
+                            function(dx: number, dy: number){
+                                dx += tP.x
+                                dy += tP.y
+                                /*
+                                console.log(dx, dy, posi)
+                                console.log(ln.opt.MPs)
+                                */
+                               //let mpsIdx: number = posi.replace('m', '') * 1 - 1
+                               //let MPs = ln.opt.MPs
+                               //this
+                            },
+                            function(){
+                                tP.x = this.attr('cx')
+                                tP.y = this.attr('cy')
+                                // let idx: number = posi.replace('m', '') * 1 - 1,
+                                //     {MPs} = ln.opt
+                                // console.log(idx)
+                            },
+                            function(){}
+                        )
+                    }
+                }
             }
             // 公共鼠标选中事件
             ln.c.hover(
@@ -957,9 +1001,16 @@ export default class WorkerEditor{
                     value = node.code
                 if('ln' == NodeType || 'ln_poly' == NodeType){   // 连线删除
                     let fCode = node.data('from_code'),
-                        tCode = node.data('to_code')               
-                    this.nodeDick[fCode].rmLine(value)
-                    this.nodeDick[tCode].rmLine(value, true)
+                        tCode = node.data('to_code')
+                    let fNodeIst = this.nodeDick[fCode],
+                        tNodeIst = this.nodeDick[tCode]
+                    // 先删除节点后删除连线，连线不存在
+                    if(fNodeIst){
+                        fNodeIst.rmLine(value)
+                    }      
+                    if(tNodeIst){
+                        tNodeIst.rmLine(value, true)
+                    }                  
                 }
                 
                 node.delete()
@@ -990,35 +1041,51 @@ export default class WorkerEditor{
     }
     /**
      * 循环获取节点， tab 节点选择切换
+     * @param {string|null} type 类型 c-conn, t-text
      */
-    tab(){
+    tab(type?: string){
         var cSelEd: rSu.Node = this.select(),
             code: string = cSelEd? cSelEd.code : null,
             findLastMk: boolean = false,    // 找到最后一个
             successMk: boolean = false     // 匹配到标志
-
-        for(var key in this.nodeDick){
-            var nd = this.nodeDick[key]
-            if(!cSelEd){    // 没有的从第一个开始
-                nd.select()
+        
+        // 节点选择处理函数            
+        var handlerNodeSelFn = (cd: string, node: rSu.Node) => {
+            if(!cSelEd){
+                node.select()
                 successMk = true
-                break
+                return false
             }else{
                 if(findLastMk){     // 正好遍历到
                     this.removeAllSeled()
-                    nd.select()
+                    node.select()
                     successMk = true
-                    break
+                    return false
                 }
-                else if(code == nd.code){
+                else if(code == node.code){
                     findLastMk = true
                 }
             }
         }
+        if('c' == type){
+            Util.each(this.connDick, (cd: string, node: rSu.Node) => {
+                return handlerNodeSelFn(cd, node)
+            })
+        }
+        else if('t' == type){
+            Util.each(this.textDick, (cd: string, node: rSu.Node) => {
+                return handlerNodeSelFn(cd, node)
+            })
+        }
+        else{
+            Util.each(this.nodeDick, (cd: string, node: rSu.Node) => {
+                return handlerNodeSelFn(cd, node)
+            })
+        }
         // 没有找到时从新开始，且存在元素
         if(findLastMk && !successMk){
             this.removeAllSeled()
-            this.tab()
+            this.tab(type)
         }
     }
     /**
@@ -1358,6 +1425,12 @@ export default class WorkerEditor{
                 }
                 else if(84 == code){ // shitf + T tab 循环
 					$this.tab()
+                }
+                else if(67 == code){    // shift + C tab 循环 conn
+                    $this.tab('c')
+                }
+                else if(76 == code){    // shift + L tab 循环 text/lable
+                    $this.tab('t')
                 }
                 else if(65 == code){ // shift + A 全选择
 					$this.allSelect()
