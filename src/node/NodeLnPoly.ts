@@ -127,20 +127,24 @@ export default class NodeLnPoly extends NodeAbstract{
         psMap.t = P2
         // 中间点        
         let psValue: rSu.P[] = Util.jsonValues(psMap),
-            psCtt: number = psValue.length  // 节点统计个数
-        
+            psCtt: number = psValue.length,  // 节点统计个数
+            fPsDick: rSu.pMap = {}  // 聚焦点坐标字典
+        let fIdx: number = -1   // 聚焦点索引
         for(var i=0; i<psCtt-1; i++){
-            if(i == 0){}
             num += 1
             let kStr = 'm' + num,
                 pV1 = psValue[i],
                 pV2 = psValue[i+1]
             
-            // 中点坐标公式
-            psMap[kStr] = {x: (pV1.x + pV2.x)/2, y: (pV1.y + pV2.y)/2}
+            fIdx += 1
+            fPsDick['f'+fIdx] = pV1            
+            fIdx += 1   // 中间点 ~ 中点坐标公式
+            fPsDick['f'+fIdx] = NodeUtil.middP(pV1, pV2)
 
         }
-        return psMap
+        fIdx += 1
+        fPsDick['f'+fIdx] = psValue[psCtt-1]
+        return fPsDick
     }
     /**
      * 端点移动

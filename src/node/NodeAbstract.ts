@@ -12,6 +12,7 @@
 declare var $: any
 import { Util } from "../util"
 import {cNode} from '../confNode'
+import NodeUtil from "./NodeUtil";
 
 
 /**
@@ -178,14 +179,7 @@ export default abstract class NodeAbstract{
      * @returns {string}
      */
     protected _ps2Path(pQue: rSu.P[], isClose?: boolean): string{
-        var path = ''
-        for(var i=0; i<pQue.length; i++){
-            path += (path? 'L': 'M') + pQue[i].x + ',' + pQue[i].y
-        }
-        if(isClose){
-            path += 'Z'
-        }        
-        return path
+        return NodeUtil.ps2Path(pQue, isClose)
     }
     /**
      * 点连线转换为字符串数组
@@ -194,19 +188,7 @@ export default abstract class NodeAbstract{
      * @returns {string}
      */
     protected _ps2PathAttr(pQue: rSu.P[], isClose?: boolean){
-        var pArr: any[] = []
-        for(var i=0; i<pQue.length; i++){
-            var cPArr: any[] = ['L']
-            if(pArr.length == 0){
-                cPArr[0] = 'M'
-            }
-            cPArr.push(pQue[i].x, pQue[i].y)
-            pArr.push(cPArr)
-        }
-        if(isClose){
-            pArr.push(['Z'])
-        }        
-        return pArr
+        return NodeUtil.ps2PathAttr(pQue, isClose)
     }
     /**
      * 连线处理(记录)

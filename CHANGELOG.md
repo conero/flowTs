@@ -3,6 +3,17 @@
 
 ## ***V2.1.x/alpha-date*** alpha 类型模板
 
+### ***V2.1.6/20180424***
+- src/WorkerEditor.ts
+    - (+) ***_lineBindEvt*** 折线引入试验中的“中间点拖动算法”
+    - (优化) ***tab*** 方法使 “节点”/“连线”/“文本” 之间平缓切换
+- src/util.ts 
+    - (+) ***subArray*** 获取数组子数组   
+- src/node/NodeAbstract.ts
+    - (优化) ***_ps2Path/_ps2PathAttr*** 实际实现代码转移到 “NodeUtil”，减少代码冗余
+- src/node/NodeLnPoly.ts
+    - (优化) ***getFocusPoint*** 代码优化
+
 ### ***V2.1.5/20180423***
 - src/WorkerEditor.ts
     - (修复) ***remove*** 先删除节点后删除连线，连线端点节点不存在报错

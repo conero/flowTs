@@ -9,6 +9,7 @@ import { Util } from './util';
 import ToolBar from './ToolBar';
 import { NodeQue } from './NodeQue';
 import {cNode} from './confNode'
+import NodeUtil from './node/NodeUtil';
 
 // 什么jQuery/RaphaelJs
 declare var $: any;
@@ -701,38 +702,205 @@ export default class WorkerEditor{
                 // 边框点
                 ln.onCreateBoxPnt = function(pElem: RaphaelElement){
                     let pcode = pElem.data('pcode'),
-                        posi = pElem.data('posi')
-                    if('f' == posi){    // 起点
+                        posi = pElem.data('posi'),
+                        MPs = ln.opt.MPs,
+                        fMIdx: number =  (2 + MPs.length)*2 - 2,    // 聚焦点最大索引
+                        fMIdxStr: string = 'f' + fMIdx
+                    if('f0' == posi){    // 起点
                         startPFn(pElem)
                     }
-                    else if('t' == posi){   // 终点
+                    else if(fMIdxStr == posi){   // 终点
                         endPFn(pElem)
                     }
                     else{   // 中间点
                         let tP: rSu.P = {x: 0, y: 0},
                             MPsTmp: rSu.P[] = [],
-                            MPsLn: RaphaelElement   // 中间点串联成的临时连线
+                            MPsLn: RaphaelElement,   // 中间点串联成的临时连线
+                            fPQue: rSu.MapP = {},
+                            tElemKey: string = 'ln_ploy_point',
+                            idx0: number = -1, idx1: number = -1
 
                         pElem.drag(
                             function(dx: number, dy: number){
                                 dx += tP.x
                                 dy += tP.y
+                                let MPsLnAttr: rSu.P[] = NodeUtil.path2ps(MPsLn),
+                                    len: number = MPsLnAttr.length,
+                                    fp: rSu.P = MPsLnAttr[0],
+                                    tp: rSu.P = MPsLnAttr[len-1]
                                 /*
-                                console.log(dx, dy, posi)
-                                console.log(ln.opt.MPs)
+                                    // console.log(MPsLnAttr, fp, tp)
+                                let pAttr: rSu.P[] = [fp],
+                                    cp: rSu.P = {x: dx, y: dy},  // 当前指向的节点
+                                    rp: rSu.P                       // 正在运行的节点
+                                
+                                rp = NodeUtil.point2Poly(fp, cp)
+                                if(rp){ pAttr.push(rp) }
+                                pAttr.push(cp)
+
+                                rp = NodeUtil.point2Poly(cp, tp)
+                                if(rp){ pAttr.push(rp) }
+
+                                pAttr.push(tp)
+                                MPsLn.attr('path', NodeUtil.ps2Path(pAttr))
                                 */
-                               //let mpsIdx: number = posi.replace('m', '') * 1 - 1
-                               //let MPs = ln.opt.MPs
-                               //this
+
+                               let pAttr: rSu.P[] = [fp]
+                               // 同 x/y 轴坐标
+                               if(fp.x == tp.x || fp.y == tp.y){
+                                   // 同 x 轴，向 y 方向移动
+                                   if(fp.x == tp.x){
+                                       pAttr.push(
+                                           {x: dx, y: fp.y},
+                                           {x: dx, y: tp.y}
+                                       )
+                                   }
+                                   else{
+                                       pAttr.push(
+                                           {x: fp.x, y: dy},
+                                           {x: tp.x, y: dy}
+                                        )                                  
+                                   }
+                               }
+                               else{
+                                   pAttr.push(
+                                       {x: dx, y: fp.y},
+                                       {x: dx, y: dy},
+                                       {x: tp.x, y: dy},
+                                   )
+                               }
+                               pAttr.push(tp)
+                            //    console.log(pAttr)
+                               MPsLn.attr('path', NodeUtil.ps2Path(pAttr))
                             },
                             function(){
                                 tP.x = this.attr('cx')
                                 tP.y = this.attr('cy')
-                                // let idx: number = posi.replace('m', '') * 1 - 1,
-                                //     {MPs} = ln.opt
-                                // console.log(idx)
+                                
+                                fPQue = (<any>ln).getFocusPoint()
+                                let idx: number = parseInt(posi.replace('f', ''))
+                                
+                                idx0 = idx - 1
+                                idx1 = idx + 1
+
+                                let key0 = 'f' + idx0,
+                                key1 = 'f' + idx1
+
+                                let fp: rSu.P = fPQue[key0],
+                                    mp: rSu.P = fPQue[posi],
+                                    tp: rSu.P = fPQue[key1]
+
+                                if('f0' == key0){
+                                    fp = NodeUtil.middP(fp, mp)
+                                }
+                                if(fMIdxStr == key1){
+                                    tp = NodeUtil.middP(mp, tp)
+                                }
+                                MPsLn = this.paper.path(NodeUtil.ps2Path([
+                                    fp,
+                                    mp,
+                                    tp
+                                ]))
+                                    .attr('stroke', '#00FF00')
+
+                                $this.rmTempElem(tElemKey)
+                                $this.tmpMapRElm[tElemKey] = MPsLn
                             },
-                            function(){}
+                            function(){
+                                let MPsLnAttr: rSu.P[] = NodeUtil.path2ps(MPsLn)
+                                let pQue: rSu.P[] = [],
+                                    isMkMPs: boolean = false    // 中间值产生成功
+                                Util.each(fPQue, (k: string, p: rSu.P) => {
+                                    let kIdx: number = parseInt(k.replace('f', ''))
+                                    if(kIdx >= idx0 && kIdx <= idx1){
+                                        if(!isMkMPs){
+                                            pQue = pQue.concat(pQue, MPsLnAttr)
+                                            isMkMPs = true
+                                        }
+                                    }
+                                    else{
+                                        pQue.push(p)
+                                    }
+                                })
+                                
+                                /*
+                                // 检测可以合并的点
+                                let pQue1: rSu.P[] = [], 
+                                    pQueLen: number = pQue.length
+                                
+                                Util.each(pQue, (idx: number, p: rSu.P): any => {
+                                    // 索引比较
+                                    if(idx > 2){
+                                        let {x, y} = p,
+                                            th1n = pQue[idx - 1],    // 子1代
+                                            th2n = pQue[idx - 2],    // 子2代
+                                            dev: number = 0   // 误差 - deviation
+                                        if(
+                                            (Math.abs(x - th1n.x) < dev && Math.abs(x - th2n.x) < dev) || 
+                                            (Math.abs(y - th1n.y) < dev && Math.abs(y - th2n.y) < dev)
+                                        ){
+                                            let isSameX = Math.abs(x - th1n.x) < dev && Math.abs(x - th2n.x) < dev,
+                                            //**
+                                            // * @param chgSelf 更新自身
+                                            // *
+                                                correctFn = (chgSelf?: boolean) => { // 修正值
+                                                    let xx = x, yy = y
+                                                    // 涉及 起点
+                                                    if(idx == 3){
+                                                        if(isSameX){
+                                                            xx = pQue[0].x
+                                                            if(chgSelf){
+                                                                p.x = xx
+                                                            }
+                                                        }else{
+                                                            yy = pQue[0].y
+                                                            if(chgSelf){
+                                                                p.y = yy
+                                                            }
+                                                        }
+                                                    }
+                                                    // 涉及 终点
+                                                    // else if(idx == pQueLen - 1){
+                                                    // }
+                                                    if(isSameX){
+                                                        pQue[idx - 1].x = xx
+                                                        pQue[idx - 2].x = xx
+                                                    }else{
+                                                        pQue[idx - 1].y = yy
+                                                        pQue[idx - 2].y = yy
+                                                    }
+                                                }
+                                            if(idx == pQueLen - 1){
+                                                pQue1.pop()
+                                                correctFn()
+                                            }
+                                            else{
+                                                correctFn(true)
+                                                return null
+                                            }
+                                        }
+                                    }
+                                    pQue1.push(p)
+                                })
+                                
+                                let nPMs = Util.subArray(pQue1, 1, -1)
+                                // let nPMs = Util.subArray(pQue, 1, -1)
+                                console.log(pQue, pQue1)
+                                ln.updAttr({
+                                    MPs: nPMs
+                                })
+                                */
+                                // 等处理，pQue 中重合的连接点 
+                                // @todo 2018年4月24日 星期二
+                                let nPMs = Util.subArray(pQue, 1, -1)
+                                // let nPMs = Util.subArray(pQue, 1, -1)
+                                //    console.log(pQue, pQue1)
+                                // console.log(pQue, nPMs)
+                                ln.updAttr({
+                                       MPs: nPMs
+                                })
+                                $this.rmTempElem(tElemKey)
+                            }
                         )
                     }
                 }
@@ -743,11 +911,6 @@ export default class WorkerEditor{
                     this.attr('stroke-width', '3px')
                         //.attr('fill', '#0033FF')
                         .attr('stroke', '#0033FF')
-                        
-                    // console.log(ln)
-                    // if('ln' == ln.NodeType){
-                    //     this.attr('fill', '#0033FF')
-                    // }else{}
                 },
                 function(){
                     this.attr('stroke-width', '1px')
@@ -1047,7 +1210,8 @@ export default class WorkerEditor{
         var cSelEd: rSu.Node = this.select(),
             code: string = cSelEd? cSelEd.code : null,
             findLastMk: boolean = false,    // 找到最后一个
-            successMk: boolean = false     // 匹配到标志
+            successMk: boolean = false,     // 匹配到标志
+            nt: string = cSelEd? cSelEd.NodeType: ''    // 节点类型
         
         // 节点选择处理函数            
         var handlerNodeSelFn = (cd: string, node: rSu.Node) => {
@@ -1067,17 +1231,34 @@ export default class WorkerEditor{
                 }
             }
         }
-        if('c' == type){
+        if('c' == type){    // 连线
+            if(nt && ('ln' != nt || <string>'ln_poly' != nt)){
+                this.removeAllSeled()
+            }
             Util.each(this.connDick, (cd: string, node: rSu.Node) => {
                 return handlerNodeSelFn(cd, node)
             })
         }
         else if('t' == type){
+            if(nt && ('text' != nt)){
+                this.removeAllSeled()
+            }
             Util.each(this.textDick, (cd: string, node: rSu.Node) => {
                 return handlerNodeSelFn(cd, node)
             })
         }
         else{
+            let isUnNode: boolean = false
+            if(nt){
+                if('ln' == nt || <string>'ln_poly' == nt){
+                    isUnNode = true
+                }else if('text' == nt){
+                    isUnNode = true
+                }
+            }
+            if(isUnNode){
+                this.removeAllSeled()
+            }
             Util.each(this.nodeDick, (cd: string, node: rSu.Node) => {
                 return handlerNodeSelFn(cd, node)
             })

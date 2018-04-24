@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ 	return __webpack_require__(__webpack_require__.s = 5);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -70,6 +70,7 @@
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__confNode__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__NodeUtil__ = __webpack_require__(3);
 /**
  * 2018年3月26日 星期一
  * 抽象节点
@@ -77,6 +78,7 @@
 ///<reference path="../../index.d.ts"/>
 ///<reference path="../types/raphael.ts"/>
 ///<reference path="../types/jquery.ts"/>
+
 
 
 /**
@@ -241,14 +243,7 @@ var NodeAbstract = /** @class */ (function () {
      * @returns {string}
      */
     NodeAbstract.prototype._ps2Path = function (pQue, isClose) {
-        var path = '';
-        for (var i = 0; i < pQue.length; i++) {
-            path += (path ? 'L' : 'M') + pQue[i].x + ',' + pQue[i].y;
-        }
-        if (isClose) {
-            path += 'Z';
-        }
-        return path;
+        return __WEBPACK_IMPORTED_MODULE_2__NodeUtil__["a" /* default */].ps2Path(pQue, isClose);
     };
     /**
      * 点连线转换为字符串数组
@@ -257,19 +252,7 @@ var NodeAbstract = /** @class */ (function () {
      * @returns {string}
      */
     NodeAbstract.prototype._ps2PathAttr = function (pQue, isClose) {
-        var pArr = [];
-        for (var i = 0; i < pQue.length; i++) {
-            var cPArr = ['L'];
-            if (pArr.length == 0) {
-                cPArr[0] = 'M';
-            }
-            cPArr.push(pQue[i].x, pQue[i].y);
-            pArr.push(cPArr);
-        }
-        if (isClose) {
-            pArr.push(['Z']);
-        }
-        return pArr;
+        return __WEBPACK_IMPORTED_MODULE_2__NodeUtil__["a" /* default */].ps2PathAttr(pQue, isClose);
     };
     /**
      * 连线处理(记录)
@@ -845,6 +828,27 @@ var Util = /** @class */ (function () {
         });
         return value;
     };
+    /**
+     * 获取子数组
+     * @param arr
+     * @param start
+     * @param end
+     */
+    Util.subArray = function (arr, start, end) {
+        var nArr = [], len = arr.length;
+        end = end ? end : arr.length - 1;
+        start = start ? start : 0;
+        if (end < 0) {
+            end = len + end - 1;
+        }
+        for (var i = 0; i < len; i++) {
+            // console.log(i >= start && i >= end, `${i} >= ${start} && ${i} >= ${end}`)
+            if (i >= start && i <= end) {
+                nArr.push(arr[i]);
+            }
+        }
+        return nArr;
+    };
     return Util;
 }());
 
@@ -909,19 +913,146 @@ var cNode = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(1);
+
+/**
+ * 2018年4月13日 星期五
+ * 节点计算算法
+ */
+var NodeUtil = /** @class */ (function () {
+    function NodeUtil() {
+    }
+    /**
+     * 两点转箭头，箭头生成算法
+     * @param P1
+     * @param P2
+     * @param r
+     * @param onlyMidPMk 仅仅中间坐标点
+     */
+    NodeUtil.ps2arrow = function (P1, P2, r, onlyMidPMk) {
+        var atan = Math.atan2(P1.y - P2.y, P2.x - P1.x) * (180 / Math.PI);
+        var centerX = P2.x - r * Math.cos(atan * (Math.PI / 180));
+        var centerY = P2.y + r * Math.sin(atan * (Math.PI / 180));
+        var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
+        var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
+        var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
+        var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
+        var pV1 = [P1, P2], pV2 = [
+            { x: x2, y: y2 },
+            { x: x3, y: y3 },
+            P2
+        ];
+        if (onlyMidPMk) {
+            pV1 = pV2;
+        }
+        else {
+            pV1 = pV1.concat(pV2);
+        }
+        return pV1;
+    };
+    /**
+     * 获取两点间的距离
+     */
+    NodeUtil.getPLen = function (P1, P2) {
+        return Math.pow((Math.pow((P1.x - P2.x), 2) + Math.pow((P1.y - P2.y), 2)), 1 / 2);
+    };
+    /**
+     * 点转折线
+     * @param P1 地点
+     * @param P2 终点
+     * @param isYFirst 先移动Y轴
+     */
+    NodeUtil.point2Poly = function (P1, P2, isYFirst) {
+        var tP;
+        if (P1.x != P2.x && P1.y != P2.y) {
+            if (isYFirst) {
+                tP = { x: P1.x, y: P2.y };
+            }
+            else {
+                tP = { x: P2.x, y: P1.y };
+            }
+        }
+        return tP;
+    };
+    /**
+     * 点连线装换为path字符串
+     * @param {array} pQue
+     * @param {bool} isClose
+     * @returns {string}
+     */
+    NodeUtil.ps2Path = function (pQue, isClose) {
+        var path = '';
+        for (var i = 0; i < pQue.length; i++) {
+            path += (path ? 'L' : 'M') + pQue[i].x + ',' + pQue[i].y;
+        }
+        if (isClose) {
+            path += 'Z';
+        }
+        return path;
+    };
+    /**
+     * 元素类型转节点
+     * @param elem
+     */
+    NodeUtil.path2ps = function (elem) {
+        var tPs = [];
+        __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].each(elem.attr('path'), function (idx, row) {
+            tPs.push({ x: row[1], y: row[2] });
+        });
+        return tPs;
+    };
+    /**
+     * 点连线转换为字符串数组
+     * @param {array} pQue
+     * @param {bool} isClose
+     * @returns {array} string[]
+     */
+    NodeUtil.ps2PathAttr = function (pQue, isClose) {
+        var pArr = [];
+        for (var i = 0; i < pQue.length; i++) {
+            var cPArr = ['L'];
+            if (pArr.length == 0) {
+                cPArr[0] = 'M';
+            }
+            cPArr.push(pQue[i].x, pQue[i].y);
+            pArr.push(cPArr);
+        }
+        if (isClose) {
+            pArr.push(['Z']);
+        }
+        return pArr;
+    };
+    /**
+     * 获取中间点坐标
+     * @param p0
+     * @param p1
+     */
+    NodeUtil.middP = function (p0, p1) {
+        return { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
+    };
+    return NodeUtil;
+}());
+/* harmony default export */ __webpack_exports__["a"] = (NodeUtil);
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return NodeQue; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeBegin__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_NodeTask__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_NodeAudit__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeSign__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_NodeCond__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_NodeSubFlow__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__node_NodeParallel__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__node_NodeMerge__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__node_NodeEnd__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__node_NodeLn__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__node_NodeLnPoly__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeBegin__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__node_NodeTask__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__node_NodeAudit__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__node_NodeSign__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__node_NodeCond__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_NodeSubFlow__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__node_NodeParallel__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__node_NodeMerge__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__node_NodeEnd__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__node_NodeLn__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__node_NodeLnPoly__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__node_NodeText__ = __webpack_require__(22);
 /**
  * 2018年3月29日 星期四
@@ -1000,12 +1131,12 @@ var NodeQue = /** @class */ (function () {
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_WorkerEditor__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_WorkerEditor__ = __webpack_require__(6);
 /**
  * 工作流程编辑器
  */
@@ -1139,22 +1270,24 @@ $(function(){
 window.workerflow = __WEBPACK_IMPORTED_MODULE_0__src_WorkerEditor__["a" /* default */]
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__version__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__version__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ToolBar__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeQue__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ToolBar__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeQue__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__confNode__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_NodeUtil__ = __webpack_require__(3);
 ///<reference path='../index.d.ts' />
 /**
  * 2018年3月1日 星期四
  * worker 工作流编辑器
  */
  // 助手方法
+
 
 
 
@@ -1766,32 +1899,169 @@ var WorkerEditor = /** @class */ (function () {
                 });
                 // 边框点
                 ln.onCreateBoxPnt = function (pElem) {
-                    var pcode = pElem.data('pcode'), posi = pElem.data('posi');
-                    if ('f' == posi) { // 起点
+                    var pcode = pElem.data('pcode'), posi = pElem.data('posi'), MPs = ln.opt.MPs, fMIdx = (2 + MPs.length) * 2 - 2, // 聚焦点最大索引
+                    fMIdxStr = 'f' + fMIdx;
+                    if ('f0' == posi) { // 起点
                         startPFn(pElem);
                     }
-                    else if ('t' == posi) { // 终点
+                    else if (fMIdxStr == posi) { // 终点
                         endPFn(pElem);
                     }
                     else { // 中间点
-                        var tP_1 = { x: 0, y: 0 }, MPsTmp = [], MPsLn = void 0; // 中间点串联成的临时连线
+                        var tP_1 = { x: 0, y: 0 }, MPsTmp = [], MPsLn_1, // 中间点串联成的临时连线
+                        fPQue_1 = {}, tElemKey_1 = 'ln_ploy_point', idx0_1 = -1, idx1_1 = -1;
                         pElem.drag(function (dx, dy) {
                             dx += tP_1.x;
                             dy += tP_1.y;
+                            var MPsLnAttr = __WEBPACK_IMPORTED_MODULE_6__node_NodeUtil__["a" /* default */].path2ps(MPsLn_1), len = MPsLnAttr.length, fp = MPsLnAttr[0], tp = MPsLnAttr[len - 1];
                             /*
-                            console.log(dx, dy, posi)
-                            console.log(ln.opt.MPs)
+                                // console.log(MPsLnAttr, fp, tp)
+                            let pAttr: rSu.P[] = [fp],
+                                cp: rSu.P = {x: dx, y: dy},  // 当前指向的节点
+                                rp: rSu.P                       // 正在运行的节点
+                            
+                            rp = NodeUtil.point2Poly(fp, cp)
+                            if(rp){ pAttr.push(rp) }
+                            pAttr.push(cp)
+
+                            rp = NodeUtil.point2Poly(cp, tp)
+                            if(rp){ pAttr.push(rp) }
+
+                            pAttr.push(tp)
+                            MPsLn.attr('path', NodeUtil.ps2Path(pAttr))
                             */
-                            //let mpsIdx: number = posi.replace('m', '') * 1 - 1
-                            //let MPs = ln.opt.MPs
-                            //this
+                            var pAttr = [fp];
+                            // 同 x/y 轴坐标
+                            if (fp.x == tp.x || fp.y == tp.y) {
+                                // 同 x 轴，向 y 方向移动
+                                if (fp.x == tp.x) {
+                                    pAttr.push({ x: dx, y: fp.y }, { x: dx, y: tp.y });
+                                }
+                                else {
+                                    pAttr.push({ x: fp.x, y: dy }, { x: tp.x, y: dy });
+                                }
+                            }
+                            else {
+                                pAttr.push({ x: dx, y: fp.y }, { x: dx, y: dy }, { x: tp.x, y: dy });
+                            }
+                            pAttr.push(tp);
+                            //    console.log(pAttr)
+                            MPsLn_1.attr('path', __WEBPACK_IMPORTED_MODULE_6__node_NodeUtil__["a" /* default */].ps2Path(pAttr));
                         }, function () {
                             tP_1.x = this.attr('cx');
                             tP_1.y = this.attr('cy');
-                            // let idx: number = posi.replace('m', '') * 1 - 1,
-                            //     {MPs} = ln.opt
-                            // console.log(idx)
-                        }, function () { });
+                            fPQue_1 = ln.getFocusPoint();
+                            var idx = parseInt(posi.replace('f', ''));
+                            idx0_1 = idx - 1;
+                            idx1_1 = idx + 1;
+                            var key0 = 'f' + idx0_1, key1 = 'f' + idx1_1;
+                            var fp = fPQue_1[key0], mp = fPQue_1[posi], tp = fPQue_1[key1];
+                            if ('f0' == key0) {
+                                fp = __WEBPACK_IMPORTED_MODULE_6__node_NodeUtil__["a" /* default */].middP(fp, mp);
+                            }
+                            if (fMIdxStr == key1) {
+                                tp = __WEBPACK_IMPORTED_MODULE_6__node_NodeUtil__["a" /* default */].middP(mp, tp);
+                            }
+                            MPsLn_1 = this.paper.path(__WEBPACK_IMPORTED_MODULE_6__node_NodeUtil__["a" /* default */].ps2Path([
+                                fp,
+                                mp,
+                                tp
+                            ]))
+                                .attr('stroke', '#00FF00');
+                            $this.rmTempElem(tElemKey_1);
+                            $this.tmpMapRElm[tElemKey_1] = MPsLn_1;
+                        }, function () {
+                            var MPsLnAttr = __WEBPACK_IMPORTED_MODULE_6__node_NodeUtil__["a" /* default */].path2ps(MPsLn_1);
+                            var pQue = [], isMkMPs = false; // 中间值产生成功
+                            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(fPQue_1, function (k, p) {
+                                var kIdx = parseInt(k.replace('f', ''));
+                                if (kIdx >= idx0_1 && kIdx <= idx1_1) {
+                                    if (!isMkMPs) {
+                                        pQue = pQue.concat(pQue, MPsLnAttr);
+                                        isMkMPs = true;
+                                    }
+                                }
+                                else {
+                                    pQue.push(p);
+                                }
+                            });
+                            /*
+                            // 检测可以合并的点
+                            let pQue1: rSu.P[] = [],
+                                pQueLen: number = pQue.length
+                            
+                            Util.each(pQue, (idx: number, p: rSu.P): any => {
+                                // 索引比较
+                                if(idx > 2){
+                                    let {x, y} = p,
+                                        th1n = pQue[idx - 1],    // 子1代
+                                        th2n = pQue[idx - 2],    // 子2代
+                                        dev: number = 0   // 误差 - deviation
+                                    if(
+                                        (Math.abs(x - th1n.x) < dev && Math.abs(x - th2n.x) < dev) ||
+                                        (Math.abs(y - th1n.y) < dev && Math.abs(y - th2n.y) < dev)
+                                    ){
+                                        let isSameX = Math.abs(x - th1n.x) < dev && Math.abs(x - th2n.x) < dev,
+                                        //**
+                                        // * @param chgSelf 更新自身
+                                        // *
+                                            correctFn = (chgSelf?: boolean) => { // 修正值
+                                                let xx = x, yy = y
+                                                // 涉及 起点
+                                                if(idx == 3){
+                                                    if(isSameX){
+                                                        xx = pQue[0].x
+                                                        if(chgSelf){
+                                                            p.x = xx
+                                                        }
+                                                    }else{
+                                                        yy = pQue[0].y
+                                                        if(chgSelf){
+                                                            p.y = yy
+                                                        }
+                                                    }
+                                                }
+                                                // 涉及 终点
+                                                // else if(idx == pQueLen - 1){
+                                                // }
+                                                if(isSameX){
+                                                    pQue[idx - 1].x = xx
+                                                    pQue[idx - 2].x = xx
+                                                }else{
+                                                    pQue[idx - 1].y = yy
+                                                    pQue[idx - 2].y = yy
+                                                }
+                                            }
+                                        if(idx == pQueLen - 1){
+                                            pQue1.pop()
+                                            correctFn()
+                                        }
+                                        else{
+                                            correctFn(true)
+                                            return null
+                                        }
+                                    }
+                                }
+                                pQue1.push(p)
+                            })
+                            
+                            let nPMs = Util.subArray(pQue1, 1, -1)
+                            // let nPMs = Util.subArray(pQue, 1, -1)
+                            console.log(pQue, pQue1)
+                            ln.updAttr({
+                                MPs: nPMs
+                            })
+                            */
+                            // 等处理，pQue 中重合的连接点
+                            var nPMs = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].subArray(pQue, 1, -1);
+                            // let nPMs = Util.subArray(pQue, 1, -1)
+                            //    console.log(pQue, pQue1)
+                            // console.log(pQue, nPMs)
+                            ln.updAttr({
+                                MPs: nPMs
+                            });
+                            $this.rmTempElem(tElemKey_1);
+                        });
                     }
                 };
             }
@@ -1800,10 +2070,6 @@ var WorkerEditor = /** @class */ (function () {
                 this.attr('stroke-width', '3px')
                     //.attr('fill', '#0033FF')
                     .attr('stroke', '#0033FF');
-                // console.log(ln)
-                // if('ln' == ln.NodeType){
-                //     this.attr('fill', '#0033FF')
-                // }else{}
             }, function () {
                 this.attr('stroke-width', '1px')
                     // .attr('fill', '#000000')
@@ -2111,7 +2377,8 @@ var WorkerEditor = /** @class */ (function () {
     WorkerEditor.prototype.tab = function (type) {
         var _this = this;
         var cSelEd = this.select(), code = cSelEd ? cSelEd.code : null, findLastMk = false, // 找到最后一个
-        successMk = false; // 匹配到标志
+        successMk = false, // 匹配到标志
+        nt = cSelEd ? cSelEd.NodeType : ''; // 节点类型
         // 节点选择处理函数            
         var handlerNodeSelFn = function (cd, node) {
             if (!cSelEd) {
@@ -2131,17 +2398,35 @@ var WorkerEditor = /** @class */ (function () {
                 }
             }
         };
-        if ('c' == type) {
+        if ('c' == type) { // 连线
+            if (nt && ('ln' != nt || 'ln_poly' != nt)) {
+                this.removeAllSeled();
+            }
             __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.connDick, function (cd, node) {
                 return handlerNodeSelFn(cd, node);
             });
         }
         else if ('t' == type) {
+            if (nt && ('text' != nt)) {
+                this.removeAllSeled();
+            }
             __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.textDick, function (cd, node) {
                 return handlerNodeSelFn(cd, node);
             });
         }
         else {
+            var isUnNode = false;
+            if (nt) {
+                if ('ln' == nt || 'ln_poly' == nt) {
+                    isUnNode = true;
+                }
+                else if ('text' == nt) {
+                    isUnNode = true;
+                }
+            }
+            if (isUnNode) {
+                this.removeAllSeled();
+            }
             __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (cd, node) {
                 return handlerNodeSelFn(cd, node);
             });
@@ -2541,7 +2826,7 @@ var WorkerEditor = /** @class */ (function () {
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2613,10 +2898,10 @@ var H = /** @class */ (function () {
 }());
 /* harmony default export */ __webpack_exports__["a"] = (H);
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(7)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(8)))
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -2806,20 +3091,20 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 8 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.1.5", "release": "20180423", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
-
-
-/***/ }),
 /* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeQue__ = __webpack_require__(3);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
+var LibVersion = { "version": "2.1.6", "release": "20180424", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+
+
+/***/ }),
+/* 10 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeQue__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ObjX__ = __webpack_require__(23);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__confNode__ = __webpack_require__(2);
@@ -3139,7 +3424,7 @@ var ToolBar = /** @class */ (function () {
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3205,7 +3490,7 @@ var NodeBegin = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3280,7 +3565,7 @@ var NodeTask = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3364,7 +3649,7 @@ var NodeAudit = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3448,7 +3733,7 @@ var NodeSign = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3531,7 +3816,7 @@ var NodeCond = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3619,7 +3904,7 @@ var NodeSubFlow = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3705,7 +3990,7 @@ var NodeParallel = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3799,7 +4084,7 @@ var NodeMerge = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3864,7 +4149,7 @@ var NodeEnd = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3979,12 +4264,12 @@ var NodeLn = /** @class */ (function (_super) {
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeUtil__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeUtil__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -4116,15 +4401,20 @@ var NodeLnPoly = /** @class */ (function (_super) {
         });
         psMap.t = P2;
         // 中间点        
-        var psValue = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].jsonValues(psMap), psCtt = psValue.length; // 节点统计个数
+        var psValue = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].jsonValues(psMap), psCtt = psValue.length, // 节点统计个数
+        fPsDick = {}; // 聚焦点坐标字典
+        var fIdx = -1; // 聚焦点索引
         for (var i = 0; i < psCtt - 1; i++) {
-            if (i == 0) { }
             num += 1;
             var kStr = 'm' + num, pV1 = psValue[i], pV2 = psValue[i + 1];
-            // 中点坐标公式
-            psMap[kStr] = { x: (pV1.x + pV2.x) / 2, y: (pV1.y + pV2.y) / 2 };
+            fIdx += 1;
+            fPsDick['f' + fIdx] = pV1;
+            fIdx += 1; // 中间点 ~ 中点坐标公式
+            fPsDick['f' + fIdx] = __WEBPACK_IMPORTED_MODULE_1__NodeUtil__["a" /* default */].middP(pV1, pV2);
         }
-        return psMap;
+        fIdx += 1;
+        fPsDick['f' + fIdx] = psValue[psCtt - 1];
+        return fPsDick;
     };
     /**
      * 端点移动
@@ -4171,57 +4461,6 @@ var NodeLnPoly = /** @class */ (function (_super) {
     return NodeLnPoly;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
 /* harmony default export */ __webpack_exports__["a"] = (NodeLnPoly);
-
-
-/***/ }),
-/* 21 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/**
- * 2018年4月13日 星期五
- * 节点计算算法
- */
-var NodeUtil = /** @class */ (function () {
-    function NodeUtil() {
-    }
-    /**
-     * 两点转箭头，箭头生成算法
-     * @param P1
-     * @param P2
-     * @param r
-     * @param onlyMidPMk 仅仅中间坐标点
-     */
-    NodeUtil.ps2arrow = function (P1, P2, r, onlyMidPMk) {
-        var atan = Math.atan2(P1.y - P2.y, P2.x - P1.x) * (180 / Math.PI);
-        var centerX = P2.x - r * Math.cos(atan * (Math.PI / 180));
-        var centerY = P2.y + r * Math.sin(atan * (Math.PI / 180));
-        var x2 = centerX + r * Math.cos((atan + 120) * (Math.PI / 180));
-        var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
-        var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
-        var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
-        var pV1 = [P1, P2], pV2 = [
-            { x: x2, y: y2 },
-            { x: x3, y: y3 },
-            P2
-        ];
-        if (onlyMidPMk) {
-            pV1 = pV2;
-        }
-        else {
-            pV1 = pV1.concat(pV2);
-        }
-        return pV1;
-    };
-    /**
-     * 获取两点间的距离
-     */
-    NodeUtil.getPLen = function (P1, P2) {
-        return Math.pow((Math.pow((P1.x - P2.x), 2) + Math.pow((P1.y - P2.y), 2)), 1 / 2);
-    };
-    return NodeUtil;
-}());
-/* harmony default export */ __webpack_exports__["a"] = (NodeUtil);
 
 
 /***/ }),

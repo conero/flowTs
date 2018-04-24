@@ -100,6 +100,28 @@ class Util{
         })
         return value
     }
+    /**
+     * 获取子数组
+     * @param arr 
+     * @param start 
+     * @param end 
+     */
+    static subArray(arr: any[], start?: number, end?: number): any[]{
+        let nArr: any[] = [],
+            len: number = arr.length
+        end = end? end: arr.length - 1
+        start = start? start : 0
+        if(end < 0){
+            end = len + end - 1
+        }
+        for(let i=0; i<len; i++){
+            // console.log(i >= start && i >= end, `${i} >= ${start} && ${i} >= ${end}`)
+            if(i >= start && i <= end){
+                nArr.push(arr[i])
+            }
+        }
+        return nArr
+    }
 }
 
 export {Util}
