@@ -1936,7 +1936,8 @@ var WorkerEditor = /** @class */ (function () {
                                 MPs: nPMs
                             })
                             */
-                            // 等处理，pQue 中重合的连接点
+                            // 等处理，pQue 中重合的连接点 
+                            // @todo 2018年4月24日 星期二
                             var nPMs = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].subArray(pQue, 1, -1);
                             // let nPMs = Util.subArray(pQue, 1, -1)
                             //    console.log(pQue, pQue1)
@@ -2141,13 +2142,13 @@ var WorkerEditor = /** @class */ (function () {
      * 序列号获取
      * @param type
      */
-    WorkerEditor.prototype._order = function (type, prev) {
+    WorkerEditor.prototype._order = function (type, prev, ref) {
         var newStr;
         prev = prev ? prev : '';
         if (type) {
             if ('undefined' != typeof this.idxDick[type]) {
                 this.idxDick[type] += 1;
-                newStr = prev + this.idxDick[type];
+                newStr = ref ? ref : prev + this.idxDick[type];
                 switch (type) {
                     case 'c':
                         if (this.connDick[newStr]) {
@@ -2367,6 +2368,80 @@ var WorkerEditor = /** @class */ (function () {
         return newNode;
     };
     /**
+     * 粘贴
+     */
+    WorkerEditor.prototype.paste = function (data) {
+        var _this = this;
+        var $this = this;
+        data = 'object' == typeof data ? data : [];
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(data, function (i, dd) {
+            var code = dd.code, opt = dd.opt, NodeType = dd.NodeType, type = dd.type, rate = 0.2;
+            opt.cx += opt.w * rate;
+            opt.cy += opt.h * rate;
+            var newNode = _this.ndMer.make(NodeType, opt)
+                .creator();
+            if ('node' == type) {
+                newNode.moveable({
+                    afterUpd: function (x, y, node) {
+                        $this._lineMoveSync(x, y, node);
+                    }
+                });
+                var _index = _this._order('n', 'A', code);
+                // 保存到字典中
+                newNode.data('_code', _index);
+                _this.nodeDick[_index] = newNode;
+            }
+            else if ('conn' == type) {
+                _this._nodeBindEvt(newNode);
+                // 保存到字典中
+                var _index = _this._order('c', 'C', code);
+                newNode.data('_code', _index);
+                _this.connDick[_index] = newNode;
+            }
+            else if ('text' == type) {
+                _this._lineBindEvt(newNode);
+                // 保存到字典中
+                var _index = _this._order('t', 'T', code);
+                newNode.data('_code', _index);
+                _this.textDick[_index] = newNode;
+            }
+        });
+        return this;
+    };
+    /**
+     * 获取赋值的结果数据
+     * 复制
+     */
+    WorkerEditor.prototype.copy = function () {
+        // >>>
+        //>> [{code:code, opt: nodeOpt, cls: ''}]
+        var data = [];
+        var pushToData = function (code, type, node) {
+            data.push({
+                code: code,
+                opt: $.extend(true, {}, node.opt),
+                NodeType: node.NodeType,
+                type: type
+            });
+        };
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (code, node) {
+            if (node.isSelEd) {
+                pushToData(code, 'node', node);
+            }
+        });
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.connDick, function (code, node) {
+            if (node.isSelEd) {
+                pushToData(code, 'conn', node);
+            }
+        });
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.textDick, function (code, node) {
+            if (node.isSelEd) {
+                pushToData(code, 'text', node);
+            }
+        });
+        return data;
+    };
+    /**
      * 获取选中的实例
      */
     WorkerEditor.prototype.select = function () {
@@ -2408,7 +2483,7 @@ var WorkerEditor = /** @class */ (function () {
         if ('object' != typeof node) {
             node = this.connDick[node];
         }
-        var data;
+        var step, _srroo;
         if (node) {
             var conLns = node.conLns, from = conLns.from, to = conLns.to, fromQue_1 = [], toQue_1 = [];
             // 起点
@@ -2427,24 +2502,27 @@ var WorkerEditor = /** @class */ (function () {
                     fromQue_1.push(cnIst.data('from_code'));
                 }
             });
-            data = {};
+            step = {};
             // 正式数据
-            data.code = node.code;
-            data.name = node.name;
-            data.type = node.type;
-            data.next = toQue_1.join(',');
-            data.prev = fromQue_1.join(',');
+            step.code = node.code;
+            step.name = node.name;
+            step.type = node.type;
+            step.next = toQue_1.join(',');
+            step.prev = fromQue_1.join(',');
             // 坐标点属性值
-            data._srroo = {
+            _srroo = {
                 opt: node.opt,
                 NodeType: node.NodeType
             };
-            var nData = this.onStep(node, data);
-            if (nData) {
-                data = nData;
+            var nStep = this.onStep(node, step);
+            if (nStep) {
+                step = nStep;
             }
         }
-        return data;
+        return {
+            step: step,
+            _srroo: _srroo
+        };
     };
     /**
      * 保存，且获取数据
@@ -2453,11 +2531,12 @@ var WorkerEditor = /** @class */ (function () {
      */
     WorkerEditor.prototype.save = function () {
         var _this = this;
-        var stepStru = [];
+        var stepStru = [], nodeSrroo = {}, line = {}, text = {}, _srroo = {};
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (code, node) {
-            stepStru.push(_this.step(node));
+            var stepData = _this.step(node);
+            stepStru.push(stepData.step);
+            nodeSrroo[code] = stepData._srroo;
         });
-        var _srroo = {}, line = {}, text = {};
         // 连线
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.connDick, function (cd, ist) {
             line[cd] = {
@@ -2474,7 +2553,7 @@ var WorkerEditor = /** @class */ (function () {
                 opt: ist.opt
             };
         });
-        _srroo = { line: line, text: text };
+        _srroo = { node: nodeSrroo, line: line, text: text };
         return {
             step: stepStru,
             _srroo: _srroo
@@ -2490,10 +2569,25 @@ var WorkerEditor = /** @class */ (function () {
         var _this = this;
         var $this = this, lineQue = {};
         var step = data.step, _srroo = data._srroo;
-        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(step, function (i, _step) {
-            var code = _step.code, srroo = _step._srroo;
+        // 过渡代码删除
+        //>>>>>> 历史版本兼容 >>>>>
+        if (!_srroo.node) {
+            var _srrooNode_1 = {};
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(step, function (cd, row) {
+                if (row._srroo) {
+                    _srrooNode_1[cd] = row._srroo;
+                }
+                else {
+                    return false;
+                }
+            });
+            _srroo.node = _srrooNode_1;
+        }
+        //>>>>>> 历史版本兼容 >>>>>
+        // 节点生成复原
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(_srroo.node, function (cd, nd) {
             // 节点生成
-            var $node = _this.ndMer.make(srroo.NodeType, srroo.opt)
+            var $node = _this.ndMer.make(nd.NodeType, nd.opt)
                 .creator()
                 .moveable({
                 afterUpd: function (x, y, node) {
@@ -2501,12 +2595,11 @@ var WorkerEditor = /** @class */ (function () {
                 }
             });
             // 保存到字典中
-            $node.data('_code', code);
+            $node.data('_code', cd);
             _this._nodeBindEvt($node);
-            $this.nodeDick[code] = $node;
+            $this.nodeDick[cd] = $node;
         });
         // 连线生成处理
-        // console.log(_srroo.line)
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(_srroo.line, function (cd, ln) {
             var _data = ln.data;
             var $ln = _this.ndMer.make(ln.NodeType, ln.opt)
@@ -2980,7 +3073,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.1.6", "release": "20180424", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.1.7", "release": "20180427", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),

@@ -48,6 +48,13 @@ $(function(){
             // console.log(8)
             this.domListener()
             this.title()
+            // 剪切板处理
+            try {
+                this.clipBoard()
+            } catch (error) {
+                console.warn(error)
+            }
+            
         }
         title(){
             let version = workerflow.version
@@ -123,6 +130,33 @@ $(function(){
                     }
                 }
                 
+            })
+        }
+        clipBoard(){
+            // 粘贴
+            document.addEventListener('paste', (e) => {
+                var str = e.clipboardData.getData('text/plain')
+                if(str){
+                    try {
+                        var rs = JSON.parse(str)
+                        if(rs.name == workerflow.version.name){
+                            $worker.paste(rs.data)
+                        }
+                    } catch (error) {
+                        console.warn(error)
+                    }
+                }
+            })
+            // 复制
+            document.addEventListener('copy', (e) => {
+                var data = $worker.copy()
+                if(data.length > 0){
+                    var rs = {data, name: workerflow.version.name}
+                    e.clipboardData.setData('text/plain', JSON.stringify(rs));
+                }
+                //e.clipboardData.setData('text/plain', 'Hello, world!');
+                //e.clipboardData.setData('text/html', '<b>Hello, world!</b>');
+                e.preventDefault(); // We want our data, not data from any selection, to be written to the clipboard
             })
         }
     }

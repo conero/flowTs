@@ -1091,13 +1091,13 @@ export default class WorkerEditor{
      * 序列号获取
      * @param type 
      */
-    private _order(type: string, prev?: string): string|number{
+    private _order(type: string, prev?: string, ref?: string): string|number{
         let newStr: string|number
         prev = prev? prev: ''
         if(type){
             if('undefined' != typeof this.idxDick[type]){
                 this.idxDick[type] += 1
-                newStr = prev + this.idxDick[type]
+                newStr = ref? ref: prev + this.idxDick[type]
                 switch(type){
                     case 'c':
                         if(this.connDick[newStr]){
@@ -1317,6 +1317,81 @@ export default class WorkerEditor{
         return newNode
     }
     /**
+     * 粘贴
+     */
+    paste(data: rSu.bsMap){
+        let $this = this;
+        data = 'object' == typeof data? data : []
+        Util.each(data, (i: number, dd: rSu.bsMap) => {
+            let {code, opt, NodeType, type} = dd,
+                rate = 0.2
+            opt.cx += opt.w * rate
+            opt.cy += opt.h * rate
+            let newNode = this.ndMer.make(NodeType, opt)
+                .creator()
+                
+            if('node' == type){
+                newNode.moveable({
+                    afterUpd: function(x: number, y: number, node: rSu.Node){
+                        $this._lineMoveSync(x, y, node)
+                    }
+                })
+                let _index = this._order('n', 'A', code)
+                // 保存到字典中
+                newNode.data('_code', _index)
+                this.nodeDick[_index] = newNode
+            }
+            else if('conn' == type){
+                this._nodeBindEvt(newNode)
+                // 保存到字典中
+                let _index = this._order('c', 'C', code)
+                newNode.data('_code', _index)
+                this.connDick[_index] = newNode
+            }
+            else if('text' == type){
+                this._lineBindEvt(newNode)
+                // 保存到字典中
+                let _index = this._order('t', 'T', code)
+                newNode.data('_code', _index)
+                this.textDick[_index] = newNode
+            }
+        })
+        return this
+    }
+    /**
+     * 获取赋值的结果数据
+     * 复制
+     */
+    copy(): rSu.bsMap[]{
+        // >>>
+            //>> [{code:code, opt: nodeOpt, cls: ''}]
+        var data: rSu.bsMap[] = []
+        var pushToData = (code: string, type: string, node: rSu.Node) => {
+            data.push({
+                code, 
+                opt: $.extend(true, {}, node.opt),
+                NodeType: node.NodeType,
+                type
+            })
+        }
+        Util.each(this.nodeDick, (code: string, node: rSu.Node) => {
+            if(node.isSelEd){
+                pushToData(code, 'node', node)
+            }
+        })
+        Util.each(this.connDick, (code: string, node: rSu.Node) => {
+            if(node.isSelEd){
+                pushToData(code, 'conn', node)
+            }
+        })
+        Util.each(this.textDick, (code: string, node: rSu.Node) => {
+            if(node.isSelEd){
+                pushToData(code, 'text', node)
+            }
+        })
+        return data
+    }
+    /**
      * 获取选中的实例
      */
     select(): rSu.Node{     
@@ -1357,7 +1432,8 @@ export default class WorkerEditor{
         if('object' != typeof node){
             node = this.connDick[<string>node]
         }
-        let data: rSu.bsMap
+        let step: rSu.bsMap,
+            _srroo: rSu.bsMap
         if(node){
             let {conLns} = node,
                 {from, to} = conLns,
@@ -1381,24 +1457,27 @@ export default class WorkerEditor{
                     fromQue.push(cnIst.data('from_code'))
                 }
             })
-            data = {}
+            step = {}
             // 正式数据
-            data.code = node.code
-            data.name = node.name
-            data.type = node.type            
-            data.next = toQue.join(',')
-            data.prev = fromQue.join(',')
+            step.code = node.code
+            step.name = node.name
+            step.type = node.type            
+            step.next = toQue.join(',')
+            step.prev = fromQue.join(',')
             // 坐标点属性值
-            data._srroo = {
+            _srroo = {
                 opt: node.opt,
                 NodeType: node.NodeType
             }
-            let nData = this.onStep(node, data)
-            if(nData){
-                data = <rSu.bsMap>nData
+            let nStep = this.onStep(node, step)
+            if(nStep){
+                step = <rSu.bsMap>nStep
             }
         }
-        return data
+        return {
+            step,
+            _srroo
+        }
     }
     /**
      * 保存，且获取数据
@@ -1406,13 +1485,18 @@ export default class WorkerEditor{
      * @memberof WorkerEditor
      */
     save(){
-        var stepStru: any[] = []
-        Util.each(this.nodeDick, (code: string, node: rSu.Node) => {
-            stepStru.push(this.step(node))
-        })
-        var _srroo: rSu.bsMap = {},
+        var stepStru: any[] = [],
+            nodeSrroo: rSu.bsMap = {},
             line: rSu.bsMap = {},
-            text: rSu.bsMap = {}
+            text: rSu.bsMap = {},
+            _srroo: rSu.bsMap = {}
+
+        Util.each(this.nodeDick, (code: string, node: rSu.Node) => {
+            let stepData = this.step(node)
+            stepStru.push(stepData.step)
+            nodeSrroo[code] = stepData._srroo
+        })
+            
         // 连线
         Util.each(this.connDick, (cd: string, ist: rSu.Node) => {
             line[cd] = {
@@ -1429,7 +1513,7 @@ export default class WorkerEditor{
                 opt: ist.opt
             }
         })
-        _srroo = {line, text}
+        _srroo = {node: nodeSrroo, line, text}
         return {
             step: stepStru,
             _srroo
@@ -1445,11 +1529,27 @@ export default class WorkerEditor{
         let $this = this,
             lineQue: rSu.bsMap = {}
         let {step, _srroo} = data
-        Util.each(step, (i: number, _step: rSu.Step) => {
-            let {code} = _step,
-                srroo = _step._srroo
+
+        // 过渡代码删除
+        //>>>>>> 历史版本兼容 >>>>>
+        if(!_srroo.node){
+            let _srrooNode: rSu.bsMap = {}
+            Util.each(step, (cd: string, row: rSu.bsMap) => {
+                if(row._srroo){
+                    _srrooNode[cd] = row._srroo
+                }else{
+                    return false
+                }
+            })
+            _srroo.node = _srrooNode
+        }
+        //>>>>>> 历史版本兼容 >>>>>
+
+
+        // 节点生成复原
+        Util.each(_srroo.node, (cd: string, nd: rSu.bsMap) => {
             // 节点生成
-            let $node = this.ndMer.make(srroo.NodeType, srroo.opt)
+            let $node = this.ndMer.make(nd.NodeType, nd.opt)
                 .creator()
                 .moveable({
                     afterUpd: function(x: number, y: number, node: rSu.Node){
@@ -1457,13 +1557,11 @@ export default class WorkerEditor{
                     }
                 })
             // 保存到字典中
-            $node.data('_code', code)
+            $node.data('_code', cd)
             this._nodeBindEvt($node)
-            $this.nodeDick[code] = $node
+            $this.nodeDick[cd] = $node
         })
-
         // 连线生成处理
-        // console.log(_srroo.line)
         Util.each(_srroo.line, (cd: string, ln: rSu.bsMap)=>{
             let _data = ln.data
             let $ln = this.ndMer.make(ln.NodeType, ln.opt)

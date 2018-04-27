@@ -104,6 +104,19 @@
     }
 }
 ```
+
+## 系统保存数据格式说明
+```json
+{
+    "step": [],
+    "_srroo": {
+        "node": {},
+        "line": {},
+        "text": {}
+    }
+}
+```
+
 ## src/WorkerEditor.ts 编辑器
 - 属性说明
     - tmpNodeMap 临时字典
