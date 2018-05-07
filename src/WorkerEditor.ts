@@ -908,14 +908,27 @@ export default class WorkerEditor{
             // 公共鼠标选中事件
             ln.c.hover(
                 function(){
-                    this.attr('stroke-width', '3px')
+                    let sWd: string = '3px',
+                        col: string = '#0033FF'
+                    this.attr('stroke-width', sWd)
                         //.attr('fill', '#0033FF')
-                        .attr('stroke', '#0033FF')
+                        .attr('stroke', col)
+                    if(ln.inlineEle){
+                        ln.inlineEle.attr('fill', col)
+                            .attr('stroke', col)
+                            .attr('stroke-width', sWd)
+                    }
                 },
                 function(){
-                    this.attr('stroke-width', '1px')
-                        // .attr('fill', '#000000')
-                        .attr('stroke', '#000000')
+                    let sWd: string = '1px',
+                        col: string = '#000000'
+                    this.attr('stroke-width', sWd)
+                        .attr('stroke', col)
+                    if(ln.inlineEle){
+                        ln.inlineEle.attr('fill', col)
+                            .attr('stroke', col)
+                            .attr('stroke-width', sWd)
+                    }
                 }
             )
             // console.log(ln)
@@ -1529,22 +1542,6 @@ export default class WorkerEditor{
         let $this = this,
             lineQue: rSu.bsMap = {}
         let {step, _srroo} = data
-
-        // 过渡代码删除
-        //>>>>>> 历史版本兼容 >>>>>
-        if(!_srroo.node){
-            let _srrooNode: rSu.bsMap = {}
-            Util.each(step, (cd: string, row: rSu.bsMap) => {
-                if(row._srroo){
-                    _srrooNode[cd] = row._srroo
-                }else{
-                    return false
-                }
-            })
-            _srroo.node = _srrooNode
-        }
-        //>>>>>> 历史版本兼容 >>>>>
-
 
         // 节点生成复原
         Util.each(_srroo.node, (cd: string, nd: rSu.bsMap) => {

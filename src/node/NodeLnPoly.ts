@@ -15,11 +15,13 @@ export default class NodeLnPoly extends NodeAbstract{
             {bkg} = opt,
             {pQue, arrowPs} = this.opt2Attr()
         this.c = this.paper.path(this._ps2Path(pQue))
+            .attr('stroke', this.opt.bkg)
             // .attr('stroke-width', '1px')
 
         this.inlineEle = this.paper.path(this._ps2Path(Util.jsonValues(arrowPs)))
-        this.inlineEle.attr('fill', this.opt.bkg)
-            // .attr('stroke-width', '1px')
+        this.inlineEle
+            .attr('fill', this.opt.bkg)
+            .attr('stroke', this.opt.bkg)
     }
     /**
      * 选项转属性

@@ -25,7 +25,7 @@ export default class NodeUtil{
         var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
         var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
 
-        let pV1 = [P1, P2],
+        let pV1 = [P2],
             pV2 = [
                 {x: x2, y: y2},
                 {x: x3, y: y3},

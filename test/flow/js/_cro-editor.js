@@ -937,7 +937,7 @@ var NodeUtil = /** @class */ (function () {
         var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
         var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
         var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
-        var pV1 = [P1, P2], pV2 = [
+        var pV1 = [P2], pV2 = [
             { x: x2, y: y2 },
             { x: x3, y: y3 },
             P2
@@ -1952,13 +1952,24 @@ var WorkerEditor = /** @class */ (function () {
             }
             // 公共鼠标选中事件
             ln.c.hover(function () {
-                this.attr('stroke-width', '3px')
+                var sWd = '3px', col = '#0033FF';
+                this.attr('stroke-width', sWd)
                     //.attr('fill', '#0033FF')
-                    .attr('stroke', '#0033FF');
+                    .attr('stroke', col);
+                if (ln.inlineEle) {
+                    ln.inlineEle.attr('fill', col)
+                        .attr('stroke', col)
+                        .attr('stroke-width', sWd);
+                }
             }, function () {
-                this.attr('stroke-width', '1px')
-                    // .attr('fill', '#000000')
-                    .attr('stroke', '#000000');
+                var sWd = '1px', col = '#000000';
+                this.attr('stroke-width', sWd)
+                    .attr('stroke', col);
+                if (ln.inlineEle) {
+                    ln.inlineEle.attr('fill', col)
+                        .attr('stroke', col)
+                        .attr('stroke-width', sWd);
+                }
             });
             // console.log(ln)
         }
@@ -2569,21 +2580,6 @@ var WorkerEditor = /** @class */ (function () {
         var _this = this;
         var $this = this, lineQue = {};
         var step = data.step, _srroo = data._srroo;
-        // 过渡代码删除
-        //>>>>>> 历史版本兼容 >>>>>
-        if (!_srroo.node) {
-            var _srrooNode_1 = {};
-            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(step, function (cd, row) {
-                if (row._srroo) {
-                    _srrooNode_1[cd] = row._srroo;
-                }
-                else {
-                    return false;
-                }
-            });
-            _srroo.node = _srrooNode_1;
-        }
-        //>>>>>> 历史版本兼容 >>>>>
         // 节点生成复原
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(_srroo.node, function (cd, nd) {
             // 节点生成
@@ -4276,11 +4272,13 @@ var NodeLnPoly = /** @class */ (function (_super) {
     NodeLnPoly.prototype._whenCreatorEvt = function () {
         this.opt.bkg = this.opt.bkg || 'rgb(3, 84, 41)';
         var opt = this.opt, bkg = opt.bkg, _a = this.opt2Attr(), pQue = _a.pQue, arrowPs = _a.arrowPs;
-        this.c = this.paper.path(this._ps2Path(pQue));
+        this.c = this.paper.path(this._ps2Path(pQue))
+            .attr('stroke', this.opt.bkg);
         // .attr('stroke-width', '1px')
         this.inlineEle = this.paper.path(this._ps2Path(__WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].jsonValues(arrowPs)));
-        this.inlineEle.attr('fill', this.opt.bkg);
-        // .attr('stroke-width', '1px')
+        this.inlineEle
+            .attr('fill', this.opt.bkg)
+            .attr('stroke', this.opt.bkg);
     };
     /**
      * 选项转属性
