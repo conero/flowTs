@@ -79,7 +79,7 @@ export default class ToolBar{
                     $this.toggle('S')
                 }
             })
-        this.headElems['con'] = ist
+        this.headElems['icon'] = ist
         
         ist = paper.text(x + (cw/2), y+10, ObjX.value(this.config, 'title', '工具栏'))
         this.headElems['title'] = ist
@@ -382,5 +382,26 @@ export default class ToolBar{
     toggle(type?: string){
         this.tToggle(type, true)
         this.cToggle(type, true)
+    }
+    /**
+     * 工具栏显示
+     */
+    show(){
+        this.toggle('S')
+        this.cToggle('S')
+        Util.each(this.headElems, (k: string, elem: RaphaelElement) => {
+            elem.show()
+        })
+    }
+    /**
+     * 工具栏隐藏
+     */
+    hide(){
+        this.toggle('H')
+        this.cToggle('H')
+
+        Util.each(this.headElems, (k: string, elem: RaphaelElement) => {
+            elem.hide()
+        })
     }
 }

@@ -22,7 +22,7 @@ $(function(){
         data: cacheDt
         // , noToolBar: true
         // noToolBar: true
-        , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10']
+        , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10', 'A11*']
 
         // 事件绑定
         , bindOEvts: true

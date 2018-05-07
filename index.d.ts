@@ -86,6 +86,7 @@ declare namespace rSu{
         h?: number              // 容器的高度
         text?: string           // 容器标签文字
         bkg?: string            // 底色，具有默认色
+        bkgTxt?: string         // 字体颜色
         bkgMagnetic?: string     // 磁化底色，具有默认底色
         features?: bsMap        // 特征属性
         // 连线特殊选项
@@ -122,16 +123,6 @@ declare namespace rSu{
         name: string    // 文本/标签
         prev: string    // 父节点
         next: string    // 子节点
-        _srroo: {
-            opt: rSu.NodeOpt
-            prev: {
-                [k: string]: any
-            }
-            next: {
-                [k: string]: any
-            },
-            NodeType: string
-        }
     }
     // 节点信息 -> class
     export interface Node{
@@ -151,6 +142,7 @@ declare namespace rSu{
         xRate?: number           // 移除边框百分比
         inlinesEle?: RaphaelElement[]    // 合并
         inlineEle?: RaphaelElement       // 并行
+        tRElem: rSu.MapRElm        // 临时类集合
         readonly code?: string                    // 只读属性
         readonly type?: number                    // 只读属性
         readonly name?: string
@@ -170,6 +162,7 @@ declare namespace rSu{
         updAttr(nOpt?: rSu.NodeOpt): Node
         updTextAttr(text?: string): rSu.Node
         getBBox(): BoxAttr
+        getIconP(): rSu.P
         select(): Node  // 选中节点        
         magnCore(px: number, py: number): RaphaelElement
         onCreateBoxPnt(rElem: RaphaelElement): void     // 事件接口 [生成边框先关的点] 用于连线
@@ -183,7 +176,7 @@ declare namespace rSu{
         move2B(rate?: number): rSu.Node
         move2L(rate?: number): rSu.Node
         move2R(rate?: number): rSu.Node
-        background(type?: string): rSu.Node     // 底色处理
+        background(type?: string|string[]): rSu.Node // 底色处理
         clearTmpElem(key?: string|Array<string>): rSu.Node   
         line(value: string, isEnd?: boolean): rSu.Node     // 节点连接
         rmLine(value: string, isEnd?: boolean): rSu.Node    // 移除连线节点
@@ -239,6 +232,8 @@ declare namespace rSu{
          * 连线框占据节点框
          */
         connSizeNode(backMk?: boolean): any
+        show(): void
+        hide(): void
 
     }
     // 自定义型 object 对象

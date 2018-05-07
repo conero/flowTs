@@ -57,4 +57,16 @@ export default class NodeTask extends NodeAbstract{
         this.onSize()
         return <rSu.Node>this
     }
+    /**
+     * 获取 icon 坐标地址
+     */
+    getIconP(): rSu.P{
+        let p: rSu.P,
+            {cx, cy, w, h} = this.opt
+        let d = 2
+        let x = cx - w/2 + d,
+            y = cy - h/2 + d
+        p = {x, y}
+        return p
+    }
 }

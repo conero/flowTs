@@ -86,12 +86,24 @@
         data: 'obejct'  // 保存的历史数据
         rCodes: 'string|string[]'   // 运行过的节点代码
         bkg: {  // 背景色
-            ranNode: '' // 运行过的节点(仅仅用于显示，不可拖动)
+            urunNd: '#CDC5BF'  // 未运行节点
+            urunTxt: '#000000' // 未运行文本
+            runningNd: '#0000FF' // 正在运行节点
+            runningTxt: '#FFFFFF' // 正在运行标签
+            ranNd: '#32CD32' // 运行过的节点(仅仅用于显示，不可拖动)，已经运行
+            ranTxt: '#FFFFFF'  // 已经运行的文本
         }
         disEpDragble: '端点禁止拖动大小'
         disConnNode: '禁止节点连线'
         bindOEvts: 'bool-绑定操作事件'
         onKeydown: (code) => {} //  bindOEvts 绑定事件以后
+        // 图标
+        icon: {
+            state: {    // 状态
+                ran : 'state_ran.png | img-src'     // 已经运行节点
+                runing: 'state_running.png | img-src'   // 正在运行
+            }
+        }
     }
 ```
 

@@ -289,7 +289,7 @@ export default abstract class NodeAbstract{
                 ist.remove()
             })
         }
-        this.removeBox()
+        this.clearTmpElem()
     }
     /**
      * 隐藏
@@ -335,7 +335,7 @@ export default abstract class NodeAbstract{
     }
     /**
      * 节点可移动处理
-     * data => {afterUpd(x, y, $node)}
+     * data => {afterUpd(x, y, $node), beforeMv($node)}
      * @returns 
      * @memberof NodeAbstract
      */
@@ -346,6 +346,13 @@ export default abstract class NodeAbstract{
         var tP = {cx: 0, cy: 0}
         this.c.drag(
             function(dx: number, dy: number){
+                if(data.beforeMv && 'function' == typeof data.beforeMv){
+                    // 阻止移动
+                    if(false === data.beforeMv($this)){
+                        return
+                    }
+                }
+
                 dx += tP.cx
                 dy += tP.cy
                 $this.updAttr({cx: dx, cy: dy})
@@ -417,6 +424,16 @@ export default abstract class NodeAbstract{
             }
         let attr = {x, y, width, height}
         return {attr, ps}
+    }
+    /**
+     * 获取 icon 坐标地址
+     */
+    getIconP(): rSu.P{
+        let p: rSu.P = this._getTextPnt(),
+            {w, h} = this.opt
+        p.x -= w/2 - 5
+        p.y -= h/2 - 5
+        return p
     }
     /**
      * 磁化核心，基于碰撞以后的坐标点
@@ -635,7 +652,13 @@ export default abstract class NodeAbstract{
      * 底色
      * @param {string} type 空便是默认底色， 
      */
-    background(type?: string): rSu.Node{
+    background(type?: string|string[]): rSu.Node{
+        if('object' == typeof type){
+            Util.each(type, (i: number, t: string) => {
+                this.background(t)
+            })
+            return
+        }
         if(type){
             type = type.toLowerCase()
         }
@@ -643,6 +666,15 @@ export default abstract class NodeAbstract{
             case 'magn':        // 磁化背景色
                 this.c.attr('fill', this.opt.bkgMagnetic)
                 break
+            case 'text':
+                if(!this.opt.bkgTxt){
+                    this.opt.bkgTxt = '#000000'
+                }
+                if(this.label){
+                    this.label.attr('fill', this.opt.bkgTxt)
+                }
+                break
+            case 'node':
             default:
                 this.c.attr('fill', this.opt.bkg)
         }

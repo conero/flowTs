@@ -349,7 +349,7 @@ var NodeAbstract = /** @class */ (function () {
                 ist.remove();
             });
         }
-        this.removeBox();
+        this.clearTmpElem();
     };
     /**
      * 隐藏
@@ -395,7 +395,7 @@ var NodeAbstract = /** @class */ (function () {
     };
     /**
      * 节点可移动处理
-     * data => {afterUpd(x, y, $node)}
+     * data => {afterUpd(x, y, $node), beforeMv($node)}
      * @returns
      * @memberof NodeAbstract
      */
@@ -405,6 +405,12 @@ var NodeAbstract = /** @class */ (function () {
         this.c.undrag();
         var tP = { cx: 0, cy: 0 };
         this.c.drag(function (dx, dy) {
+            if (data.beforeMv && 'function' == typeof data.beforeMv) {
+                // 阻止移动
+                if (false === data.beforeMv($this)) {
+                    return;
+                }
+            }
             dx += tP.cx;
             dy += tP.cy;
             $this.updAttr({ cx: dx, cy: dy });
@@ -469,6 +475,15 @@ var NodeAbstract = /** @class */ (function () {
         };
         var attr = { x: x, y: y, width: width, height: height };
         return { attr: attr, ps: ps };
+    };
+    /**
+     * 获取 icon 坐标地址
+     */
+    NodeAbstract.prototype.getIconP = function () {
+        var p = this._getTextPnt(), _a = this.opt, w = _a.w, h = _a.h;
+        p.x -= w / 2 - 5;
+        p.y -= h / 2 - 5;
+        return p;
     };
     /**
      * 磁化核心，基于碰撞以后的坐标点
@@ -669,6 +684,13 @@ var NodeAbstract = /** @class */ (function () {
      * @param {string} type 空便是默认底色，
      */
     NodeAbstract.prototype.background = function (type) {
+        var _this = this;
+        if ('object' == typeof type) {
+            __WEBPACK_IMPORTED_MODULE_0__util__["a" /* Util */].each(type, function (i, t) {
+                _this.background(t);
+            });
+            return;
+        }
         if (type) {
             type = type.toLowerCase();
         }
@@ -676,6 +698,15 @@ var NodeAbstract = /** @class */ (function () {
             case 'magn': // 磁化背景色
                 this.c.attr('fill', this.opt.bkgMagnetic);
                 break;
+            case 'text':
+                if (!this.opt.bkgTxt) {
+                    this.opt.bkgTxt = '#000000';
+                }
+                if (this.label) {
+                    this.label.attr('fill', this.opt.bkgTxt);
+                }
+                break;
+            case 'node':
             default:
                 this.c.attr('fill', this.opt.bkg);
         }
@@ -849,6 +880,20 @@ var Util = /** @class */ (function () {
         }
         return nArr;
     };
+    /**
+     * 是否存在代码
+     * @param v
+     * @param arr
+     */
+    Util.inArray = function (v, arr) {
+        arr = arr ? arr : [];
+        for (var i = 0; i < arr.length; i++) {
+            if (v == arr[i]) {
+                return i;
+            }
+        }
+        return -1;
+    };
     return Util;
 }());
 
@@ -937,7 +982,7 @@ var NodeUtil = /** @class */ (function () {
         var y2 = centerY - r * Math.sin((atan + 120) * (Math.PI / 180));
         var x3 = centerX + r * Math.cos((atan + 240) * (Math.PI / 180));
         var y3 = centerY - r * Math.sin((atan + 240) * (Math.PI / 180));
-        var pV1 = [P1, P2], pV2 = [
+        var pV1 = [P2], pV2 = [
             { x: x2, y: y2 },
             { x: x3, y: y3 },
             P2
@@ -1161,7 +1206,7 @@ $(function(){
         data: cacheDt
         // , noToolBar: true
         // noToolBar: true
-        , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10']
+        , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10', 'A11*']
 
         // 事件绑定
         , bindOEvts: true
@@ -1370,6 +1415,7 @@ var WorkerEditor = /** @class */ (function () {
         if (this.config.bindOEvts) {
             this.operHelpEvts();
         }
+        this._domListener();
     }
     /**
      * 配置参数与默认参数和合并处理
@@ -1432,9 +1478,8 @@ var WorkerEditor = /** @class */ (function () {
             return null;
         }
         this.toolbarCtrl = new __WEBPACK_IMPORTED_MODULE_3__ToolBar__["a" /* default */](this.paper, this.config);
-        //console.log(this.toolbarCtrl)
         // 事件绑定处理
-        var $this = this, _a = $this.toolbarCtrl, tBodyNds = _a.tBodyNds, cBodyNds = _a.cBodyNds, connElems = _a.connElems;
+        var $this = this, _a = $this.toolbarCtrl, tBodyNds = _a.tBodyNds, cBodyNds = _a.cBodyNds, connElems = _a.connElems, bkg = this.config.bkg || {};
         // 节点拖动处理事件
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(tBodyNds, function (key, nd) {
             // 开始和结束不支持拖动
@@ -1457,9 +1502,16 @@ var WorkerEditor = /** @class */ (function () {
                 if (__WEBPACK_IMPORTED_MODULE_5__confNode__["a" /* cNode */][key]) {
                     ndOpt.text = __WEBPACK_IMPORTED_MODULE_5__confNode__["a" /* cNode */][key].text;
                 }
+                // 默认颜色，新增节点未运行状态
+                ndOpt.bkg = bkg.urunNd || '#CDC5BF';
                 ndAst = $this.ndMer.make(key, ndOpt)
                     .creator()
                     .moveable({
+                    beforeMv: function (node) {
+                        if ($this.previewMk) {
+                            return false;
+                        }
+                    },
                     afterUpd: function (x, y, node) {
                         $this._lineMoveSync(x, y, node);
                     }
@@ -1557,7 +1609,7 @@ var WorkerEditor = /** @class */ (function () {
      * @param {rSu.Node} node 输入为空时绑定所有值
      */
     WorkerEditor.prototype._nodeBindEvt = function (node) {
-        var $this = this, _a = this, ndMer = _a.ndMer, config = _a.config;
+        var $this = this, _a = this, ndMer = _a.ndMer, config = _a.config, bkg = config.bkg || {};
         // 事件绑定处理
         var toBindNodeEvts = function (nd) {
             // 点击
@@ -1573,6 +1625,10 @@ var WorkerEditor = /** @class */ (function () {
             //nd
             // 处理接口            
             nd.onCreateBoxPnt = function (pnt) {
+                // 预览标识
+                if ($this.previewMk) {
+                    return null;
+                }
                 var tmpLnIst;
                 // 开启连线模式时
                 if ($this.lineCnMode && $this.lineCnMode.isSelEd) {
@@ -1639,6 +1695,8 @@ var WorkerEditor = /** @class */ (function () {
                                 r: 5
                             };
                         }
+                        // 默认颜色，新增节点未运行状态
+                        newOpt.bkg = bkg.urunNd || '#CDC5BF';
                         tmpLnIst = ndMer.make($this.lineCnMode.type, newOpt)
                             .creator()
                             .data('from_code', pnt.data('pcode'))
@@ -1910,6 +1968,10 @@ var WorkerEditor = /** @class */ (function () {
             };
             if ('ln' == ln.NodeType) {
                 ln.onCreateBoxPnt = function (pElem) {
+                    // 预览标识
+                    if ($this.previewMk) {
+                        return null;
+                    }
                     var pcode = pElem.data('pcode'), posi = pElem.data('posi');
                     // 起点
                     if ('f' == posi) {
@@ -1933,6 +1995,10 @@ var WorkerEditor = /** @class */ (function () {
                 });
                 // 边框点
                 ln.onCreateBoxPnt = function (pElem) {
+                    // 预览标识
+                    if ($this.previewMk) {
+                        return null;
+                    }
                     var pcode = pElem.data('pcode'), posi = pElem.data('posi'), MPs = ln.opt.MPs, fMIdx = (2 + MPs.length) * 2 - 2, // 聚焦点最大索引
                     fMIdxStr = 'f' + fMIdx;
                     if ('f0' == posi) { // 起点
@@ -2102,13 +2168,25 @@ var WorkerEditor = /** @class */ (function () {
             }
             // 公共鼠标选中事件
             ln.c.hover(function () {
-                this.attr('stroke-width', '3px')
-                    //.attr('fill', '#0033FF')
-                    .attr('stroke', '#0033FF');
+                var _bkg = '#0033FF', sWd = '4px';
+                this.attr('stroke-width', sWd)
+                    .attr('stroke', _bkg);
+                // 箭体
+                if (ln.inlineEle) {
+                    ln.inlineEle
+                        .attr('fill', _bkg)
+                        .attr('stroke', _bkg)
+                        .attr('stroke-width', sWd);
+                }
             }, function () {
-                this.attr('stroke-width', '1px')
-                    // .attr('fill', '#000000')
-                    .attr('stroke', '#000000');
+                var _bkg = ln.opt.bkg, sWd = '2px';
+                this.attr('stroke-width', '2px')
+                    .attr('stroke', ln.opt.bkg);
+                // 箭体
+                if (ln.inlineEle) {
+                    ln.inlineEle.attr('fill', ln.opt.bkg);
+                    ln.inlineEle.attr('stroke', ln.opt.bkg);
+                }
             });
             // console.log(ln)
         }
@@ -2152,6 +2230,10 @@ var WorkerEditor = /** @class */ (function () {
     WorkerEditor.prototype.allSelect = function () {
         // 标记选中状态
         this.allNdSeled();
+        // 预览模式
+        if (this.previewMk) {
+            return;
+        }
         var _a = this.getAllSelPs(), x = _a.x, y = _a.y, w = _a.w, h = _a.h;
         var $this = this;
         // 生成全选遮挡层
@@ -2276,9 +2358,18 @@ var WorkerEditor = /** @class */ (function () {
             _this.remove(node);
         });
     };
+    // 删除所有文本
+    WorkerEditor.prototype.rmAllText = function () {
+        var _this = this;
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.textDick, function (k, node) {
+            _this.remove(node);
+        });
+    };
+    // 移除所有节点
     WorkerEditor.prototype.allRemove = function () {
         this.rmAllLine();
         this.rmAllNode();
+        this.rmAllText();
     };
     /**
      * 设置统一变化管理
@@ -2494,6 +2585,11 @@ var WorkerEditor = /** @class */ (function () {
             newNode = this.ndMer.make(node.NodeType, newOpt)
                 .creator()
                 .moveable({
+                beforeMv: function (node) {
+                    if ($this.previewMk) {
+                        return false;
+                    }
+                },
                 afterUpd: function (x, y, node) {
                     $this._lineMoveSync(x, y, node);
                 }
@@ -2532,6 +2628,11 @@ var WorkerEditor = /** @class */ (function () {
                 .creator();
             if ('node' == type) {
                 newNode.moveable({
+                    beforeMv: function (node) {
+                        if ($this.previewMk) {
+                            return false;
+                        }
+                    },
                     afterUpd: function (x, y, node) {
                         $this._lineMoveSync(x, y, node);
                     }
@@ -2734,18 +2835,74 @@ var WorkerEditor = /** @class */ (function () {
             _srroo.node = _srrooNode_1;
         }
         //>>>>>> 历史版本兼容 >>>>>
+        // 文件加载以后才显示
+        var config = this.config, rCodes = config.rCodes || null, bkg = config.bkg || {}, ranNodeBkg = bkg.ranNode || '', icon = config.icon || {};
+        rCodes = rCodes ? ('object' == typeof rCodes ? rCodes : [rCodes]) : [];
+        var runingCd = null; //  正在运行的脚本
+        var rCodesTmp = [];
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(rCodes, function (i, rc) {
+            if (rc.indexOf('*') > -1) {
+                runingCd = rc.replace('*', '');
+            }
+            else {
+                rCodesTmp.push(rc);
+            }
+        });
+        rCodes = rCodesTmp;
         // 节点生成复原
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(_srroo.node, function (cd, nd) {
             // 节点生成
+            nd.opt.bkg = bkg.urunNd || '#CDC5BF';
+            nd.opt.bkgTxt = bkg.urunTxt || '#000000';
             var $node = _this.ndMer.make(nd.NodeType, nd.opt)
                 .creator()
                 .moveable({
+                beforeMv: function (node) {
+                    if ($this.previewMk) {
+                        return false;
+                    }
+                },
                 afterUpd: function (x, y, node) {
                     $this._lineMoveSync(x, y, node);
+                    // 图标处理
+                    var icon = $node.tRElem['icon'];
+                    if (icon) {
+                        var iconP = $node.getIconP();
+                        icon.attr({
+                            x: iconP.x,
+                            y: iconP.y
+                        });
+                    }
                 }
             });
             // 保存到字典中
             $node.data('_code', cd);
+            var cdIdx = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].inArray(cd, rCodes);
+            // 生成图标
+            if (cdIdx > -1) { // 已经运行
+                $node.data('state', 'isRunEd');
+                var iconP = $node.getIconP();
+                if (iconP) {
+                    var iconState = icon.state || {};
+                    var rect = 10;
+                    $node.tRElem['icon'] = _this.paper.image(iconState.ran || 'state_ran.png', iconP.x, iconP.y, rect, rect);
+                }
+                $node.opt.bkg = bkg.ranNd || '#32CD32';
+                $node.opt.bkgTxt = bkg.ranTxt || '#FFFFFF';
+                $node.background(['node', 'text']);
+            }
+            else if (runingCd && cd == runingCd) { // 正在运行
+                $node.data('state', 'runingCd');
+                var iconP = $node.getIconP();
+                if (iconP) {
+                    var iconState = icon.state || {};
+                    var rect = 15;
+                    $node.tRElem['icon'] = _this.paper.image(iconState.runing || 'state_running.png', iconP.x, iconP.y, rect, rect);
+                }
+                $node.opt.bkg = bkg.runningNd || '#0000FF';
+                $node.opt.bkgTxt = bkg.runningTxt || '#FFFFFF';
+                $node.background(['node', 'text']);
+            }
             _this._nodeBindEvt($node);
             $this.nodeDick[cd] = $node;
         });
@@ -2755,6 +2912,11 @@ var WorkerEditor = /** @class */ (function () {
             var $ln = _this.ndMer.make(ln.NodeType, ln.opt)
                 .creator()
                 .moveable({
+                beforeMv: function (node) {
+                    if ($this.previewMk) {
+                        return false;
+                    }
+                },
                 afterUpd: function (x, y, node) {
                     $this._lineMoveSync(x, y, node);
                 }
@@ -2765,11 +2927,19 @@ var WorkerEditor = /** @class */ (function () {
             var fIst = _this.nodeDick[fCode], tIst = _this.nodeDick[tCode];
             _this._lineBindEvt($ln);
             _this.connDick[cd] = $ln;
-            if (fIst) {
+            if (fIst) { // 起点
                 fIst.line(cd);
             }
-            if (tIst) {
+            if (tIst) { // 终点
                 tIst.line(cd, true);
+                var nodeBkg = tIst.opt.bkg;
+                $ln.opt.bkg = nodeBkg;
+                $ln.c.attr('stroke', nodeBkg);
+                // 箭头，箭体颜色一致性变化
+                if ($ln.inlineEle) {
+                    $ln.inlineEle.attr('stroke', nodeBkg);
+                    $ln.inlineEle.attr('fill', nodeBkg);
+                }
             }
         });
         // 文本生成
@@ -2778,6 +2948,11 @@ var WorkerEditor = /** @class */ (function () {
             var $ist = _this.ndMer.make(dd.NodeType, dd.opt)
                 .creator()
                 .moveable({
+                beforeMv: function (node) {
+                    if ($this.previewMk) {
+                        return false;
+                    }
+                },
                 afterUpd: function (x, y, node) {
                     $this._lineMoveSync(x, y, node);
                 }
@@ -2787,24 +2962,6 @@ var WorkerEditor = /** @class */ (function () {
             _this._nodeBindEvt($ist);
             _this.textDick[cd] = $ist;
         });
-        // 当前运行的节点
-        // 文件加载以后才显示
-        var config = this.config, rCodes = config.rCodes || null, bkg = config.bkg || {}, ranNodeBkg = bkg.ranNode || '';
-        if (!ranNodeBkg) { // 默认值，且更新值
-            ranNodeBkg = '#C1CDCD';
-            bkg.ranNode = ranNodeBkg;
-            this.config.bkg = bkg;
-        }
-        if (rCodes) {
-            rCodes = 'object' == typeof rCodes ? rCodes : [rCodes];
-            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(rCodes, function (idx, code) {
-                var cnode;
-                if (cnode = _this.nodeDick[code]) {
-                    //console.log(cnode)
-                    cnode.c.attr('fill', ranNodeBkg);
-                }
-            });
-        }
         return this;
     };
     // removeTmpNode(value?: any){
@@ -2855,6 +3012,35 @@ var WorkerEditor = /** @class */ (function () {
             });
         }
         return tmpNode;
+    };
+    /**
+     * 预览，启动预览
+     * @param disable 是否禁止
+     */
+    WorkerEditor.prototype.preview = function (disable) {
+        if (disable) {
+            if (this.toolbarCtrl) {
+                this.toolbarCtrl.show();
+            }
+            this.previewMk = false;
+        }
+        else {
+            // 隐藏工具栏
+            if (this.toolbarCtrl) {
+                this.toolbarCtrl.hide();
+            }
+            this.previewMk = true;
+        }
+    };
+    /**
+     * dom 监听
+     */
+    WorkerEditor.prototype._domListener = function () {
+        var dom = this.config.dom, $this = this;
+        // 双击
+        dom.find('svg').dblclick(function () {
+            $this.removeAllSeled();
+        });
     };
     /**
      * 操作助手事件
@@ -3223,7 +3409,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.1.7", "release": "20180427", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.2.0", "release": "20180507", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),
@@ -3284,7 +3470,7 @@ var ToolBar = /** @class */ (function () {
                 $this.toggle('S');
             }
         });
-        this.headElems['con'] = ist;
+        this.headElems['icon'] = ist;
         ist = paper.text(x + (cw / 2), y + 10, __WEBPACK_IMPORTED_MODULE_1__ObjX__["a" /* default */].value(this.config, 'title', '工具栏'));
         this.headElems['title'] = ist;
     };
@@ -3545,6 +3731,26 @@ var ToolBar = /** @class */ (function () {
         this.tToggle(type, true);
         this.cToggle(type, true);
     };
+    /**
+     * 工具栏显示
+     */
+    ToolBar.prototype.show = function () {
+        this.toggle('S');
+        this.cToggle('S');
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.headElems, function (k, elem) {
+            elem.show();
+        });
+    };
+    /**
+     * 工具栏隐藏
+     */
+    ToolBar.prototype.hide = function () {
+        this.toggle('H');
+        this.cToggle('H');
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.headElems, function (k, elem) {
+            elem.hide();
+        });
+    };
     return ToolBar;
 }());
 /* harmony default export */ __webpack_exports__["a"] = (ToolBar);
@@ -3685,6 +3891,16 @@ var NodeTask = /** @class */ (function (_super) {
         this.updTextAttr(nOpt.text); // 文字
         this.onSize();
         return this;
+    };
+    /**
+     * 获取 icon 坐标地址
+     */
+    NodeTask.prototype.getIconP = function () {
+        var p, _a = this.opt, cx = _a.cx, cy = _a.cy, w = _a.w, h = _a.h;
+        var d = 2;
+        var x = cx - w / 2 + d, y = cy - h / 2 + d;
+        p = { x: x, y: y };
+        return p;
     };
     return NodeTask;
 }(__WEBPACK_IMPORTED_MODULE_0__NodeAbstract__["a" /* default */]));
@@ -4311,10 +4527,10 @@ var NodeLn = /** @class */ (function (_super) {
     NodeLn.prototype._whenCreatorEvt = function () {
         this.opt.bkg = this.opt.bkg || 'rgb(3, 84, 41)';
         var opt = this.opt, bkg = opt.bkg;
-        this.c = this.paper.path(this._ps2Path(this.opt2Attr()));
-        //.attr('stroke-width', '2px')
-        this.c.attr('fill', this.opt.bkg);
-        // .attr('stroke-width', '2px')
+        this.c = this.paper.path(this._ps2Path(this.opt2Attr()))
+            .attr('stroke-width', '2px')
+            .attr('fill', this.opt.bkg)
+            .attr('stroke', this.opt.bkg);
     };
     /**
      * 生成器 nOpt: {P1: rSu.P, P2: rSu.P, r?: number}
@@ -4426,11 +4642,16 @@ var NodeLnPoly = /** @class */ (function (_super) {
     NodeLnPoly.prototype._whenCreatorEvt = function () {
         this.opt.bkg = this.opt.bkg || 'rgb(3, 84, 41)';
         var opt = this.opt, bkg = opt.bkg, _a = this.opt2Attr(), pQue = _a.pQue, arrowPs = _a.arrowPs;
-        this.c = this.paper.path(this._ps2Path(pQue));
-        // .attr('stroke-width', '1px')
+        var sWd = '2px';
+        this.c = this.paper.path(this._ps2Path(pQue))
+            .attr('stroke-width', sWd)
+            .attr('stroke', this.opt.bkg);
+        // console.log(pQue, arrowPs)
         this.inlineEle = this.paper.path(this._ps2Path(__WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].jsonValues(arrowPs)));
-        this.inlineEle.attr('fill', this.opt.bkg);
-        // .attr('stroke-width', '1px')
+        this.inlineEle
+            .attr('fill', this.opt.bkg)
+            .attr('stroke', this.opt.bkg)
+            .attr('stroke-width', sWd);
     };
     /**
      * 选项转属性

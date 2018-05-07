@@ -44,6 +44,7 @@ export default class WorkerEditor{
     }
     private tmpNodeMap: rSu.mapNode     // 临时节点字典
     private tmpMapRElm: rSu.MapRElm     // 临时节点
+    private previewMk: boolean          // 预览模式
     // toolNodeIstQue: any[]     // 工具栏部件节点队列
     // 静态属性
     static version: VersionStruct = LibVersion
@@ -86,6 +87,7 @@ export default class WorkerEditor{
         if(this.config.bindOEvts){
             this.operHelpEvts()
         }
+        this._domListener()
     }
     /**
      * 配置参数与默认参数和合并处理
@@ -158,11 +160,11 @@ export default class WorkerEditor{
             return null
         }
         this.toolbarCtrl = new ToolBar(this.paper, this.config)
-        //console.log(this.toolbarCtrl)
 
         // 事件绑定处理
         var $this = this,
-            {tBodyNds, cBodyNds, connElems} = $this.toolbarCtrl
+            {tBodyNds, cBodyNds, connElems} = $this.toolbarCtrl,
+            bkg = this.config.bkg || {}
             
         // 节点拖动处理事件
         Util.each(tBodyNds, (key: string, nd: rSu.Node) => {
@@ -188,9 +190,17 @@ export default class WorkerEditor{
                 if(cNode[key]){
                     ndOpt.text = cNode[key].text
                 }           
+                // 默认颜色，新增节点未运行状态
+                ndOpt.bkg = bkg.urunNd || '#CDC5BF'
+
                 ndAst = $this.ndMer.make(key, ndOpt)
                     .creator()
                     .moveable({
+                        beforeMv: function(node: rSu.Node){
+                            if($this.previewMk){
+                                return false
+                            }
+                        },
                         afterUpd: function(x: number, y: number, node: rSu.Node){
                             $this._lineMoveSync(x, y, node)
                         }
@@ -291,7 +301,8 @@ export default class WorkerEditor{
      */
     private _nodeBindEvt(node?: rSu.Node){
         var $this = this,
-            {ndMer, config} = this            
+            {ndMer, config} = this,
+            bkg = config.bkg || {}            
         ;
         // 事件绑定处理
         var toBindNodeEvts = (nd: rSu.Node) => {
@@ -308,6 +319,10 @@ export default class WorkerEditor{
             //nd
             // 处理接口            
             nd.onCreateBoxPnt = function(pnt: RaphaelElement){
+                // 预览标识
+                if($this.previewMk){
+                    return null
+                }
                 var tmpLnIst: rSu.Node             
                 // 开启连线模式时
                 if($this.lineCnMode && $this.lineCnMode.isSelEd){
@@ -377,6 +392,8 @@ export default class WorkerEditor{
                                     r: 5
                                 }
                             }
+                            // 默认颜色，新增节点未运行状态
+                            newOpt.bkg = bkg.urunNd || '#CDC5BF'
                             tmpLnIst = ndMer.make($this.lineCnMode.type, newOpt)
                                 .creator()
                                 .data('from_code', pnt.data('pcode'))
@@ -678,6 +695,10 @@ export default class WorkerEditor{
             }
             if('ln' == ln.NodeType){
                 ln.onCreateBoxPnt = function(pElem: RaphaelElement){
+                    // 预览标识
+                    if($this.previewMk){
+                        return null
+                    }
                     let pcode = pElem.data('pcode'),
                         posi = pElem.data('posi')
                     // 起点
@@ -701,6 +722,11 @@ export default class WorkerEditor{
                 })
                 // 边框点
                 ln.onCreateBoxPnt = function(pElem: RaphaelElement){
+                    // 预览标识
+                    if($this.previewMk){
+                        return null
+                    }
+
                     let pcode = pElem.data('pcode'),
                         posi = pElem.data('posi'),
                         MPs = ln.opt.MPs,
@@ -908,14 +934,29 @@ export default class WorkerEditor{
             // 公共鼠标选中事件
             ln.c.hover(
                 function(){
-                    this.attr('stroke-width', '3px')
-                        //.attr('fill', '#0033FF')
-                        .attr('stroke', '#0033FF')
+                    let _bkg = '#0033FF',
+                        sWd = '4px'
+                    this.attr('stroke-width', sWd)
+                        .attr('stroke', _bkg)
+                    // 箭体
+                    if(ln.inlineEle){
+                        ln.inlineEle
+                            .attr('fill', _bkg)
+                            .attr('stroke', _bkg)
+                            .attr('stroke-width', sWd)
+                    }
                 },
                 function(){
-                    this.attr('stroke-width', '1px')
-                        // .attr('fill', '#000000')
-                        .attr('stroke', '#000000')
+                    let _bkg = ln.opt.bkg,
+                        sWd = '2px'
+
+                    this.attr('stroke-width', '2px')
+                        .attr('stroke', ln.opt.bkg)
+                    // 箭体
+                    if(ln.inlineEle){
+                        ln.inlineEle.attr('fill', ln.opt.bkg)
+                        ln.inlineEle.attr('stroke', ln.opt.bkg)
+                    }
                 }
             )
             // console.log(ln)
@@ -957,6 +998,10 @@ export default class WorkerEditor{
     allSelect(){
         // 标记选中状态
         this.allNdSeled()
+        // 预览模式
+        if(this.previewMk){
+            return
+        }
         let {x, y, w, h} = this.getAllSelPs()
         let $this = this
         // 生成全选遮挡层
@@ -1075,9 +1120,17 @@ export default class WorkerEditor{
             this.remove(node)
         })
     }
+    // 删除所有文本
+    rmAllText(){
+        Util.each(this.textDick, (k: string, node: rSu.Node) => {
+            this.remove(node)
+        })
+    }
+    // 移除所有节点
     allRemove(){
         this.rmAllLine()
         this.rmAllNode()
+        this.rmAllText()
     }
     /**
      * 设置统一变化管理
@@ -1173,7 +1226,7 @@ export default class WorkerEditor{
                     }      
                     if(tNodeIst){
                         tNodeIst.rmLine(value, true)
-                    }                  
+                    }           
                 }
                 
                 node.delete()
@@ -1292,6 +1345,11 @@ export default class WorkerEditor{
             newNode = this.ndMer.make(node.NodeType, newOpt)
                 .creator()
                 .moveable({
+                    beforeMv: function(node: rSu.Node){
+                        if($this.previewMk){
+                            return false
+                        }
+                    },
                     afterUpd: function(x: number, y: number, node: rSu.Node){
                         $this._lineMoveSync(x, y, node)
                     }
@@ -1332,6 +1390,11 @@ export default class WorkerEditor{
                 
             if('node' == type){
                 newNode.moveable({
+                    beforeMv: function(node: rSu.Node){
+                        if($this.previewMk){
+                            return false
+                        }
+                    },
                     afterUpd: function(x: number, y: number, node: rSu.Node){
                         $this._lineMoveSync(x, y, node)
                     }
@@ -1545,19 +1608,82 @@ export default class WorkerEditor{
         }
         //>>>>>> 历史版本兼容 >>>>>
 
+        // 文件加载以后才显示
+        let config = this.config,
+            rCodes: string| string[] = config.rCodes || null,
+            bkg: rSu.bsMap = config.bkg || {},
+            ranNodeBkg = bkg.ranNode || '',
+            icon: rSu.bsMap = config.icon || {}   
+
+        rCodes = rCodes? ('object' == typeof rCodes? rCodes: [rCodes]): []
+        let runingCd: string = null //  正在运行的脚本
+
+        let rCodesTmp: string[] = []
+        Util.each(rCodes, (i: number, rc: string) => {
+            if(rc.indexOf('*') > -1){
+                runingCd = rc.replace('*', '')
+            }else{
+                rCodesTmp.push(rc)
+            }
+        })
+        rCodes = rCodesTmp
 
         // 节点生成复原
         Util.each(_srroo.node, (cd: string, nd: rSu.bsMap) => {
             // 节点生成
+            nd.opt.bkg = bkg.urunNd || '#CDC5BF'
+            nd.opt.bkgTxt = bkg.urunTxt || '#000000'
             let $node = this.ndMer.make(nd.NodeType, nd.opt)
                 .creator()
                 .moveable({
+                    beforeMv: function(node: rSu.Node){
+                        if($this.previewMk){
+                            return false
+                        }
+                    },
                     afterUpd: function(x: number, y: number, node: rSu.Node){
                         $this._lineMoveSync(x, y, node)
+                        
+                        // 图标处理
+                        let icon:RaphaelElement = $node.tRElem['icon']
+                        if(icon){
+                            let iconP = $node.getIconP()
+                            icon.attr({
+                                x: iconP.x,
+                                y: iconP.y
+                            })
+                        }
                     }
                 })
             // 保存到字典中
             $node.data('_code', cd)
+            let cdIdx = Util.inArray(cd, <any[]>rCodes)
+            // 生成图标
+            if(cdIdx > -1){ // 已经运行
+                $node.data('state', 'isRunEd')
+                let iconP: rSu.P = $node.getIconP()
+                if(iconP){
+                    let iconState: rSu.bsMap = icon.state || {}
+                    let rect: number = 10
+                    $node.tRElem['icon'] = this.paper.image(iconState.ran || 'state_ran.png', iconP.x, iconP.y, rect, rect)
+                }
+                $node.opt.bkg = bkg.ranNd || '#32CD32'
+                $node.opt.bkgTxt = bkg.ranTxt || '#FFFFFF'
+                $node.background(['node', 'text'])
+            }
+            else if(runingCd && cd == runingCd){    // 正在运行
+                $node.data('state', 'runingCd')
+                let iconP: rSu.P = $node.getIconP()
+                if(iconP){
+                    let iconState: rSu.bsMap = icon.state || {}
+                    let rect: number = 15
+                    $node.tRElem['icon'] = this.paper.image(iconState.runing || 'state_running.png', iconP.x, iconP.y, rect, rect)
+                }
+                $node.opt.bkg = bkg.runningNd || '#0000FF'
+                $node.opt.bkgTxt = bkg.runningTxt || '#FFFFFF'
+                $node.background(['node', 'text'])
+            }
+            
             this._nodeBindEvt($node)
             $this.nodeDick[cd] = $node
         })
@@ -1567,11 +1693,17 @@ export default class WorkerEditor{
             let $ln = this.ndMer.make(ln.NodeType, ln.opt)
                 .creator()
                 .moveable({
+                    beforeMv: function(node: rSu.Node){
+                        if($this.previewMk){
+                            return false
+                        }
+                    },
                     afterUpd: function(x: number, y: number, node: rSu.Node){
                         $this._lineMoveSync(x, y, node)
                     }
                 })
-            $ln.data('_code', cd)            
+            
+            $ln.data('_code', cd)     
             $ln.data(_data)
             
             let fCode = _data.from_code,
@@ -1582,11 +1714,19 @@ export default class WorkerEditor{
             this._lineBindEvt($ln)
             this.connDick[cd] = $ln
 
-            if(fIst){
+            if(fIst){   // 起点
                 fIst.line(cd)
             }
-            if(tIst){
+            if(tIst){   // 终点
                 tIst.line(cd, true)
+                let nodeBkg: string = tIst.opt.bkg
+                $ln.opt.bkg = nodeBkg
+                $ln.c.attr('stroke', nodeBkg)
+                // 箭头，箭体颜色一致性变化
+                if($ln.inlineEle){
+                    $ln.inlineEle.attr('stroke', nodeBkg)
+                    $ln.inlineEle.attr('fill', nodeBkg)
+                }
             }
         })
         // 文本生成
@@ -1595,6 +1735,11 @@ export default class WorkerEditor{
             let $ist = this.ndMer.make(dd.NodeType, dd.opt)
                 .creator()
                 .moveable({
+                    beforeMv: function(node: rSu.Node){
+                        if($this.previewMk){
+                            return false
+                        }
+                    },
                     afterUpd: function(x: number, y: number, node: rSu.Node){
                         $this._lineMoveSync(x, y, node)
                     }
@@ -1605,28 +1750,6 @@ export default class WorkerEditor{
             this._nodeBindEvt($ist)
             this.textDick[cd] = $ist
         })
-
-        // 当前运行的节点
-        // 文件加载以后才显示
-        let config = this.config,
-            rCodes: string| string[] = config.rCodes || null,
-            bkg: rSu.bsMap = config.bkg || {},
-            ranNodeBkg = bkg.ranNode || ''                  
-        if(!ranNodeBkg){        // 默认值，且更新值
-            ranNodeBkg = '#C1CDCD'
-            bkg.ranNode = ranNodeBkg
-            this.config.bkg = bkg
-        }
-        if(rCodes){
-            rCodes = 'object' == typeof rCodes? rCodes: [rCodes]
-            Util.each(rCodes, (idx: number, code: string) => {
-                let cnode: rSu.Node
-                if(cnode = this.nodeDick[code]){
-                    //console.log(cnode)
-                    cnode.c.attr('fill', ranNodeBkg)
-                }
-            })
-        }
         return this
     }
     // removeTmpNode(value?: any){
@@ -1682,6 +1805,36 @@ export default class WorkerEditor{
            })
        }
        return tmpNode
+    }
+    /**
+     * 预览，启动预览
+     * @param disable 是否禁止
+     */
+    preview(disable?: boolean){
+        if(disable){
+            if(this.toolbarCtrl){
+                this.toolbarCtrl.show()
+            }
+            this.previewMk = false
+        }
+        else{
+            // 隐藏工具栏
+            if(this.toolbarCtrl){
+                this.toolbarCtrl.hide()
+            }
+            this.previewMk = true
+        }
+    }
+    /**
+     * dom 监听
+     */
+    _domListener(){
+        let {dom} = this.config,
+            $this = this
+        // 双击
+        dom.find('svg').dblclick(function(){
+            $this.removeAllSeled()
+        })
     }
     /**
      * 操作助手事件

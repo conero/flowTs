@@ -15,9 +15,9 @@ export default class NodeLn extends NodeAbstract{
         var opt = this.opt,
             {bkg} = opt
         this.c = this.paper.path(this._ps2Path(this.opt2Attr()))
-            //.attr('stroke-width', '2px')
-        this.c.attr('fill', this.opt.bkg)
-            // .attr('stroke-width', '2px')
+            .attr('stroke-width', '2px')
+            .attr('fill', this.opt.bkg)
+            .attr('stroke', this.opt.bkg)
     }
     /**
      * 生成器 nOpt: {P1: rSu.P, P2: rSu.P, r?: number}

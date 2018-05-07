@@ -122,6 +122,20 @@ class Util{
         }
         return nArr
     }
+    /**
+     * 是否存在代码
+     * @param v 
+     * @param arr 
+     */
+    static inArray(v: any, arr: any[]): number{
+        arr = arr? arr: []
+        for(let i=0; i<arr.length; i++){
+            if(v == arr[i]){
+                return i
+            }
+        }
+        return -1
+    }
 }
 
 export {Util}

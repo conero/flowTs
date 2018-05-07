@@ -11,15 +11,19 @@ export default class NodeLnPoly extends NodeAbstract{
     }
     protected _whenCreatorEvt(){
         this.opt.bkg = this.opt.bkg || 'rgb(3, 84, 41)'
-        var opt = this.opt,
+        let opt = this.opt,
             {bkg} = opt,
             {pQue, arrowPs} = this.opt2Attr()
+        let sWd: string = '2px'
         this.c = this.paper.path(this._ps2Path(pQue))
-            // .attr('stroke-width', '1px')
-
+            .attr('stroke-width', sWd)
+            .attr('stroke', this.opt.bkg)
+        // console.log(pQue, arrowPs)
         this.inlineEle = this.paper.path(this._ps2Path(Util.jsonValues(arrowPs)))
-        this.inlineEle.attr('fill', this.opt.bkg)
-            // .attr('stroke-width', '1px')
+        this.inlineEle
+            .attr('fill', this.opt.bkg)
+            .attr('stroke', this.opt.bkg)
+            .attr('stroke-width', sWd)
     }
     /**
      * 选项转属性
