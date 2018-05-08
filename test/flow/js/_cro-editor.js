@@ -1750,6 +1750,7 @@ var WorkerEditor = /** @class */ (function () {
     WorkerEditor.prototype._lineBindEvt = function (ln) {
         var $this = this;
         if (ln) {
+            var bkg_1 = this.config.bkg || {};
             // 起点移动处理
             var startPFn = function (elem) {
                 var p1 = { x: 0, y: 0 };
@@ -2018,7 +2019,7 @@ var WorkerEditor = /** @class */ (function () {
             }
             // 公共鼠标选中事件
             ln.c.hover(function () {
-                var _bkg = '#0033FF', sWd = '4px';
+                var _bkg = bkg_1.lnHover || '#FF0000', sWd = '4px';
                 this.attr('stroke-width', sWd)
                     .attr('stroke', _bkg);
                 // 箭体
@@ -2488,24 +2489,41 @@ var WorkerEditor = /** @class */ (function () {
                     }
                 });
                 var _index = _this._order('n', 'A', code);
-                // 保存到字典中
                 newNode.data('_code', _index);
+                _this._nodeBindEvt(newNode);
                 _this.nodeDick[_index] = newNode;
             }
             else if ('conn' == type) {
-                _this._nodeBindEvt(newNode);
-                // 保存到字典中
-                var _index = _this._order('c', 'C', code);
-                newNode.data('_code', _index);
-                _this.connDick[_index] = newNode;
-            }
-            else if ('text' == type) {
+                var _index_1 = _this._order('c', 'C', code);
+                newNode.data('_code', _index_1);
+                // 连线处理
+                __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(dd.data, function (k, v) {
+                    var lnNode;
+                    switch (k) {
+                        case 'from_code':
+                            lnNode = $this.nodeDick[v];
+                            if (lnNode) {
+                                lnNode.line(_index_1);
+                            }
+                            break;
+                        case 'to_code':
+                            lnNode = $this.nodeDick[v];
+                            if (lnNode) {
+                                lnNode.line(_index_1, true);
+                            }
+                            break;
+                    }
+                });
                 _this._lineBindEvt(newNode);
                 // 保存到字典中
+                _this.connDick[_index_1] = newNode;
+            }
+            else if ('text' == type) {
                 var _index = _this._order('t', 'T', code);
                 newNode.data('_code', _index);
                 _this.textDick[_index] = newNode;
             }
+            newNode.data(dd.data);
         });
         return this;
     };
@@ -2522,6 +2540,7 @@ var WorkerEditor = /** @class */ (function () {
                 code: code,
                 opt: $.extend(true, {}, node.opt),
                 NodeType: node.NodeType,
+                data: node.data(),
                 type: type
             });
         };
@@ -2670,29 +2689,14 @@ var WorkerEditor = /** @class */ (function () {
         var _this = this;
         var $this = this, lineQue = {};
         var step = data.step, _srroo = data._srroo;
-        // 过渡代码删除
-        //>>>>>> 历史版本兼容 >>>>>
-        if (!_srroo.node) {
-            var _srrooNode_1 = {};
-            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(step, function (cd, row) {
-                if (row._srroo) {
-                    _srrooNode_1[cd] = row._srroo;
-                }
-                else {
-                    return false;
-                }
-            });
-            _srroo.node = _srrooNode_1;
-        }
-        //>>>>>> 历史版本兼容 >>>>>
         // 文件加载以后才显示
         var config = this.config, rCodes = config.rCodes || null, bkg = config.bkg || {}, ranNodeBkg = bkg.ranNode || '', icon = config.icon || {};
         rCodes = rCodes ? ('object' == typeof rCodes ? rCodes : [rCodes]) : [];
-        var runingCd = null; //  正在运行的脚本
+        var isRunning = null; //  正在运行的脚本
         var rCodesTmp = [];
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(rCodes, function (i, rc) {
             if (rc.indexOf('*') > -1) {
-                runingCd = rc.replace('*', '');
+                isRunning = rc.replace('*', '');
             }
             else {
                 rCodesTmp.push(rc);
@@ -2730,7 +2734,7 @@ var WorkerEditor = /** @class */ (function () {
             var cdIdx = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].inArray(cd, rCodes);
             // 生成图标
             if (cdIdx > -1) { // 已经运行
-                $node.data('state', 'isRunEd');
+                $node.data('state', 'isRan');
                 var iconP = $node.getIconP();
                 if (iconP) {
                     var iconState = icon.state || {};
@@ -2741,8 +2745,8 @@ var WorkerEditor = /** @class */ (function () {
                 $node.opt.bkgTxt = bkg.ranTxt || '#FFFFFF';
                 $node.background(['node', 'text']);
             }
-            else if (runingCd && cd == runingCd) { // 正在运行
-                $node.data('state', 'runingCd');
+            else if (isRunning && cd == isRunning) { // 正在运行
+                $node.data('state', 'isRunning');
                 var iconP = $node.getIconP();
                 if (iconP) {
                     var iconState = icon.state || {};
@@ -2752,6 +2756,27 @@ var WorkerEditor = /** @class */ (function () {
                 $node.opt.bkg = bkg.runningNd || '#0000FF';
                 $node.opt.bkgTxt = bkg.runningTxt || '#FFFFFF';
                 $node.background(['node', 'text']);
+            }
+            // 徽标
+            var iconImg = $node.tRElem['icon'];
+            if (iconImg) {
+                iconImg.hover(function () {
+                    // f_in
+                    var state = $node.data('state');
+                    var title = '';
+                    switch (state) {
+                        case 'isRan':
+                            title = '已经运行';
+                            break;
+                        case 'isRunning':
+                            title = '正在运行中';
+                            break;
+                    }
+                    var paper = this.paper, offset = $this.getDomOffset();
+                    $this.tooltip(title, this.attr('x') + offset.left + 20, this.attr('y') + offset.top + 2);
+                }, function () {
+                    $this.tooltip('');
+                });
             }
             _this._nodeBindEvt($node);
             $this.nodeDick[cd] = $node;
@@ -2881,6 +2906,43 @@ var WorkerEditor = /** @class */ (function () {
             }
             this.previewMk = true;
         }
+    };
+    /**
+     * 悬停提示
+     * @param text
+     * @param x
+     * @param y
+     */
+    WorkerEditor.prototype.tooltip = function (text, x, y) {
+        var ctrl = $('.flowts-tip');
+        if (!text) {
+            if (ctrl.length > 0) {
+                ctrl.hide();
+            }
+            return;
+        }
+        if (ctrl.length == 0) {
+            ctrl = $('<div class="flowts-tip"></div>');
+            $('body').append(ctrl);
+        }
+        ctrl.show();
+        ctrl.html(text);
+        if (x && y) {
+            ctrl.css({
+                top: y,
+                left: x
+            });
+        }
+    };
+    /**
+     * dom 坐标地址
+     */
+    WorkerEditor.prototype.getDomOffset = function () {
+        var dom = this.config.dom;
+        return {
+            left: dom[0].offsetLeft,
+            top: dom[0].offsetTop
+        };
     };
     /**
      * dom 监听
@@ -3259,7 +3321,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.2.0", "release": "20180507", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.2.1", "release": "20180508", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),

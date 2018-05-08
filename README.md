@@ -92,6 +92,7 @@
             runningTxt: '#FFFFFF' // 正在运行标签
             ranNd: '#32CD32' // 运行过的节点(仅仅用于显示，不可拖动)，已经运行
             ranTxt: '#FFFFFF'  // 已经运行的文本
+            lnHover: '#FF0000'         // 连续聚焦颜色
         }
         disEpDragble: '端点禁止拖动大小'
         disConnNode: '禁止节点连线'
@@ -157,3 +158,8 @@
 ### RaphaelJs
 - 鼠标移入移出检测
     - mouseover/mouseout
+
+## 系统自定义样式
+- .flowts-tip
+    - div
+    - 坐标悬停提示控件        

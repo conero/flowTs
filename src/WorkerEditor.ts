@@ -613,6 +613,7 @@ export default class WorkerEditor{
     private _lineBindEvt(ln?: rSu.Node){
         let $this = this
         if(ln){
+            let bkg = this.config.bkg || {}
             // 起点移动处理
             var startPFn = (elem: RaphaelElement) => {
                 let p1: rSu.P = {x: 0, y: 0}
@@ -934,7 +935,7 @@ export default class WorkerEditor{
             // 公共鼠标选中事件
             ln.c.hover(
                 function(){
-                    let _bkg = '#0033FF',
+                    let _bkg = bkg.lnHover || '#FF0000',
                         sWd = '4px'
                     this.attr('stroke-width', sWd)
                         .attr('stroke', _bkg)
@@ -1370,7 +1371,6 @@ export default class WorkerEditor{
                 newNode.data('_code', _index)
                 this.nodeDick[_index] = newNode
             }
-            
         }
         return newNode
     }
@@ -1400,24 +1400,42 @@ export default class WorkerEditor{
                     }
                 })
                 let _index = this._order('n', 'A', code)
-                // 保存到字典中
                 newNode.data('_code', _index)
+                this._nodeBindEvt(newNode)
                 this.nodeDick[_index] = newNode
             }
             else if('conn' == type){
-                this._nodeBindEvt(newNode)
-                // 保存到字典中
                 let _index = this._order('c', 'C', code)
                 newNode.data('_code', _index)
+                // 连线处理
+                Util.each(dd.data, (k: string, v: any) => {
+                    let lnNode: rSu.Node
+                    switch(k){
+                        case 'from_code':
+                            lnNode = $this.nodeDick[v]
+                            if(lnNode){
+                                lnNode.line(<string>_index)
+                            }
+                            break
+                        case 'to_code':
+                            lnNode = $this.nodeDick[v]
+                            if(lnNode){
+                                lnNode.line(<string>_index, true)
+                            }
+                            break
+                    }
+                })
+
+                this._lineBindEvt(newNode)
+                // 保存到字典中
                 this.connDick[_index] = newNode
             }
             else if('text' == type){
-                this._lineBindEvt(newNode)
-                // 保存到字典中
                 let _index = this._order('t', 'T', code)
                 newNode.data('_code', _index)
                 this.textDick[_index] = newNode
             }
+            newNode.data(dd.data)
         })
         return this
     }
@@ -1434,6 +1452,7 @@ export default class WorkerEditor{
                 code, 
                 opt: $.extend(true, {}, node.opt),
                 NodeType: node.NodeType,
+                data: node.data(),
                 type
             })
         }
@@ -1593,21 +1612,6 @@ export default class WorkerEditor{
             lineQue: rSu.bsMap = {}
         let {step, _srroo} = data
 
-        // 过渡代码删除
-        //>>>>>> 历史版本兼容 >>>>>
-        if(!_srroo.node){
-            let _srrooNode: rSu.bsMap = {}
-            Util.each(step, (cd: string, row: rSu.bsMap) => {
-                if(row._srroo){
-                    _srrooNode[cd] = row._srroo
-                }else{
-                    return false
-                }
-            })
-            _srroo.node = _srrooNode
-        }
-        //>>>>>> 历史版本兼容 >>>>>
-
         // 文件加载以后才显示
         let config = this.config,
             rCodes: string| string[] = config.rCodes || null,
@@ -1616,12 +1620,12 @@ export default class WorkerEditor{
             icon: rSu.bsMap = config.icon || {}   
 
         rCodes = rCodes? ('object' == typeof rCodes? rCodes: [rCodes]): []
-        let runingCd: string = null //  正在运行的脚本
+        let isRunning: string = null //  正在运行的脚本
 
         let rCodesTmp: string[] = []
         Util.each(rCodes, (i: number, rc: string) => {
             if(rc.indexOf('*') > -1){
-                runingCd = rc.replace('*', '')
+                isRunning = rc.replace('*', '')
             }else{
                 rCodesTmp.push(rc)
             }
@@ -1660,7 +1664,7 @@ export default class WorkerEditor{
             let cdIdx = Util.inArray(cd, <any[]>rCodes)
             // 生成图标
             if(cdIdx > -1){ // 已经运行
-                $node.data('state', 'isRunEd')
+                $node.data('state', 'isRan')
                 let iconP: rSu.P = $node.getIconP()
                 if(iconP){
                     let iconState: rSu.bsMap = icon.state || {}
@@ -1671,8 +1675,8 @@ export default class WorkerEditor{
                 $node.opt.bkgTxt = bkg.ranTxt || '#FFFFFF'
                 $node.background(['node', 'text'])
             }
-            else if(runingCd && cd == runingCd){    // 正在运行
-                $node.data('state', 'runingCd')
+            else if(isRunning && cd == isRunning){    // 正在运行
+                $node.data('state', 'isRunning')
                 let iconP: rSu.P = $node.getIconP()
                 if(iconP){
                     let iconState: rSu.bsMap = icon.state || {}
@@ -1683,7 +1687,35 @@ export default class WorkerEditor{
                 $node.opt.bkgTxt = bkg.runningTxt || '#FFFFFF'
                 $node.background(['node', 'text'])
             }
-            
+            // 徽标
+            let iconImg = $node.tRElem['icon']
+            if(iconImg){
+                iconImg.hover(
+                    function(){
+                        // f_in
+                        let state = $node.data('state')
+                        let title = ''
+                        switch(state){
+                            case 'isRan':
+                                title = '已经运行'
+                                break
+                            case 'isRunning':
+                                title = '正在运行中'
+                                break
+                        }
+                        let paper = this.paper,
+                            offset = $this.getDomOffset()
+                        $this.tooltip(title, 
+                            this.attr('x') + offset.left + 20, 
+                            this.attr('y') + offset.top + 2
+                        )
+                    },
+                    function(){
+                        $this.tooltip('')
+                    },
+                )
+            }
+
             this._nodeBindEvt($node)
             $this.nodeDick[cd] = $node
         })
@@ -1823,6 +1855,43 @@ export default class WorkerEditor{
                 this.toolbarCtrl.hide()
             }
             this.previewMk = true
+        }
+    }
+    /**
+     * 悬停提示
+     * @param text 
+     * @param x 
+     * @param y 
+     */
+    tooltip(text: string, x?: number, y?: number){
+        let ctrl = $('.flowts-tip')
+        if(!text){
+            if(ctrl.length > 0){
+                ctrl.hide()
+            }
+            return
+        }
+        if(ctrl.length == 0){
+            ctrl = $('<div class="flowts-tip"></div>')
+            $('body').append(ctrl)
+        }
+        ctrl.show()
+        ctrl.html(text)
+        if(x && y){
+            ctrl.css({
+                top: y,
+                left: x
+            })
+        }
+    }
+    /**
+     * dom 坐标地址
+     */
+    getDomOffset(){
+        let dom = this.config.dom
+        return {
+            left: dom[0].offsetLeft,
+            top: dom[0].offsetTop
         }
     }
     /**

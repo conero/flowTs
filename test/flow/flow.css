@@ -27,12 +27,8 @@
     padding: 0px;
 }
 
-
-/* 文比编辑器 */
-.worker-txteditor-div #worker-txteditor{
+/* 悬停提示 */
+.flowts-tip{
     position: absolute;
-}
-
-.worker-txteditor-div{
-    /* position: absolute; */
+    background-color: cornsilk;
 }
