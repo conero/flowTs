@@ -504,6 +504,12 @@ var NodeAbstract = /** @class */ (function () {
         var bAttr = this.getBBox(), attr = bAttr.attr, ps = bAttr.ps, x = attr.x, y = attr.y, w = attr.width, h = attr.height;
         // a-h
         var pt, cx1 = x + w / 4, cx = x + w / 2, cx2 = x + w * (3 / 4), cy1 = y + w / 4, cy = y + w / 2, cy2 = y + w * (3 / 4), posi = null;
+        // 数据测试
+        // console.log(
+        //     [px, py],
+        //     [cx, cx1, cx2],
+        //     [cy, cy1, cy2]
+        // )
         if (px <= cx1 && py <= cy1) {
             pt = ps.a;
             posi = 'a';
@@ -2703,7 +2709,7 @@ var WorkerEditor = /** @class */ (function () {
         var $this = this, lineQue = {};
         var step = data.step, _srroo = data._srroo;
         // 文件加载以后才显示
-        var config = this.config, rCodes = config.rCodes || null, bkg = config.bkg || {}, ranNodeBkg = bkg.ranNode || '', icon = config.icon || {};
+        var config = this.config, rCodes = config.rCodes || null, bkg = config.bkg || {}, ranNodeBkg = bkg.ranNode || '', noIcon = 'undefined' == typeof config.icon, icon = config.icon || {};
         rCodes = rCodes ? ('object' == typeof rCodes ? rCodes : [rCodes]) : [];
         var isRunning = null; //  正在运行的脚本
         var rCodesTmp = [];
@@ -2731,7 +2737,7 @@ var WorkerEditor = /** @class */ (function () {
                 },
                 afterUpd: function (x, y, node) {
                     $this._lineMoveSync(x, y, node);
-                    // 图标处理
+                    // 图标处理，存在图片同步移动
                     var icon = $node.tRElem['icon'];
                     if (icon) {
                         var iconP = $node.getIconP();
@@ -2746,26 +2752,28 @@ var WorkerEditor = /** @class */ (function () {
             $node.data('_code', cd);
             var cdIdx = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].inArray(cd, rCodes);
             // 生成图标
-            if (cdIdx > -1) { // 已经运行
-                $node.data('state', 'isRan');
+            var iconState = icon.state || {};
+            var createIconFn = function (iconSrc) {
+                if (noIcon) {
+                    return;
+                }
                 var iconP = $node.getIconP();
                 if (iconP) {
-                    var iconState = icon.state || {};
                     var rect = 10;
-                    $node.tRElem['icon'] = _this.paper.image(iconState.ran || 'state_ran.png', iconP.x, iconP.y, rect, rect);
+                    $node.tRElem['icon'] = _this.paper.image(iconSrc, iconP.x, iconP.y, rect, rect);
                 }
+            };
+            // 生成图标
+            if (cdIdx > -1) { // 已经运行
+                $node.data('state', 'isRan');
+                createIconFn(iconState.ran || 'state_ran.png');
                 $node.opt.bkg = bkg.ranNd || '#32CD32';
                 $node.opt.bkgTxt = bkg.ranTxt || '#FFFFFF';
                 $node.background(['node', 'text']);
             }
             else if (isRunning && cd == isRunning) { // 正在运行
                 $node.data('state', 'isRunning');
-                var iconP = $node.getIconP();
-                if (iconP) {
-                    var iconState = icon.state || {};
-                    var rect = 15;
-                    $node.tRElem['icon'] = _this.paper.image(iconState.runing || 'state_running.png', iconP.x, iconP.y, rect, rect);
-                }
+                createIconFn(iconState.runing || 'state_running.png');
                 $node.opt.bkg = bkg.runningNd || '#0000FF';
                 $node.opt.bkgTxt = bkg.runningTxt || '#FFFFFF';
                 $node.background(['node', 'text']);
@@ -3334,7 +3342,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.2.1", "release": "20180508", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.2.2", "release": "20180510", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),
@@ -3370,8 +3378,16 @@ var ToolBar = /** @class */ (function () {
         this.ndMer = new __WEBPACK_IMPORTED_MODULE_0__NodeQue__["a" /* NodeQue */](this.paper);
         this.option = opt;
         this.config = opt.toolBar || {};
-        this.config.aUpSrc = __WEBPACK_IMPORTED_MODULE_1__ObjX__["a" /* default */].value(this.config, 'aUpSrc', 'arrow_up.png');
-        this.config.aDownSrc = __WEBPACK_IMPORTED_MODULE_1__ObjX__["a" /* default */].value(this.config, 'aDownSrc', 'arrow_down.png');
+        // 图标处理
+        var hasIcon = false;
+        if (!this.config.hasIcon && (this.config.aUpSrc || this.config.aDownSrc)) {
+            hasIcon = true;
+        }
+        else {
+            hasIcon = this.config.hasIcon || false;
+        }
+        this.config.aUpSrc = __WEBPACK_IMPORTED_MODULE_1__ObjX__["a" /* default */].value(this.config, 'aUpSrc', hasIcon ? 'arrow_up.png' : null);
+        this.config.aDownSrc = __WEBPACK_IMPORTED_MODULE_1__ObjX__["a" /* default */].value(this.config, 'aDownSrc', hasIcon ? 'arrow_down.png' : null);
         this._headBar();
         this._nodeBar();
         this._connBar();
@@ -3383,7 +3399,7 @@ var ToolBar = /** @class */ (function () {
         var $this = this, _a = this.rData, cp = _a.cp, cw = _a.cw, th0 = _a.th0, x = cp.x, y = cp.y, paper = this.paper, ist;
         this.headElems = {};
         ist = paper.rect(x, y, cw, th0)
-            .attr('fill', '#ffffff')
+            .attr('fill', '#3A0088')
             .click(function () {
             var toggle = this.data('toggle');
             if (toggle != 'H') {
@@ -3396,7 +3412,8 @@ var ToolBar = /** @class */ (function () {
             }
         });
         this.headElems['icon'] = ist;
-        ist = paper.text(x + (cw / 2), y + 10, __WEBPACK_IMPORTED_MODULE_1__ObjX__["a" /* default */].value(this.config, 'title', '工具栏'));
+        ist = paper.text(x + (cw / 2), y + 10, __WEBPACK_IMPORTED_MODULE_1__ObjX__["a" /* default */].value(this.config, 'title', '工具栏'))
+            .attr('fill', '#ffffff');
         this.headElems['title'] = ist;
     };
     /**
@@ -3416,7 +3433,7 @@ var ToolBar = /** @class */ (function () {
         y += th1;
         // data: toggle => H/S
         this.nodeElems['title'] = paper.rect(x, y, cw, 23)
-            .attr('fill', '#ffffff')
+            .attr('fill', '#E8CCFF')
             .click(function () {
             // console.log(this)
             var toggle = this.data('toggle');
@@ -3492,7 +3509,7 @@ var ToolBar = /** @class */ (function () {
         // data: toggle => H/S
         y += th0 + th1 + nh;
         this.connElems['title'] = paper.rect(x, y, cw, th2)
-            .attr('fill', '#ffffff')
+            .attr('fill', '#D1BBFF')
             .click(function () {
             // console.log(this)
             var toggle = this.data('toggle');

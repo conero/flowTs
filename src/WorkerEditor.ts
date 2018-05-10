@@ -1617,6 +1617,7 @@ export default class WorkerEditor{
             rCodes: string| string[] = config.rCodes || null,
             bkg: rSu.bsMap = config.bkg || {},
             ranNodeBkg = bkg.ranNode || '',
+            noIcon: boolean = 'undefined' == typeof config.icon,
             icon: rSu.bsMap = config.icon || {}   
 
         rCodes = rCodes? ('object' == typeof rCodes? rCodes: [rCodes]): []
@@ -1648,7 +1649,7 @@ export default class WorkerEditor{
                     afterUpd: function(x: number, y: number, node: rSu.Node){
                         $this._lineMoveSync(x, y, node)
                         
-                        // 图标处理
+                        // 图标处理，存在图片同步移动
                         let icon:RaphaelElement = $node.tRElem['icon']
                         if(icon){
                             let iconP = $node.getIconP()
@@ -1662,27 +1663,31 @@ export default class WorkerEditor{
             // 保存到字典中
             $node.data('_code', cd)
             let cdIdx = Util.inArray(cd, <any[]>rCodes)
+            
+            // 生成图标
+            let iconState: rSu.bsMap = icon.state || {}
+            let createIconFn = (iconSrc: string) => {
+                if(noIcon){
+                    return
+                }
+                let iconP: rSu.P = $node.getIconP()
+                if(iconP){                    
+                    let rect: number = 10
+                    $node.tRElem['icon'] = this.paper.image(iconSrc, iconP.x, iconP.y, rect, rect)
+                }
+            }
+
             // 生成图标
             if(cdIdx > -1){ // 已经运行
                 $node.data('state', 'isRan')
-                let iconP: rSu.P = $node.getIconP()
-                if(iconP){
-                    let iconState: rSu.bsMap = icon.state || {}
-                    let rect: number = 10
-                    $node.tRElem['icon'] = this.paper.image(iconState.ran || 'state_ran.png', iconP.x, iconP.y, rect, rect)
-                }
+                createIconFn(iconState.ran || 'state_ran.png')
                 $node.opt.bkg = bkg.ranNd || '#32CD32'
                 $node.opt.bkgTxt = bkg.ranTxt || '#FFFFFF'
                 $node.background(['node', 'text'])
             }
             else if(isRunning && cd == isRunning){    // 正在运行
                 $node.data('state', 'isRunning')
-                let iconP: rSu.P = $node.getIconP()
-                if(iconP){
-                    let iconState: rSu.bsMap = icon.state || {}
-                    let rect: number = 15
-                    $node.tRElem['icon'] = this.paper.image(iconState.runing || 'state_running.png', iconP.x, iconP.y, rect, rect)
-                }
+                createIconFn(iconState.runing || 'state_running.png')
                 $node.opt.bkg = bkg.runningNd || '#0000FF'
                 $node.opt.bkgTxt = bkg.runningTxt || '#FFFFFF'
                 $node.background(['node', 'text'])

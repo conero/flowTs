@@ -49,8 +49,17 @@ export default class ToolBar{
         this.ndMer = new NodeQue(this.paper)
         this.option = opt
         this.config = opt.toolBar || {}
-        this.config.aUpSrc = ObjX.value(this.config, 'aUpSrc', 'arrow_up.png')
-        this.config.aDownSrc = ObjX.value(this.config, 'aDownSrc', 'arrow_down.png')
+        
+        // 图标处理
+        let hasIcon = false
+        if(!this.config.hasIcon && (this.config.aUpSrc || this.config.aDownSrc)){            
+            hasIcon = true
+        }else{
+            hasIcon = this.config.hasIcon || false
+        }
+        this.config.aUpSrc = ObjX.value(this.config, 'aUpSrc', hasIcon? 'arrow_up.png' : null)
+        this.config.aDownSrc = ObjX.value(this.config, 'aDownSrc', hasIcon? 'arrow_down.png':null)
+        
         this._headBar()
         this._nodeBar()
         this._connBar()
@@ -68,7 +77,7 @@ export default class ToolBar{
         this.headElems = {}
 
         ist = paper.rect(x, y, cw, th0)
-            .attr('fill', '#ffffff')
+            .attr('fill', '#3A0088')
             .click(function(){
                 let toggle = this.data('toggle')
                 if(toggle != 'H'){
@@ -82,6 +91,7 @@ export default class ToolBar{
         this.headElems['icon'] = ist
         
         ist = paper.text(x + (cw/2), y+10, ObjX.value(this.config, 'title', '工具栏'))
+            .attr('fill', '#ffffff')
         this.headElems['title'] = ist
     }
     /**
@@ -110,7 +120,7 @@ export default class ToolBar{
         y += th1
         // data: toggle => H/S
         this.nodeElems['title'] = paper.rect(x, y, cw, 23)
-            .attr('fill', '#ffffff')
+            .attr('fill', '#E8CCFF')
             .click(function(){
                 // console.log(this)
                 let toggle = this.data('toggle')
@@ -201,7 +211,7 @@ export default class ToolBar{
         y += th0 + th1 + nh
 
         this.connElems['title'] = paper.rect(x, y, cw, th2)
-            .attr('fill', '#ffffff')
+            .attr('fill', '#D1BBFF')
             .click(function(){
                 // console.log(this)
                 let toggle = this.data('toggle')

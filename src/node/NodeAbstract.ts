@@ -455,7 +455,12 @@ export default abstract class NodeAbstract{
             cy = y + w/2,
             cy2 = y + w*(3/4),
             posi = null
-
+        // 数据测试
+        // console.log(
+        //     [px, py],
+        //     [cx, cx1, cx2],
+        //     [cy, cy1, cy2]
+        // )
         if(px <= cx1 && py <= cy1){
             pt = ps.a
             posi = 'a'

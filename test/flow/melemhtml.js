@@ -2,6 +2,7 @@
  * 工作流程编辑器
  */
 import workerflow from '../../src/WorkerEditor'
+import ToolBar from '../../src/ToolBar';
 
 $(function(){
     // 数据缓存
@@ -36,6 +37,8 @@ $(function(){
                     break
             }
         }
+        // , icon: {}              // 配置空时加载默认
+        , toolBar: {hasIcon: true}
     })
     
 

@@ -3,6 +3,13 @@
 
 ## ***V2.2.x/alpha-date*** alpha 类型模板
 
+### ***V2.2.2/20180510***
+- src/WorkerEditor.ts
+    - (优化) 不设置 **icon** 徽标时，默认不显示节点徽标；设置时且为空时采用默认图标    
+- src/ToolBar.ts
+    - (+) 新增参数 **hasIcon** 即 “(WorkerEditor) Ist.config.toolBar.hasIcon” 不设置图标时，默认图标不生成
+    - (优化) 优化框架标题，设置更改工具栏配色
+
 ### ***V2.2.1/20180508***
 - src/WorkerEditor.ts
     - (+) 新增 **tooltip** 方法实现文本悬停提示

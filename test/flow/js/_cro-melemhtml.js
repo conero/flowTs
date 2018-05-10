@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -494,6 +494,12 @@ var NodeAbstract = /** @class */ (function () {
         var bAttr = this.getBBox(), attr = bAttr.attr, ps = bAttr.ps, x = attr.x, y = attr.y, w = attr.width, h = attr.height;
         // a-h
         var pt, cx1 = x + w / 4, cx = x + w / 2, cx2 = x + w * (3 / 4), cy1 = y + w / 4, cy = y + w / 2, cy2 = y + w * (3 / 4), posi = null;
+        // 数据测试
+        // console.log(
+        //     [px, py],
+        //     [cx, cx1, cx2],
+        //     [cy, cy1, cy2]
+        // )
         if (px <= cx1 && py <= cy1) {
             pt = ps.a;
             posi = 'a';
@@ -1085,6 +1091,359 @@ var NodeUtil = /** @class */ (function () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeQue__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ObjX__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__confNode__ = __webpack_require__(2);
+
+
+
+
+/**
+ * 2018年3月29日 星期四
+ * 工具栏
+ */
+var ToolBar = /** @class */ (function () {
+    function ToolBar(paper, opt) {
+        this._tools = []; // 工具栏
+        this.rData = {
+            cp: { x: 5, y: 5 },
+            th0: 23,
+            th1: 23,
+            th2: 23,
+            nh: 0,
+            ch: 0,
+            cw: 75 // 整个容器的宽度
+        };
+        this.paper = paper;
+        this.ndMer = new __WEBPACK_IMPORTED_MODULE_0__NodeQue__["a" /* NodeQue */](this.paper);
+        this.option = opt;
+        this.config = opt.toolBar || {};
+        // 图标处理
+        var hasIcon = false;
+        if (!this.config.hasIcon && (this.config.aUpSrc || this.config.aDownSrc)) {
+            hasIcon = true;
+        }
+        else {
+            hasIcon = this.config.hasIcon || false;
+        }
+        this.config.aUpSrc = __WEBPACK_IMPORTED_MODULE_1__ObjX__["a" /* default */].value(this.config, 'aUpSrc', hasIcon ? 'arrow_up.png' : null);
+        this.config.aDownSrc = __WEBPACK_IMPORTED_MODULE_1__ObjX__["a" /* default */].value(this.config, 'aDownSrc', hasIcon ? 'arrow_down.png' : null);
+        this._headBar();
+        this._nodeBar();
+        this._connBar();
+    }
+    /**
+     * 标题栏
+     */
+    ToolBar.prototype._headBar = function () {
+        var $this = this, _a = this.rData, cp = _a.cp, cw = _a.cw, th0 = _a.th0, x = cp.x, y = cp.y, paper = this.paper, ist;
+        this.headElems = {};
+        ist = paper.rect(x, y, cw, th0)
+            .attr('fill', '#3A0088')
+            .click(function () {
+            var toggle = this.data('toggle');
+            if (toggle != 'H') {
+                this.data('toggle', 'H');
+                $this.toggle('H');
+            }
+            else {
+                this.data('toggle', 'S');
+                $this.toggle('S');
+            }
+        });
+        this.headElems['icon'] = ist;
+        ist = paper.text(x + (cw / 2), y + 10, __WEBPACK_IMPORTED_MODULE_1__ObjX__["a" /* default */].value(this.config, 'title', '工具栏'))
+            .attr('fill', '#ffffff');
+        this.headElems['title'] = ist;
+    };
+    /**
+     * 节点栏
+     */
+    ToolBar.prototype._nodeBar = function () {
+        var $this = this, _a = this.rData, cp = _a.cp, cw = _a.cw, th1 = _a.th1, nh = _a.nh, x = cp.x, y = cp.y, _b = this, paper = _b.paper, ndMer = _b.ndMer, config = _b.config, ist, tBodyNds = {}; // 内部缓存的节点
+        this.nodeElems = {};
+        var menuSeting = config.menu || false; // 菜单设置性
+        if (!menuSeting) { // 默认菜单项
+            menuSeting = [
+                'begin', 'task', 'sign', 'cond',
+                'subFlow', 'parallel', 'merge', 'end',
+                'text'
+            ];
+        }
+        y += th1;
+        // data: toggle => H/S
+        this.nodeElems['title'] = paper.rect(x, y, cw, 23)
+            .attr('fill', '#E8CCFF')
+            .click(function () {
+            // console.log(this)
+            var toggle = this.data('toggle');
+            var iconIst = $this.nodeElems['icon'];
+            if (toggle != 'H') {
+                this.data('toggle', 'H');
+                if (iconIst) {
+                    iconIst.attr('src', config.aDownSrc);
+                }
+                $this.tToggle('H');
+            }
+            else {
+                this.data('toggle', 'S');
+                if (iconIst) {
+                    iconIst.attr('src', config.aUpSrc);
+                }
+                $this.tToggle('S');
+            }
+        });
+        this.nodeElems['icon'] = paper.image(config.aUpSrc, x + cw * 0.7, y + 1, 20, 20);
+        nh = y;
+        y += 23;
+        this.nodeElems['tBody'] = paper.rect(x, y, cw, 250)
+            .attr('fill', '#ffffff');
+        // 数据处理
+        x += 32;
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(menuSeting, function (mk, row) {
+            if ('object' != typeof row) {
+                mk = row;
+                row = {};
+            }
+            if (!__WEBPACK_IMPORTED_MODULE_3__confNode__["a" /* cNode */][mk]) {
+                return;
+            }
+            // console.log(mk)
+            y += 32;
+            var text = row.text || __WEBPACK_IMPORTED_MODULE_3__confNode__["a" /* cNode */][mk].text, cx = x, cy = y;
+            // 特殊坐标调整（坐标修正）
+            if ('parallel' == mk) {
+                cy += 5;
+                cx += 20;
+            }
+            else if ('merge' == mk) {
+                cy += 5;
+                cx += 20;
+            }
+            ist = ndMer.make(mk, { cx: cx, cy: cy, w: 40, h: 20, text: text })
+                .creator();
+            if (ist.label) {
+                ist.label.attr('fill', '#FF8C00');
+                // ist.label.attr('fill', '#FFA500')
+            }
+            // 特殊节点处理
+            if ('text' == mk) {
+                ist.c.attr({
+                    'font-size': 15,
+                    'stroke': 'none'
+                });
+            }
+            tBodyNds[mk] = ist;
+        });
+        this.tBodyNds = tBodyNds;
+        this.rData.nh = y - nh;
+        this.nodeElems['tBody'].attr('height', this.rData.nh);
+    };
+    /**
+     * 连线栏
+     */
+    ToolBar.prototype._connBar = function () {
+        var $this = this, _a = this.rData, cp = _a.cp, cw = _a.cw, th2 = _a.th2, ch = _a.ch, th0 = _a.th0, th1 = _a.th1, nh = _a.nh, x = cp.x, y = cp.y, _b = this, paper = _b.paper, ndMer = _b.ndMer, config = _b.config, ist, cBodyNds = {}; // 内部缓存的节点
+        this.connElems = {};
+        // 连接线
+        // data: toggle => H/S
+        y += th0 + th1 + nh;
+        this.connElems['title'] = paper.rect(x, y, cw, th2)
+            .attr('fill', '#D1BBFF')
+            .click(function () {
+            // console.log(this)
+            var toggle = this.data('toggle');
+            var iconIst = $this.connElems['icon'];
+            if (toggle != 'H') {
+                this.data('toggle', 'H');
+                if (iconIst) {
+                    iconIst.attr('src', config.aDownSrc);
+                }
+                $this.cToggle('H');
+            }
+            else {
+                this.data('toggle', 'S');
+                if (iconIst) {
+                    iconIst.attr('src', config.aUpSrc);
+                }
+                $this.cToggle('S');
+            }
+        });
+        this.connElems['icon'] = paper.image(config.aUpSrc, x + cw * 0.7, y + 1, 20, 20);
+        // y += 23
+        ch = y;
+        y += th2;
+        var prevH = 60; // 预处理高度
+        this.config['lnSeledBkg'] = this.config['lnSeledBkg'] || '#CCFF99';
+        this.config['lnDefBkg'] = this.config['lnDefBkg'] || '#ffffff';
+        var lnDefBkg = this.config.lnDefBkg;
+        this.connElems['lnCon'] = paper.rect(x, y, cw, prevH / 2)
+            .attr('fill', lnDefBkg);
+        // .attr(conAttr)
+        var ly = y + prevH / 4 * 0.7, lx = x + 20;
+        ist = ndMer.make('ln', {
+            P1: { x: lx - 5, y: ly },
+            P2: { x: lx + 25, y: ly }
+        })
+            .creator();
+        cBodyNds.ln = ist;
+        // 折线
+        y += 20;
+        this.connElems['lnPolyCon'] = paper.rect(x, y, cw, prevH / 2)
+            .attr('fill', lnDefBkg);
+        // .attr(conAttr)
+        ly = y + prevH / 4 * 0.7,
+            lx = x + 20;
+        ist = ndMer.make('lnPoly', {
+            P1: { x: lx - 5, y: ly },
+            P2: { x: lx + 20, y: ly + 4 },
+            h: 4
+        })
+            .creator();
+        cBodyNds.lnPoly = ist;
+        this.cBodyNds = cBodyNds;
+        ch = y - ch;
+        this.connElems['lnCon'].attr('height', ch / 2);
+        this.connElems['lnPolyCon'].attr('height', ch / 2);
+    };
+    /**
+     * 连线框占据节点框
+     */
+    ToolBar.prototype.connSizeNode = function (backMk) {
+        var _a = this.connElems, title = _a.title, icon = _a.icon, lnCon = _a.lnCon, lnPolyCon = _a.lnPolyCon, _b = this.rData, cp = _b.cp, cw = _b.cw, th2 = _b.th2, ch = _b.ch, th0 = _b.th0, th1 = _b.th1, nh = _b.nh, x = cp.x, y = cp.y, _c = this.cBodyNds, ln = _c.ln, lnPoly = _c.lnPoly;
+        y += backMk ? th0 + th1 + nh : th0 + th1;
+        title.attr('y', y);
+        icon.attr('y', y + 1);
+        y += th2;
+        var prevH = 60; // 预处理高度
+        lnCon.attr('y', y);
+        // 直线
+        var ly = y + prevH / 4 * 0.7, lx = x + 20;
+        ln.updAttr({
+            P1: { x: lx - 5, y: ly },
+            P2: { x: lx + 25, y: ly }
+        });
+        // 折线
+        y += 20;
+        lnPolyCon.attr('y', y);
+        ly = y + prevH / 4 * 0.7,
+            lx = x + 20;
+        lnPoly.updAttr({
+            P1: { x: lx - 5, y: ly },
+            P2: { x: lx + 20, y: ly + 4 },
+            h: 4
+        });
+    };
+    /**
+     * 标题栏显示与隐藏
+     * @param {string} type 显示与隐藏， H/S
+     * @param {boolean} includeTit 包含标题
+     */
+    ToolBar.prototype.tToggle = function (type, includeTit) {
+        var tBodyNds = this.tBodyNds, nodeElems = this.nodeElems, tBody = nodeElems.tBody;
+        if ('H' != type) {
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(tBodyNds, function (k, nd) {
+                nd.show();
+            });
+            if (includeTit) {
+                nodeElems.title.show();
+                nodeElems.icon.show();
+            }
+            if (tBody) {
+                tBody.show();
+            }
+            this.connSizeNode(true);
+        }
+        else {
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(tBodyNds, function (k, nd) {
+                nd.hide();
+            });
+            if (includeTit) {
+                nodeElems.title.hide();
+                nodeElems.icon.hide();
+            }
+            if (tBody) {
+                tBody.hide();
+            }
+            this.connSizeNode();
+        }
+    };
+    /**
+     * 标题栏显示与隐藏
+     * @param {string} type 显示与隐藏， H/S
+     */
+    ToolBar.prototype.cToggle = function (type, includeTit) {
+        var cBodyNds = this.cBodyNds, connElems = this.connElems, lnCon = connElems.lnCon, lnPolyCon = connElems.lnPolyCon;
+        if ('H' != type) {
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(cBodyNds, function (k, nd) {
+                nd.show();
+            });
+            if (includeTit) {
+                connElems.title.show();
+                connElems.icon.show();
+            }
+            if (lnCon) {
+                lnCon.show();
+            }
+            if (lnPolyCon) {
+                lnPolyCon.show();
+            }
+        }
+        else {
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(cBodyNds, function (k, nd) {
+                nd.hide();
+            });
+            if (includeTit) {
+                connElems.title.hide();
+                connElems.icon.hide();
+            }
+            if (lnCon) {
+                lnCon.hide();
+            }
+            if (lnPolyCon) {
+                lnPolyCon.hide();
+            }
+        }
+    };
+    /**
+     * 显示与隐藏
+     * @param {string} type
+     */
+    ToolBar.prototype.toggle = function (type) {
+        this.tToggle(type, true);
+        this.cToggle(type, true);
+    };
+    /**
+     * 工具栏显示
+     */
+    ToolBar.prototype.show = function () {
+        this.toggle('S');
+        this.cToggle('S');
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.headElems, function (k, elem) {
+            elem.show();
+        });
+    };
+    /**
+     * 工具栏隐藏
+     */
+    ToolBar.prototype.hide = function () {
+        this.toggle('H');
+        this.cToggle('H');
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.headElems, function (k, elem) {
+            elem.hide();
+        });
+    };
+    return ToolBar;
+}());
+/* harmony default export */ __webpack_exports__["a"] = (ToolBar);
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return NodeQue; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_NodeBegin__ = __webpack_require__(11);
@@ -1176,15 +1535,17 @@ var NodeQue = /** @class */ (function () {
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_WorkerEditor__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_WorkerEditor__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__src_ToolBar__ = __webpack_require__(4);
 /**
  * 工作流程编辑器
  */
+
 
 
 $(function(){
@@ -1220,6 +1581,8 @@ $(function(){
                     break
             }
         }
+        // , icon: {}              // 配置空时加载默认
+        , toolBar: {hasIcon: true}
     })
     
 
@@ -1349,15 +1712,15 @@ $(function(){
 window.workerflow = __WEBPACK_IMPORTED_MODULE_0__src_WorkerEditor__["a" /* default */]
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__version__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helper__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__version__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ToolBar__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeQue__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ToolBar__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeQue__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__confNode__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_NodeUtil__ = __webpack_require__(3);
 ///<reference path='../index.d.ts' />
@@ -2840,7 +3203,7 @@ var WorkerEditor = /** @class */ (function () {
         var $this = this, lineQue = {};
         var step = data.step, _srroo = data._srroo;
         // 文件加载以后才显示
-        var config = this.config, rCodes = config.rCodes || null, bkg = config.bkg || {}, ranNodeBkg = bkg.ranNode || '', icon = config.icon || {};
+        var config = this.config, rCodes = config.rCodes || null, bkg = config.bkg || {}, ranNodeBkg = bkg.ranNode || '', noIcon = 'undefined' == typeof config.icon, icon = config.icon || {};
         rCodes = rCodes ? ('object' == typeof rCodes ? rCodes : [rCodes]) : [];
         var isRunning = null; //  正在运行的脚本
         var rCodesTmp = [];
@@ -2868,7 +3231,7 @@ var WorkerEditor = /** @class */ (function () {
                 },
                 afterUpd: function (x, y, node) {
                     $this._lineMoveSync(x, y, node);
-                    // 图标处理
+                    // 图标处理，存在图片同步移动
                     var icon = $node.tRElem['icon'];
                     if (icon) {
                         var iconP = $node.getIconP();
@@ -2883,26 +3246,28 @@ var WorkerEditor = /** @class */ (function () {
             $node.data('_code', cd);
             var cdIdx = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].inArray(cd, rCodes);
             // 生成图标
-            if (cdIdx > -1) { // 已经运行
-                $node.data('state', 'isRan');
+            var iconState = icon.state || {};
+            var createIconFn = function (iconSrc) {
+                if (noIcon) {
+                    return;
+                }
                 var iconP = $node.getIconP();
                 if (iconP) {
-                    var iconState = icon.state || {};
                     var rect = 10;
-                    $node.tRElem['icon'] = _this.paper.image(iconState.ran || 'state_ran.png', iconP.x, iconP.y, rect, rect);
+                    $node.tRElem['icon'] = _this.paper.image(iconSrc, iconP.x, iconP.y, rect, rect);
                 }
+            };
+            // 生成图标
+            if (cdIdx > -1) { // 已经运行
+                $node.data('state', 'isRan');
+                createIconFn(iconState.ran || 'state_ran.png');
                 $node.opt.bkg = bkg.ranNd || '#32CD32';
                 $node.opt.bkgTxt = bkg.ranTxt || '#FFFFFF';
                 $node.background(['node', 'text']);
             }
             else if (isRunning && cd == isRunning) { // 正在运行
                 $node.data('state', 'isRunning');
-                var iconP = $node.getIconP();
-                if (iconP) {
-                    var iconState = icon.state || {};
-                    var rect = 15;
-                    $node.tRElem['icon'] = _this.paper.image(iconState.runing || 'state_running.png', iconP.x, iconP.y, rect, rect);
-                }
+                createIconFn(iconState.runing || 'state_running.png');
                 $node.opt.bkg = bkg.runningNd || '#0000FF';
                 $node.opt.bkgTxt = bkg.runningTxt || '#FFFFFF';
                 $node.background(['node', 'text']);
@@ -3201,7 +3566,7 @@ var WorkerEditor = /** @class */ (function () {
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3273,10 +3638,10 @@ var H = /** @class */ (function () {
 }());
 /* harmony default export */ __webpack_exports__["a"] = (H);
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(8)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(9)))
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -3466,356 +3831,12 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 9 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.2.1", "release": "20180508", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
-
-
-/***/ }),
 /* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeQue__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ObjX__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__confNode__ = __webpack_require__(2);
-
-
-
-
-/**
- * 2018年3月29日 星期四
- * 工具栏
- */
-var ToolBar = /** @class */ (function () {
-    function ToolBar(paper, opt) {
-        this._tools = []; // 工具栏
-        this.rData = {
-            cp: { x: 5, y: 5 },
-            th0: 23,
-            th1: 23,
-            th2: 23,
-            nh: 0,
-            ch: 0,
-            cw: 75 // 整个容器的宽度
-        };
-        this.paper = paper;
-        this.ndMer = new __WEBPACK_IMPORTED_MODULE_0__NodeQue__["a" /* NodeQue */](this.paper);
-        this.option = opt;
-        this.config = opt.toolBar || {};
-        this.config.aUpSrc = __WEBPACK_IMPORTED_MODULE_1__ObjX__["a" /* default */].value(this.config, 'aUpSrc', 'arrow_up.png');
-        this.config.aDownSrc = __WEBPACK_IMPORTED_MODULE_1__ObjX__["a" /* default */].value(this.config, 'aDownSrc', 'arrow_down.png');
-        this._headBar();
-        this._nodeBar();
-        this._connBar();
-    }
-    /**
-     * 标题栏
-     */
-    ToolBar.prototype._headBar = function () {
-        var $this = this, _a = this.rData, cp = _a.cp, cw = _a.cw, th0 = _a.th0, x = cp.x, y = cp.y, paper = this.paper, ist;
-        this.headElems = {};
-        ist = paper.rect(x, y, cw, th0)
-            .attr('fill', '#ffffff')
-            .click(function () {
-            var toggle = this.data('toggle');
-            if (toggle != 'H') {
-                this.data('toggle', 'H');
-                $this.toggle('H');
-            }
-            else {
-                this.data('toggle', 'S');
-                $this.toggle('S');
-            }
-        });
-        this.headElems['icon'] = ist;
-        ist = paper.text(x + (cw / 2), y + 10, __WEBPACK_IMPORTED_MODULE_1__ObjX__["a" /* default */].value(this.config, 'title', '工具栏'));
-        this.headElems['title'] = ist;
-    };
-    /**
-     * 节点栏
-     */
-    ToolBar.prototype._nodeBar = function () {
-        var $this = this, _a = this.rData, cp = _a.cp, cw = _a.cw, th1 = _a.th1, nh = _a.nh, x = cp.x, y = cp.y, _b = this, paper = _b.paper, ndMer = _b.ndMer, config = _b.config, ist, tBodyNds = {}; // 内部缓存的节点
-        this.nodeElems = {};
-        var menuSeting = config.menu || false; // 菜单设置性
-        if (!menuSeting) { // 默认菜单项
-            menuSeting = [
-                'begin', 'task', 'sign', 'cond',
-                'subFlow', 'parallel', 'merge', 'end',
-                'text'
-            ];
-        }
-        y += th1;
-        // data: toggle => H/S
-        this.nodeElems['title'] = paper.rect(x, y, cw, 23)
-            .attr('fill', '#ffffff')
-            .click(function () {
-            // console.log(this)
-            var toggle = this.data('toggle');
-            var iconIst = $this.nodeElems['icon'];
-            if (toggle != 'H') {
-                this.data('toggle', 'H');
-                if (iconIst) {
-                    iconIst.attr('src', config.aDownSrc);
-                }
-                $this.tToggle('H');
-            }
-            else {
-                this.data('toggle', 'S');
-                if (iconIst) {
-                    iconIst.attr('src', config.aUpSrc);
-                }
-                $this.tToggle('S');
-            }
-        });
-        this.nodeElems['icon'] = paper.image(config.aUpSrc, x + cw * 0.7, y + 1, 20, 20);
-        nh = y;
-        y += 23;
-        this.nodeElems['tBody'] = paper.rect(x, y, cw, 250)
-            .attr('fill', '#ffffff');
-        // 数据处理
-        x += 32;
-        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(menuSeting, function (mk, row) {
-            if ('object' != typeof row) {
-                mk = row;
-                row = {};
-            }
-            if (!__WEBPACK_IMPORTED_MODULE_3__confNode__["a" /* cNode */][mk]) {
-                return;
-            }
-            // console.log(mk)
-            y += 32;
-            var text = row.text || __WEBPACK_IMPORTED_MODULE_3__confNode__["a" /* cNode */][mk].text, cx = x, cy = y;
-            // 特殊坐标调整（坐标修正）
-            if ('parallel' == mk) {
-                cy += 5;
-                cx += 20;
-            }
-            else if ('merge' == mk) {
-                cy += 5;
-                cx += 20;
-            }
-            ist = ndMer.make(mk, { cx: cx, cy: cy, w: 40, h: 20, text: text })
-                .creator();
-            if (ist.label) {
-                ist.label.attr('fill', '#FF8C00');
-                // ist.label.attr('fill', '#FFA500')
-            }
-            // 特殊节点处理
-            if ('text' == mk) {
-                ist.c.attr({
-                    'font-size': 15,
-                    'stroke': 'none'
-                });
-            }
-            tBodyNds[mk] = ist;
-        });
-        this.tBodyNds = tBodyNds;
-        this.rData.nh = y - nh;
-        this.nodeElems['tBody'].attr('height', this.rData.nh);
-    };
-    /**
-     * 连线栏
-     */
-    ToolBar.prototype._connBar = function () {
-        var $this = this, _a = this.rData, cp = _a.cp, cw = _a.cw, th2 = _a.th2, ch = _a.ch, th0 = _a.th0, th1 = _a.th1, nh = _a.nh, x = cp.x, y = cp.y, _b = this, paper = _b.paper, ndMer = _b.ndMer, config = _b.config, ist, cBodyNds = {}; // 内部缓存的节点
-        this.connElems = {};
-        // 连接线
-        // data: toggle => H/S
-        y += th0 + th1 + nh;
-        this.connElems['title'] = paper.rect(x, y, cw, th2)
-            .attr('fill', '#ffffff')
-            .click(function () {
-            // console.log(this)
-            var toggle = this.data('toggle');
-            var iconIst = $this.connElems['icon'];
-            if (toggle != 'H') {
-                this.data('toggle', 'H');
-                if (iconIst) {
-                    iconIst.attr('src', config.aDownSrc);
-                }
-                $this.cToggle('H');
-            }
-            else {
-                this.data('toggle', 'S');
-                if (iconIst) {
-                    iconIst.attr('src', config.aUpSrc);
-                }
-                $this.cToggle('S');
-            }
-        });
-        this.connElems['icon'] = paper.image(config.aUpSrc, x + cw * 0.7, y + 1, 20, 20);
-        // y += 23
-        ch = y;
-        y += th2;
-        var prevH = 60; // 预处理高度
-        this.config['lnSeledBkg'] = this.config['lnSeledBkg'] || '#CCFF99';
-        this.config['lnDefBkg'] = this.config['lnDefBkg'] || '#ffffff';
-        var lnDefBkg = this.config.lnDefBkg;
-        this.connElems['lnCon'] = paper.rect(x, y, cw, prevH / 2)
-            .attr('fill', lnDefBkg);
-        // .attr(conAttr)
-        var ly = y + prevH / 4 * 0.7, lx = x + 20;
-        ist = ndMer.make('ln', {
-            P1: { x: lx - 5, y: ly },
-            P2: { x: lx + 25, y: ly }
-        })
-            .creator();
-        cBodyNds.ln = ist;
-        // 折线
-        y += 20;
-        this.connElems['lnPolyCon'] = paper.rect(x, y, cw, prevH / 2)
-            .attr('fill', lnDefBkg);
-        // .attr(conAttr)
-        ly = y + prevH / 4 * 0.7,
-            lx = x + 20;
-        ist = ndMer.make('lnPoly', {
-            P1: { x: lx - 5, y: ly },
-            P2: { x: lx + 20, y: ly + 4 },
-            h: 4
-        })
-            .creator();
-        cBodyNds.lnPoly = ist;
-        this.cBodyNds = cBodyNds;
-        ch = y - ch;
-        this.connElems['lnCon'].attr('height', ch / 2);
-        this.connElems['lnPolyCon'].attr('height', ch / 2);
-    };
-    /**
-     * 连线框占据节点框
-     */
-    ToolBar.prototype.connSizeNode = function (backMk) {
-        var _a = this.connElems, title = _a.title, icon = _a.icon, lnCon = _a.lnCon, lnPolyCon = _a.lnPolyCon, _b = this.rData, cp = _b.cp, cw = _b.cw, th2 = _b.th2, ch = _b.ch, th0 = _b.th0, th1 = _b.th1, nh = _b.nh, x = cp.x, y = cp.y, _c = this.cBodyNds, ln = _c.ln, lnPoly = _c.lnPoly;
-        y += backMk ? th0 + th1 + nh : th0 + th1;
-        title.attr('y', y);
-        icon.attr('y', y + 1);
-        y += th2;
-        var prevH = 60; // 预处理高度
-        lnCon.attr('y', y);
-        // 直线
-        var ly = y + prevH / 4 * 0.7, lx = x + 20;
-        ln.updAttr({
-            P1: { x: lx - 5, y: ly },
-            P2: { x: lx + 25, y: ly }
-        });
-        // 折线
-        y += 20;
-        lnPolyCon.attr('y', y);
-        ly = y + prevH / 4 * 0.7,
-            lx = x + 20;
-        lnPoly.updAttr({
-            P1: { x: lx - 5, y: ly },
-            P2: { x: lx + 20, y: ly + 4 },
-            h: 4
-        });
-    };
-    /**
-     * 标题栏显示与隐藏
-     * @param {string} type 显示与隐藏， H/S
-     * @param {boolean} includeTit 包含标题
-     */
-    ToolBar.prototype.tToggle = function (type, includeTit) {
-        var tBodyNds = this.tBodyNds, nodeElems = this.nodeElems, tBody = nodeElems.tBody;
-        if ('H' != type) {
-            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(tBodyNds, function (k, nd) {
-                nd.show();
-            });
-            if (includeTit) {
-                nodeElems.title.show();
-                nodeElems.icon.show();
-            }
-            if (tBody) {
-                tBody.show();
-            }
-            this.connSizeNode(true);
-        }
-        else {
-            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(tBodyNds, function (k, nd) {
-                nd.hide();
-            });
-            if (includeTit) {
-                nodeElems.title.hide();
-                nodeElems.icon.hide();
-            }
-            if (tBody) {
-                tBody.hide();
-            }
-            this.connSizeNode();
-        }
-    };
-    /**
-     * 标题栏显示与隐藏
-     * @param {string} type 显示与隐藏， H/S
-     */
-    ToolBar.prototype.cToggle = function (type, includeTit) {
-        var cBodyNds = this.cBodyNds, connElems = this.connElems, lnCon = connElems.lnCon, lnPolyCon = connElems.lnPolyCon;
-        if ('H' != type) {
-            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(cBodyNds, function (k, nd) {
-                nd.show();
-            });
-            if (includeTit) {
-                connElems.title.show();
-                connElems.icon.show();
-            }
-            if (lnCon) {
-                lnCon.show();
-            }
-            if (lnPolyCon) {
-                lnPolyCon.show();
-            }
-        }
-        else {
-            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(cBodyNds, function (k, nd) {
-                nd.hide();
-            });
-            if (includeTit) {
-                connElems.title.hide();
-                connElems.icon.hide();
-            }
-            if (lnCon) {
-                lnCon.hide();
-            }
-            if (lnPolyCon) {
-                lnPolyCon.hide();
-            }
-        }
-    };
-    /**
-     * 显示与隐藏
-     * @param {string} type
-     */
-    ToolBar.prototype.toggle = function (type) {
-        this.tToggle(type, true);
-        this.cToggle(type, true);
-    };
-    /**
-     * 工具栏显示
-     */
-    ToolBar.prototype.show = function () {
-        this.toggle('S');
-        this.cToggle('S');
-        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.headElems, function (k, elem) {
-            elem.show();
-        });
-    };
-    /**
-     * 工具栏隐藏
-     */
-    ToolBar.prototype.hide = function () {
-        this.toggle('H');
-        this.cToggle('H');
-        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.headElems, function (k, elem) {
-            elem.hide();
-        });
-    };
-    return ToolBar;
-}());
-/* harmony default export */ __webpack_exports__["a"] = (ToolBar);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
+var LibVersion = { "version": "2.2.2", "release": "20180510", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),
