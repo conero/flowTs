@@ -242,6 +242,26 @@ declare namespace rSu{
         set(key: any, value: any): this
         value(json: rSu.bsMap, key: any, def?: any): any
     }
+    // 工作流编辑器
+    export interface WEditor{
+        config: rSu.bsMap
+        paper: RaphaelPaper
+        nodeDick: rSu.mapNode       // 节点字典
+        connDick: rSu.mapNode       // 连线字典 c{index}
+        textDick: rSu.mapNode       // 文本字典 t{index}
+
+        removeAllSeled(type?: string|string[]): any
+        allSelect(): any
+        getAllSelPs(): any
+        allNdSeled(type?: string | string[]): any
+        last(): rSu.Node
+        clone(code?: string | rSu.Node): rSu.Node
+        copy(): rSu.bsMap[]
+        select(): rSu.Node
+        step(node?: string | rSu.Node): rSu.bsMap
+        collisionByP(x: number|rSu.NodeOpt, y?: number): rSu.Node
+        tooltip(text: string, x?: number, y?: number): any
+    }
 }
 
 // 图标界面 --------------------------------------------------------------------||

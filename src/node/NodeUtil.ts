@@ -121,4 +121,24 @@ export default class NodeUtil{
     static middP(p0: rSu.P, p1: rSu.P): rSu.P{
         return {x: (p0.x + p1.x)/2, y: (p0.y + p1.y)/2}
     }
+
+    /**
+     * 获取中间点坐标
+     * @param p0 
+     * @param p1 
+     * @param type 类型 : ua/上角, la/下角
+     */
+    static polyP(p0: rSu.P, p1: rSu.P, type?: string): rSu.P{
+        let p: rSu.P
+        type = type? type.toLowerCase() : 'la'
+        if(p0.x != p1.x && p0.y != p1.y){
+            if('ua' == type){
+                p = {x: p1.x, y: p0.y}
+            }
+            else if('la' == type){
+                p = {x: p0.x, y: p1.y}
+            }            
+        }
+        return p
+    }
 }

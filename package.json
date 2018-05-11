@@ -1,7 +1,7 @@
 {
   "name": "zmapp-workflow-ts",
-  "version": "2.2.2",
-  "release": "20180510",
+  "version": "2.2.3",
+  "release": "20180511",
   "description": "workflow chart",
   "author": "Joshua Conero",
   "main": "index.js",

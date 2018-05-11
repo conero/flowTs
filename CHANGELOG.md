@@ -3,6 +3,16 @@
 
 ## ***V2.2.x/alpha-date*** alpha 类型模板
 
+### ***V2.2.3/20180511***
+- src/node/NodeAbstract.ts
+    - (+) **errorLine/errorNode** 添加连线或者节点错误检测，错误时选中；**error** 快捷方法
+    - (+) **maxHw** 实现动态计算最大宽度和高度
+    - (修复) **magnCore** 修复算法错误，使其磁化正常
+    - (优化) “_nodeBindEvt” 使用 **LnPolyConnFn** 函数实现折线案例枚举方案
+- src/node/NodeUtil
+    - (+) 新增 **polyP** 方法用于获取折线端点    
+
+
 ### ***V2.2.2/20180510***
 - src/WorkerEditor.ts
     - (优化) 不设置 **icon** 徽标时，默认不显示节点徽标；设置时且为空时采用默认图标    

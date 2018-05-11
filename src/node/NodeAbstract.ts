@@ -451,16 +451,10 @@ export default abstract class NodeAbstract{
             cx1 = x + w/4,
             cx = x + w/2,
             cx2 = x + w*(3/4),
-            cy1 = y + w/4,
-            cy = y + w/2,
-            cy2 = y + w*(3/4),
-            posi = null
-        // 数据测试
-        // console.log(
-        //     [px, py],
-        //     [cx, cx1, cx2],
-        //     [cy, cy1, cy2]
-        // )
+            cy1 = y + h/4,
+            cy = y + h/2,
+            cy2 = y + h*(3/4),
+            posi = null        
         if(px <= cx1 && py <= cy1){
             pt = ps.a
             posi = 'a'
@@ -493,6 +487,7 @@ export default abstract class NodeAbstract{
             pt = ps.h
             posi = 'h'
         }
+        // 数据测试
         this.clearTmpElem('mc')
         if(pt){
             this.tRElem['mc'] = this.paper

@@ -10,6 +10,7 @@ import ToolBar from './ToolBar';
 import { NodeQue } from './NodeQue';
 import {cNode} from './confNode'
 import NodeUtil from './node/NodeUtil';
+import {LnPolyConn} from './algo/LnPolyConnFn';
 
 // 什么jQuery/RaphaelJs
 declare var $: any;
@@ -31,9 +32,9 @@ export default class WorkerEditor{
     
     protected toolNodeIstQue: any[]     // 工具栏部件节点队列
     private ndMer: rSu.NodeQue
-    private nodeDick: rSu.mapNode       // 节点字典
-    private connDick: rSu.mapNode       // 连线字典 c{index}
-    private textDick: rSu.mapNode       // 文本字典 t{index}
+    nodeDick: rSu.mapNode       // 节点字典
+    connDick: rSu.mapNode       // 连线字典 c{index}
+    textDick: rSu.mapNode       // 文本字典 t{index}
     private idxDick: rSu.bsMap          // 连线处理栈 {c: numer-连线, a: number-字母}
     private lineCnMode: {               // 直线连接模式
         isSelEd: boolean,
@@ -364,6 +365,8 @@ export default class WorkerEditor{
                                 tmpLnIst.updAttr({
                                     P2: {x: dx, y: dy}
                                 })
+                                // 折线连接线处理
+                                LnPolyConn(tmpLnIst, collNode, $this)
                             }
                         },
                         function(){     // start
@@ -727,7 +730,6 @@ export default class WorkerEditor{
                     if($this.previewMk){
                         return null
                     }
-
                     let pcode = pElem.data('pcode'),
                         posi = pElem.data('posi'),
                         MPs = ln.opt.MPs,
@@ -1970,6 +1972,84 @@ export default class WorkerEditor{
                 }
             }
         })
+    }
+    /**
+     * 错误连线
+     * @param {boolean} noClear
+     */
+    errorLine(noClear?: boolean): void{
+        if(!noClear){
+            this.removeAllSeled()
+        }
+        Util.each(this.connDick, (code: string, node: rSu.Node) => {
+            let data = node.data()
+            if(!data.to_code || !data.from_code){
+                node.select()
+            }
+        })
+    }
+    /**
+     * 获取的节点
+     * @param {boolean} noClear
+     */
+    errorNode(noClear?: boolean): void{
+        if(!noClear){
+            this.removeAllSeled()
+        }
+        this.removeAllSeled()
+        Util.each(this.nodeDick, (code: string, node: rSu.Node) => {
+            let type = node.type
+            // 不是开始或者结束
+            if(1 != type && 9 != type){
+                let data = this.step(node),
+                    step = data.step
+                if(!step.next || !step.prev){
+                    node.select()
+                }
+            }
+        })
+    }
+    /**
+     * 显示所有错误
+     */
+    error(){
+        this.removeAllSeled()
+        this.errorLine(true)
+        this.errorNode(true)
+    }
+    /**
+     * 获取节点最大的宽度
+     */
+    get maxHw(){
+        let m = {h: 0, w: 0}
+        // 节点扫描
+        Util.each(this.nodeDick, (k: string, nd: rSu.Node) => {
+            let box = nd.getBBox(),
+                {attr} = box,
+                y = attr.y + attr.height,
+                x = attr.x + attr.width
+            if(y > m.h){
+                m.h = y
+            }      
+            if(x > m.w){
+                m.h = y
+            }      
+        })
+
+        // 文本扫描
+        Util.each(this.textDick, (k: string, nd: rSu.Node) => {
+            let box = nd.getBBox(),
+                {attr} = box,
+                y = attr.y + attr.height,
+                x = attr.x + attr.width
+            if(y > m.h){
+                m.h = y
+            }      
+            if(x > m.w){
+                m.w = x
+            }      
+        })
+        return m
     }
     /**
      * 双击事件

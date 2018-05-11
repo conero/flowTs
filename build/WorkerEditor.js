@@ -493,13 +493,7 @@ var NodeAbstract = /** @class */ (function () {
     NodeAbstract.prototype.magnCore = function (px, py) {
         var bAttr = this.getBBox(), attr = bAttr.attr, ps = bAttr.ps, x = attr.x, y = attr.y, w = attr.width, h = attr.height;
         // a-h
-        var pt, cx1 = x + w / 4, cx = x + w / 2, cx2 = x + w * (3 / 4), cy1 = y + w / 4, cy = y + w / 2, cy2 = y + w * (3 / 4), posi = null;
-        // 数据测试
-        // console.log(
-        //     [px, py],
-        //     [cx, cx1, cx2],
-        //     [cy, cy1, cy2]
-        // )
+        var pt, cx1 = x + w / 4, cx = x + w / 2, cx2 = x + w * (3 / 4), cy1 = y + h / 4, cy = y + h / 2, cy2 = y + h * (3 / 4), posi = null;
         if (px <= cx1 && py <= cy1) {
             pt = ps.a;
             posi = 'a';
@@ -532,6 +526,7 @@ var NodeAbstract = /** @class */ (function () {
             pt = ps.h;
             posi = 'h';
         }
+        // 数据测试
         this.clearTmpElem('mc');
         if (pt) {
             this.tRElem['mc'] = this.paper
@@ -1081,6 +1076,25 @@ var NodeUtil = /** @class */ (function () {
     NodeUtil.middP = function (p0, p1) {
         return { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
     };
+    /**
+     * 获取中间点坐标
+     * @param p0
+     * @param p1
+     * @param type 类型 : ua/上角, la/下角
+     */
+    NodeUtil.polyP = function (p0, p1, type) {
+        var p;
+        type = type ? type.toLowerCase() : 'la';
+        if (p0.x != p1.x && p0.y != p1.y) {
+            if ('ua' == type) {
+                p = { x: p1.x, y: p0.y };
+            }
+            else if ('la' == type) {
+                p = { x: p0.x, y: p1.y };
+            }
+        }
+        return p;
+    };
     return NodeUtil;
 }());
 /* harmony default export */ __webpack_exports__["a"] = (NodeUtil);
@@ -1194,12 +1208,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeQue__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__confNode__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_NodeUtil__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__algo_LnPolyConnFn__ = __webpack_require__(23);
 ///<reference path='../index.d.ts' />
 /**
  * 2018年3月1日 星期四
  * worker 工作流编辑器
  */
  // 助手方法
+
 
 
 
@@ -1505,6 +1521,8 @@ var WorkerEditor = /** @class */ (function () {
                             tmpLnIst.updAttr({
                                 P2: { x: dx, y: dy }
                             });
+                            // 折线连接线处理
+                            Object(__WEBPACK_IMPORTED_MODULE_7__algo_LnPolyConnFn__["a" /* LnPolyConn */])(tmpLnIst, collNode, $this);
                         }
                     }, function () {
                         // 历史节点处理                            
@@ -3011,6 +3029,81 @@ var WorkerEditor = /** @class */ (function () {
         });
     };
     /**
+     * 错误连线
+     * @param {boolean} noClear
+     */
+    WorkerEditor.prototype.errorLine = function (noClear) {
+        if (!noClear) {
+            this.removeAllSeled();
+        }
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.connDick, function (code, node) {
+            var data = node.data();
+            if (!data.to_code || !data.from_code) {
+                node.select();
+            }
+        });
+    };
+    /**
+     * 获取的节点
+     * @param {boolean} noClear
+     */
+    WorkerEditor.prototype.errorNode = function (noClear) {
+        var _this = this;
+        if (!noClear) {
+            this.removeAllSeled();
+        }
+        this.removeAllSeled();
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (code, node) {
+            var type = node.type;
+            // 不是开始或者结束
+            if (1 != type && 9 != type) {
+                var data = _this.step(node), step = data.step;
+                if (!step.next || !step.prev) {
+                    node.select();
+                }
+            }
+        });
+    };
+    /**
+     * 显示所有错误
+     */
+    WorkerEditor.prototype.error = function () {
+        this.removeAllSeled();
+        this.errorLine(true);
+        this.errorNode(true);
+    };
+    Object.defineProperty(WorkerEditor.prototype, "maxHw", {
+        /**
+         * 获取节点最大的宽度
+         */
+        get: function () {
+            var m = { h: 0, w: 0 };
+            // 节点扫描
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (k, nd) {
+                var box = nd.getBBox(), attr = box.attr, y = attr.y + attr.height, x = attr.x + attr.width;
+                if (y > m.h) {
+                    m.h = y;
+                }
+                if (x > m.w) {
+                    m.h = y;
+                }
+            });
+            // 文本扫描
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.textDick, function (k, nd) {
+                var box = nd.getBBox(), attr = box.attr, y = attr.y + attr.height, x = attr.x + attr.width;
+                if (y > m.h) {
+                    m.h = y;
+                }
+                if (x > m.w) {
+                    m.w = x;
+                }
+            });
+            return m;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    /**
      * 双击事件
      * @param node
      */
@@ -3307,7 +3400,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.2.2", "release": "20180510", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.2.3", "release": "20180511", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),
@@ -4816,6 +4909,52 @@ var ObjX = /** @class */ (function () {
     return ObjX;
 }());
 /* harmony default export */ __webpack_exports__["a"] = (ObjX);
+
+
+/***/ }),
+/* 23 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = LnPolyConn;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_NodeUtil__ = __webpack_require__(3);
+
+/**
+ * 折线连线处理算法，函数
+ */
+function LnPolyConn(ln, tNd, work) {
+    if (tNd) {
+        var data = ln.data(), from_code = data.from_code, fPosi = data.from_posi, tPosi = data.to_posi, fNd = work.nodeDick[from_code], P1 = ln.opt.P1, // 连线起点
+        P2 = ln.opt.P2, // 连接终点
+        fOpt = fNd.opt, tOpt = tNd.opt, dtX = 10, // X 轴偏差
+        dtY = 10, // Y 轴偏差
+        MPs = [], tx = void 0, ty = void 0;
+        // console.log(tPosi, fPosi)
+        // 侧面连接线
+        if ('d' == fPosi || 'h' == fPosi) {
+            // 同X轴
+            if (Math.abs(fOpt.cx - tOpt.cx) <= dtX) {
+                tx = P1.x + ('d' == fPosi ? 1 : -1) * (dtX + 20);
+                MPs.push({ x: tx, y: P1.y }, { x: tx, y: P2.y });
+                ln.updAttr({
+                    P2: P2,
+                    MPs: MPs
+                });
+            }
+            // 数据接入点
+            else if ('b' == tPosi) {
+                var p = __WEBPACK_IMPORTED_MODULE_0__node_NodeUtil__["a" /* default */].polyP(P1, P2, 'ua');
+                if (p) {
+                    MPs.push(p);
+                    ln.updAttr({
+                        P2: P2,
+                        MPs: MPs
+                    });
+                }
+            }
+        }
+    }
+}
 
 
 /***/ })
