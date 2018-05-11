@@ -366,7 +366,7 @@ export default class WorkerEditor{
                                     P2: {x: dx, y: dy}
                                 })
                                 // 折线连接线处理
-                                LnPolyConn(tmpLnIst, collNode, $this)
+                                LnPolyConn(tmpLnIst, $this, collNode)
                             }
                         },
                         function(){     // start
@@ -689,6 +689,10 @@ export default class WorkerEditor{
                                 .data('to_posi', null)
                         }
                         ln.updAttr({P2: {x: dx, y: dy}})
+                        // 折线
+                        if('ln_poly' == ln.NodeType){
+                            LnPolyConn(ln, $this, collNode)
+                        }
                     },
                     function(){
                         p1.x = this.attr('cx')                                
@@ -1789,6 +1793,12 @@ export default class WorkerEditor{
             this._nodeBindEvt($ist)
             this.textDick[cd] = $ist
         })
+
+        // 自动撑高
+        if(!config.closeSize){
+            this.autoSize()
+        }
+
         return this
     }
     // removeTmpNode(value?: any){
@@ -1996,7 +2006,6 @@ export default class WorkerEditor{
         if(!noClear){
             this.removeAllSeled()
         }
-        this.removeAllSeled()
         Util.each(this.nodeDick, (code: string, node: rSu.Node) => {
             let type = node.type
             // 不是开始或者结束
@@ -2032,7 +2041,7 @@ export default class WorkerEditor{
                 m.h = y
             }      
             if(x > m.w){
-                m.h = y
+                m.w = x
             }      
         })
 
@@ -2050,6 +2059,30 @@ export default class WorkerEditor{
             }      
         })
         return m
+    }
+    /**
+     * 自动撑大尺寸
+     * @memberof WorkerEditor
+     */
+    autoSize(): void{
+        // 等待测试
+        // Bug-[2018年5月11日 星期五]
+        // PLAN-SURONG
+        let hw = this.maxHw,
+            // $svg = this.config.dom.find('svg'),
+            // svg = $svg[0],
+            $svg = this.config.dom,
+            svg = this.config.dom.get(0),
+            cW: number = svg.offsetWidth,
+            cH: number = svg.offsetHeight,
+            dt: number = 5
+        if(cW < hw.w){
+            $svg.attr('width', hw.w + dt)
+        }          
+        if(cH < hw.h){
+            $svg.attr('height', hw.h + dt)
+        }  
+        // console.log($svg, svg, cW, cH, hw)
     }
     /**
      * 双击事件

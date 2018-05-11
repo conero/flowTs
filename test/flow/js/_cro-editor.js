@@ -69,8 +69,8 @@
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__confNode__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__NodeUtil__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__confNode__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__NodeUtil__ = __webpack_require__(2);
 /**
  * 2018年3月26日 星期一
  * 抽象节点
@@ -905,60 +905,6 @@ var Util = /** @class */ (function () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return cNode; });
-/**
- * 节点常量配置
- */
-// 1-开始、2-任务、3-判断、4-审核、5-会签、4-并行、5-合并、8-子流程、9-结束
-var cNode = {
-    begin: {
-        type: 1,
-        text: '开始'
-    },
-    task: {
-        type: 2,
-        text: '任务'
-    },
-    cond: {
-        type: 3,
-        text: '判断'
-    },
-    audit: {
-        type: 4,
-        text: '审核'
-    },
-    sign: {
-        type: 5,
-        text: '会签'
-    },
-    parallel: {
-        type: 6,
-        text: '并行'
-    },
-    merge: {
-        type: 7,
-        text: '合并'
-    },
-    subFlow: {
-        type: 8,
-        text: '子流程'
-    },
-    end: {
-        type: 9,
-        text: '结束'
-    },
-    text: {
-        type: 9994,
-        text: '文本'
-    }
-};
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util__ = __webpack_require__(1);
 
 /**
@@ -1101,6 +1047,60 @@ var NodeUtil = /** @class */ (function () {
 
 
 /***/ }),
+/* 3 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return cNode; });
+/**
+ * 节点常量配置
+ */
+// 1-开始、2-任务、3-判断、4-审核、5-会签、4-并行、5-合并、8-子流程、9-结束
+var cNode = {
+    begin: {
+        type: 1,
+        text: '开始'
+    },
+    task: {
+        type: 2,
+        text: '任务'
+    },
+    cond: {
+        type: 3,
+        text: '判断'
+    },
+    audit: {
+        type: 4,
+        text: '审核'
+    },
+    sign: {
+        type: 5,
+        text: '会签'
+    },
+    parallel: {
+        type: 6,
+        text: '并行'
+    },
+    merge: {
+        type: 7,
+        text: '合并'
+    },
+    subFlow: {
+        type: 8,
+        text: '子流程'
+    },
+    end: {
+        type: 9,
+        text: '结束'
+    },
+    text: {
+        type: 9994,
+        text: '文本'
+    }
+};
+
+
+/***/ }),
 /* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -1228,8 +1228,8 @@ window.workerflow = __WEBPACK_IMPORTED_MODULE_0__src_WorkerEditor__["a" /* defau
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ToolBar__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__NodeQue__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__confNode__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_NodeUtil__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__confNode__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__node_NodeUtil__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__algo_LnPolyConnFn__ = __webpack_require__(24);
 ///<reference path='../index.d.ts' />
 /**
@@ -1544,7 +1544,7 @@ var WorkerEditor = /** @class */ (function () {
                                 P2: { x: dx, y: dy }
                             });
                             // 折线连接线处理
-                            Object(__WEBPACK_IMPORTED_MODULE_7__algo_LnPolyConnFn__["a" /* LnPolyConn */])(tmpLnIst, collNode, $this);
+                            Object(__WEBPACK_IMPORTED_MODULE_7__algo_LnPolyConnFn__["a" /* LnPolyConn */])(tmpLnIst, $this, collNode);
                         }
                     }, function () {
                         // 历史节点处理                            
@@ -1836,6 +1836,10 @@ var WorkerEditor = /** @class */ (function () {
                             .data('to_posi', null);
                     }
                     ln.updAttr({ P2: { x: dx, y: dy } });
+                    // 折线
+                    if ('ln_poly' == ln.NodeType) {
+                        Object(__WEBPACK_IMPORTED_MODULE_7__algo_LnPolyConnFn__["a" /* LnPolyConn */])(ln, $this, collNode);
+                    }
                 }, function () {
                     p1.x = this.attr('cx');
                     p1.y = this.attr('cy');
@@ -2863,6 +2867,10 @@ var WorkerEditor = /** @class */ (function () {
             _this._nodeBindEvt($ist);
             _this.textDick[cd] = $ist;
         });
+        // 自动撑高
+        if (!config.closeSize) {
+            this.autoSize();
+        }
         return this;
     };
     // removeTmpNode(value?: any){
@@ -3074,7 +3082,6 @@ var WorkerEditor = /** @class */ (function () {
         if (!noClear) {
             this.removeAllSeled();
         }
-        this.removeAllSeled();
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (code, node) {
             var type = node.type;
             // 不是开始或者结束
@@ -3107,7 +3114,7 @@ var WorkerEditor = /** @class */ (function () {
                     m.h = y;
                 }
                 if (x > m.w) {
-                    m.h = y;
+                    m.w = x;
                 }
             });
             // 文本扫描
@@ -3125,6 +3132,26 @@ var WorkerEditor = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    /**
+     * 自动撑大尺寸
+     * @memberof WorkerEditor
+     */
+    WorkerEditor.prototype.autoSize = function () {
+        // 等待测试
+        // Bug-[2018年5月11日 星期五]
+        // PLAN-SURONG
+        var hw = this.maxHw, 
+        // $svg = this.config.dom.find('svg'),
+        // svg = $svg[0],
+        $svg = this.config.dom, svg = this.config.dom.get(0), cW = svg.offsetWidth, cH = svg.offsetHeight, dt = 5;
+        if (cW < hw.w) {
+            $svg.attr('width', hw.w + dt);
+        }
+        if (cH < hw.h) {
+            $svg.attr('height', hw.h + dt);
+        }
+        // console.log($svg, svg, cW, cH, hw)
+    };
     /**
      * 双击事件
      * @param node
@@ -3433,7 +3460,7 @@ var LibVersion = { "version": "2.2.3", "release": "20180511", "author": "Joshua 
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeQue__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ObjX__ = __webpack_require__(23);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__confNode__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__confNode__ = __webpack_require__(3);
 
 
 
@@ -4634,7 +4661,7 @@ var NodeLn = /** @class */ (function (_super) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__NodeAbstract__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeUtil__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__NodeUtil__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util__ = __webpack_require__(1);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -4939,14 +4966,25 @@ var ObjX = /** @class */ (function () {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = LnPolyConn;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_NodeUtil__ = __webpack_require__(3);
-
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__node_NodeUtil__ = __webpack_require__(2);
 /**
  * 折线连线处理算法，函数
  */
-function LnPolyConn(ln, tNd, work) {
+
+/**
+ * @export
+ * @param {rSu.Node} ln
+ * @param {rSu.WEditor} work
+ * @param {rSu.Node} [tNd]
+ */
+function LnPolyConn(ln, work, tNd) {
+    var data = ln.data(), from_code = data.from_code, to_code = data.to_code, fPosi = data.from_posi, tPosi = data.to_posi;
+    // 没有终点节点，自动从连线中获取
+    if (!tNd) {
+        tNd = work.nodeDick[to_code];
+    }
     if (tNd) {
-        var data = ln.data(), from_code = data.from_code, fPosi = data.from_posi, tPosi = data.to_posi, fNd = work.nodeDick[from_code], P1 = ln.opt.P1, // 连线起点
+        var fNd = work.nodeDick[from_code], P1 = ln.opt.P1, // 连线起点
         P2 = ln.opt.P2, // 连接终点
         fOpt = fNd.opt, tOpt = tNd.opt, dtX = 10, // X 轴偏差
         dtY = 10, // Y 轴偏差
@@ -4956,18 +4994,34 @@ function LnPolyConn(ln, tNd, work) {
         if ('d' == fPosi || 'h' == fPosi) {
             // 同X轴
             if (Math.abs(fOpt.cx - tOpt.cx) <= dtX) {
-                tx = P1.x + ('d' == fPosi ? 1 : -1) * (dtX + 20);
-                MPs.push({ x: tx, y: P1.y }, { x: tx, y: P2.y });
-                ln.updAttr({
-                    P2: P2,
-                    MPs: MPs
-                });
+                // console.log(fPosi, tPosi)
+                // 同向
+                var _dx = ('d' == fPosi ? 1 : -1) * (dtX + 20);
+                if (fPosi == tPosi) {
+                    tx = P1.x + _dx;
+                    MPs.push({ x: tx, y: P1.y }, { x: tx, y: P2.y });
+                    ln.updAttr({
+                        P2: P2,
+                        MPs: MPs
+                    });
+                }
             }
             // 数据接入点
             else if ('b' == tPosi) {
                 var p = __WEBPACK_IMPORTED_MODULE_0__node_NodeUtil__["a" /* default */].polyP(P1, P2, 'ua');
                 if (p) {
                     MPs.push(p);
+                    ln.updAttr({
+                        P2: P2,
+                        MPs: MPs
+                    });
+                }
+            }
+            // 终点结与侧边
+            else if ('d' == fPosi || 'h' == fPosi) {
+                var _dx = (('d' == tPosi) ? 1 : -1) * (dtX + 20), pE = { x: P2.x + _dx, y: P2.y }, p = __WEBPACK_IMPORTED_MODULE_0__node_NodeUtil__["a" /* default */].polyP(P1, pE, 'ua');
+                if (p) {
+                    MPs.push(p, pE);
                     ln.updAttr({
                         P2: P2,
                         MPs: MPs

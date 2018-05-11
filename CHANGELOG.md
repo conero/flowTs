@@ -7,11 +7,14 @@
 - src/node/NodeAbstract.ts
     - (+) **errorLine/errorNode** 添加连线或者节点错误检测，错误时选中；**error** 快捷方法
     - (+) **maxHw** 实现动态计算最大宽度和高度
+    - (+) **autoSize** 新增方法，用于实现自动适应 svg 图的最大高度以及宽度
     - (修复) **magnCore** 修复算法错误，使其磁化正常
-    - (优化) “_nodeBindEvt” 使用 **LnPolyConnFn** 函数实现折线案例枚举方案
+    - (优化) “_nodeBindEvt” 使用 **LnPolyConnFn** 函数实现折线案例枚举方案，以及“连线”终点拖动时调用算法
 - src/node/NodeUtil
     - (+) 新增 **polyP** 方法用于获取折线端点    
-
+- (PLAN-NEXT-2.3.4)
+    - “autoSize” 调试该方法，其实使其可用
+    - “折线” 选择是做“中间点合并处理”
 
 ### ***V2.2.2/20180510***
 - src/WorkerEditor.ts

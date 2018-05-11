@@ -108,6 +108,7 @@
                 runing: 'state_running.png | img-src'   // 正在运行
             }
         }
+        closeSize: 'default=false bool 关闭自动撑高'
     }
 ```
 
