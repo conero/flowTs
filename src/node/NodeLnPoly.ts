@@ -116,6 +116,7 @@ export default class NodeLnPoly extends NodeAbstract{
      * f/m/t
      */
     getFocusPoint(){
+        this._mpsMerge()
         let {P1, P2} = this.opt,
             MPs = this.opt.MPs || []
         let psMap: rSu.pMap = {
@@ -149,6 +150,37 @@ export default class NodeLnPoly extends NodeAbstract{
         fIdx += 1
         fPsDick['f'+fIdx] = psValue[psCtt-1]
         return fPsDick
+    }
+    /**
+     * 2018年5月12日 星期六: 合并相同的点
+     * 中间点合并
+     */
+    private _mpsMerge(): void{
+        let opt: rSu.NodeOpt = this.opt,
+            MPs: rSu.P[] = opt.MPs,
+            nMPs: rSu.P[] = [],
+            Ps: rSu.P[] = [],
+            dt: number = 1
+        Ps = [opt.P1, opt.P2]
+        Util.each(MPs, (i: number, p: rSu.P) => {
+            let samePMk: boolean = false
+            Util.each(Ps, (j: number, p1: rSu.P) => {
+                // 相同坐标的点
+                if(Math.abs(p.x - p1.x) <= dt && Math.abs(p.y - p1.y) <= dt){
+                    samePMk = true
+                    return false
+                }
+            })
+            if(!samePMk){
+                nMPs.push(p)
+                Ps.push(p)
+            }
+        })
+        // console.log(MPs, nMPs)
+        this.updAttr({
+            MPs: nMPs
+        })
+
     }
     /**
      * 端点移动

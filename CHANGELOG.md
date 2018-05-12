@@ -3,8 +3,14 @@
 
 ## ***V2.2.x/alpha-date*** alpha 类型模板
 
+### ***V2.2.4/20180512***
+- src/WorkerEditor.ts
+    - **autoSize** 方法优化并测试通过，可达到功能要求
+- src/node/NodeLnPoly.ts
+    - (+) 添加 **_mpsMerge** 方法，实现中间合并相同中间点
+
 ### ***V2.2.3/20180511***
-- src/node/NodeAbstract.ts
+- src/WorkerEditor.ts
     - (+) **errorLine/errorNode** 添加连线或者节点错误检测，错误时选中；**error** 快捷方法
     - (+) **maxHw** 实现动态计算最大宽度和高度
     - (+) **autoSize** 新增方法，用于实现自动适应 svg 图的最大高度以及宽度
@@ -37,7 +43,7 @@
     - (优化) **load** 方法，节点背景色采用 “状态” 图形描述法，且添加 **icon** 图标
     - (+) 添加 **previewMk** 属性，开启时“节点禁止拖动”，以及隐藏编辑器。使用 **preview** 方法管理
     - (+) 添加 **rmAllText** 方法，且修复全部移除忽略文本
-    - (+) 新增 **_domListener** 实现，双击页面dom移除全部选中状态
+    -- (+) 新增 **_domListener** 实现，双击页面dom移除全部选中状态
 - src/ToolBar.ts
     - (+) 新增 **show/hide** 方法用于显示隐藏工具栏    
 - src/node/NodeAbstract.ts

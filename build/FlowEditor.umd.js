@@ -3150,20 +3150,14 @@ var WorkerEditor = /** @class */ (function () {
      * @memberof WorkerEditor
      */
     WorkerEditor.prototype.autoSize = function () {
-        // 等待测试
-        // Bug-[2018年5月11日 星期五]
-        // PLAN-SURONG
-        var hw = this.maxHw, 
-        // $svg = this.config.dom.find('svg'),
-        // svg = $svg[0],
-        $svg = this.config.dom, svg = this.config.dom.get(0), cW = svg.offsetWidth, cH = svg.offsetHeight, dt = 5;
+        var hw = this.maxHw, $svg = this.config.dom.find('svg'), cW = $svg.attr('width'), cH = $svg.attr('height'), dt = 5;
+        var tSvg = this.config.dom.find('svg');
         if (cW < hw.w) {
             $svg.attr('width', hw.w + dt);
         }
         if (cH < hw.h) {
             $svg.attr('height', hw.h + dt);
         }
-        // console.log($svg, svg, cW, cH, hw)
     };
     /**
      * 双击事件
@@ -3462,7 +3456,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.2.3", "release": "20180511", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.2.4", "release": "20180512", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),
@@ -4798,6 +4792,7 @@ var NodeLnPoly = /** @class */ (function (_super) {
      * f/m/t
      */
     NodeLnPoly.prototype.getFocusPoint = function () {
+        this._mpsMerge();
         var _a = this.opt, P1 = _a.P1, P2 = _a.P2, MPs = this.opt.MPs || [];
         var psMap = {
             f: P1
@@ -4825,6 +4820,32 @@ var NodeLnPoly = /** @class */ (function (_super) {
         fIdx += 1;
         fPsDick['f' + fIdx] = psValue[psCtt - 1];
         return fPsDick;
+    };
+    /**
+     * 2018年5月12日 星期六: 合并相同的点
+     * 中间点合并
+     */
+    NodeLnPoly.prototype._mpsMerge = function () {
+        var opt = this.opt, MPs = opt.MPs, nMPs = [], Ps = [], dt = 1;
+        Ps = [opt.P1, opt.P2];
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(MPs, function (i, p) {
+            var samePMk = false;
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(Ps, function (j, p1) {
+                // 相同坐标的点
+                if (Math.abs(p.x - p1.x) <= dt && Math.abs(p.y - p1.y) <= dt) {
+                    samePMk = true;
+                    return false;
+                }
+            });
+            if (!samePMk) {
+                nMPs.push(p);
+                Ps.push(p);
+            }
+        });
+        // console.log(MPs, nMPs)
+        this.updAttr({
+            MPs: nMPs
+        });
     };
     /**
      * 端点移动

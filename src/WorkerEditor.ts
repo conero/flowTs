@@ -2065,24 +2065,18 @@ export default class WorkerEditor{
      * @memberof WorkerEditor
      */
     autoSize(): void{
-        // 等待测试
-        // Bug-[2018年5月11日 星期五]
-        // PLAN-SURONG
         let hw = this.maxHw,
-            // $svg = this.config.dom.find('svg'),
-            // svg = $svg[0],
-            $svg = this.config.dom,
-            svg = this.config.dom.get(0),
-            cW: number = svg.offsetWidth,
-            cH: number = svg.offsetHeight,
+            $svg = this.config.dom.find('svg'),
+            cW: number = $svg.attr('width'),
+            cH: number = $svg.attr('height'),
             dt: number = 5
+        let tSvg = this.config.dom.find('svg')
         if(cW < hw.w){
             $svg.attr('width', hw.w + dt)
         }          
         if(cH < hw.h){
             $svg.attr('height', hw.h + dt)
         }  
-        // console.log($svg, svg, cW, cH, hw)
     }
     /**
      * 双击事件
