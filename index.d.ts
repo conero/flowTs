@@ -143,6 +143,8 @@ declare namespace rSu{
         inlinesEle?: RaphaelElement[]    // 合并
         inlineEle?: RaphaelElement       // 并行
         tRElem: rSu.MapRElm        // 临时类集合
+        textTip?: string             // 悬停提示
+        
         readonly code?: string                    // 只读属性
         readonly type?: number                    // 只读属性
         readonly name?: string
@@ -261,6 +263,9 @@ declare namespace rSu{
         step(node?: string | rSu.Node): rSu.bsMap
         collisionByP(x: number|rSu.NodeOpt, y?: number): rSu.Node
         tooltip(text: string, x?: number, y?: number): any
+        error(): boolean
+        errorNode(noClear?: boolean): boolean
+        errorLine(noClear?: boolean): boolean
     }
 }
 

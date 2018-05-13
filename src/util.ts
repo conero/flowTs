@@ -136,6 +136,21 @@ class Util{
         }
         return -1
     }
+    /**
+     * 数组合并
+     * @param arrs 
+     */
+    static MergeArr(...arrs: any[]): any[]{
+        let newArr: any[] = []
+        for(let i=0; i<arrs.length; i++){
+            let arr = arrs[i]
+            arr = 'object' == typeof arr? arr : [arr]
+            // let tArr: any[] = []
+            // newArr = tArr.concat(newArr, arr)
+            newArr = newArr.concat(arr)
+        }
+        return newArr
+    }
 }
 
 export {Util}

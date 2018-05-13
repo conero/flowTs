@@ -12,3 +12,6 @@ private/
 
 # Windows 运行临时文件
 ~$$*
+
+# idea IED
+.idea

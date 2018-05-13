@@ -39,6 +39,7 @@ $(function(){
         }
         // , icon: {}              // 配置空时加载默认
         , toolBar: {hasIcon: true}
+        // , closeToolTip : true
     })
     
 

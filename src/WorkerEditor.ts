@@ -22,19 +22,14 @@ export default class WorkerEditor{
     // config: object
     config: rSu.bsMap
     paper: RaphaelPaper
-    _rIdx: number
-    _code2EidDick: {
-        [k: string]: string
-    }
-    _LineDragingP:any
-    MagneticCore: any
     toolbarCtrl?: rSu.ToolBar       // 工具栏控制器
-    
-    protected toolNodeIstQue: any[]     // 工具栏部件节点队列
-    private ndMer: rSu.NodeQue
     nodeDick: rSu.mapNode       // 节点字典
     connDick: rSu.mapNode       // 连线字典 c{index}
     textDick: rSu.mapNode       // 文本字典 t{index}
+    
+    protected toolNodeIstQue: any[]     // 工具栏部件节点队列
+
+    private ndMer: rSu.NodeQue
     private idxDick: rSu.bsMap          // 连线处理栈 {c: numer-连线, a: number-字母}
     private lineCnMode: {               // 直线连接模式
         isSelEd: boolean,
@@ -46,7 +41,7 @@ export default class WorkerEditor{
     private tmpNodeMap: rSu.mapNode     // 临时节点字典
     private tmpMapRElm: rSu.MapRElm     // 临时节点
     private previewMk: boolean          // 预览模式
-    // toolNodeIstQue: any[]     // 工具栏部件节点队列
+    
     // 静态属性
     static version: VersionStruct = LibVersion
 
@@ -70,11 +65,7 @@ export default class WorkerEditor{
         this.ndMer = new NodeQue(this.paper)
         // 配置参数处理
         this._configMergeToDefule()
-        this._rIdx = 0                          // 内部索引，用于生成代码
-        this._code2EidDick = {}                 // 内部代码与元素id的映射字段
-        this._LineDragingP = null               // RaphaelElement 直线正在拖动记录点
         // 内部缓存数组件容器： 节点、连接线、独立文本
-        this.MagneticCore = null                // 连线磁化中心点，用于节点关联，单状态的结构 data: {type: from/to}        
         this._cerateToolBar()
         // 数据加载
         if(config.data){
@@ -95,7 +86,7 @@ export default class WorkerEditor{
      */
     _configMergeToDefule(){
         // pkgClr 背景颜色
-        var pkgClr = this.config.pkgClr || {}
+        let pkgClr = this.config.pkgClr || {}
         pkgClr.start = pkgClr.start || 'rgb(181, 216, 126)'
         pkgClr.opera = pkgClr.opera || 'rgb(224, 223, 226)'
         pkgClr.judge = pkgClr.judge || 'rgb(49, 174, 196)'
@@ -163,7 +154,7 @@ export default class WorkerEditor{
         this.toolbarCtrl = new ToolBar(this.paper, this.config)
 
         // 事件绑定处理
-        var $this = this,
+        let $this = this,
             {tBodyNds, cBodyNds, connElems} = $this.toolbarCtrl,
             bkg = this.config.bkg || {}
             
@@ -218,7 +209,7 @@ export default class WorkerEditor{
                     // 保存到字典中
                     ndAst.data('_code', _index)
                     $this.nodeDick[_index] = ndAst
-                }
+                }                
             },
             function(): any{
                 console.log(this, '测试：end')
@@ -236,7 +227,7 @@ export default class WorkerEditor{
             isSelEd: false,
             type: null
         }
-        var clearAllLinkSeled = () => {
+        let clearAllLinkSeled = () => {
             Util.each(cBodyNds, (key: string, nd: rSu.Node) => {
                 nd.isSelEd = false
             })
@@ -248,7 +239,7 @@ export default class WorkerEditor{
             lnPolyCon.attr('fill', lnDefBkg)
         }
         // 节点内部选择控制事件
-        var afterLnCnnClickedEvt = () => {
+        let afterLnCnnClickedEvt = () => {
             // 存在被选中的节点时，重新生成
             let cSeledNode = $this.select()
             if(cSeledNode){
@@ -301,12 +292,13 @@ export default class WorkerEditor{
      * @param {rSu.Node} node 输入为空时绑定所有值
      */
     private _nodeBindEvt(node?: rSu.Node){
-        var $this = this,
+        this._baseNodeBindEvt(node)
+        let $this = this,
             {ndMer, config} = this,
             bkg = config.bkg || {}            
         ;
         // 事件绑定处理
-        var toBindNodeEvts = (nd: rSu.Node) => {
+        let toBindNodeEvts = (nd: rSu.Node) => {
             // 点击
             nd.c.click(function(){
                 $this.removeAllSeled()
@@ -324,14 +316,14 @@ export default class WorkerEditor{
                 if($this.previewMk){
                     return null
                 }
-                var tmpLnIst: rSu.Node             
+                let tmpLnIst: rSu.Node
                 // 开启连线模式时
                 if($this.lineCnMode && $this.lineCnMode.isSelEd){
                     // 配置，禁止节点之间连线
                     if(config.disConnNode){
                         return null
                     }
-                    var tmpP = {x: 0, y: 0}
+                    let tmpP = {x: 0, y: 0}
                     pnt.drag(
                         function(dx: number, dy: number){   // moving
                             if(!tmpLnIst){
@@ -604,7 +596,7 @@ export default class WorkerEditor{
         if(node){
             toBindNodeEvts(node)
         }else{           
-            for(var key in this.nodeDick){
+            for(let key in this.nodeDick){
                 toBindNodeEvts(this.nodeDick[key])
             }
         }
@@ -614,11 +606,12 @@ export default class WorkerEditor{
      * @param ln 
      */
     private _lineBindEvt(ln?: rSu.Node){
+        this._baseNodeBindEvt(ln)
         let $this = this
         if(ln){
             let bkg = this.config.bkg || {}
             // 起点移动处理
-            var startPFn = (elem: RaphaelElement) => {
+            let startPFn = (elem: RaphaelElement) => {
                 let p1: rSu.P = {x: 0, y: 0}
                 elem.drag(
                     function(dx: number, dy: number){
@@ -658,7 +651,7 @@ export default class WorkerEditor{
                 )
             }
             // 终点移动处理
-            var endPFn = (elem: RaphaelElement) => {
+            let endPFn = (elem: RaphaelElement) => {
                 let p1: rSu.P = {x: 0, y: 0}
                 elem.drag(
                     function(dx: number, dy: number){
@@ -761,23 +754,6 @@ export default class WorkerEditor{
                                     len: number = MPsLnAttr.length,
                                     fp: rSu.P = MPsLnAttr[0],
                                     tp: rSu.P = MPsLnAttr[len-1]
-                                /*
-                                    // console.log(MPsLnAttr, fp, tp)
-                                let pAttr: rSu.P[] = [fp],
-                                    cp: rSu.P = {x: dx, y: dy},  // 当前指向的节点
-                                    rp: rSu.P                       // 正在运行的节点
-                                
-                                rp = NodeUtil.point2Poly(fp, cp)
-                                if(rp){ pAttr.push(rp) }
-                                pAttr.push(cp)
-
-                                rp = NodeUtil.point2Poly(cp, tp)
-                                if(rp){ pAttr.push(rp) }
-
-                                pAttr.push(tp)
-                                MPsLn.attr('path', NodeUtil.ps2Path(pAttr))
-                                */
-
                                let pAttr: rSu.P[] = [fp]
                                // 同 x/y 轴坐标
                                if(fp.x == tp.x || fp.y == tp.y){
@@ -855,83 +831,11 @@ export default class WorkerEditor{
                                         pQue.push(p)
                                     }
                                 })
-                                
-                                /*
-                                // 检测可以合并的点
-                                let pQue1: rSu.P[] = [], 
-                                    pQueLen: number = pQue.length
-                                
-                                Util.each(pQue, (idx: number, p: rSu.P): any => {
-                                    // 索引比较
-                                    if(idx > 2){
-                                        let {x, y} = p,
-                                            th1n = pQue[idx - 1],    // 子1代
-                                            th2n = pQue[idx - 2],    // 子2代
-                                            dev: number = 0   // 误差 - deviation
-                                        if(
-                                            (Math.abs(x - th1n.x) < dev && Math.abs(x - th2n.x) < dev) || 
-                                            (Math.abs(y - th1n.y) < dev && Math.abs(y - th2n.y) < dev)
-                                        ){
-                                            let isSameX = Math.abs(x - th1n.x) < dev && Math.abs(x - th2n.x) < dev,
-                                            //**
-                                            // * @param chgSelf 更新自身
-                                            // *
-                                                correctFn = (chgSelf?: boolean) => { // 修正值
-                                                    let xx = x, yy = y
-                                                    // 涉及 起点
-                                                    if(idx == 3){
-                                                        if(isSameX){
-                                                            xx = pQue[0].x
-                                                            if(chgSelf){
-                                                                p.x = xx
-                                                            }
-                                                        }else{
-                                                            yy = pQue[0].y
-                                                            if(chgSelf){
-                                                                p.y = yy
-                                                            }
-                                                        }
-                                                    }
-                                                    // 涉及 终点
-                                                    // else if(idx == pQueLen - 1){
-                                                    // }
-                                                    if(isSameX){
-                                                        pQue[idx - 1].x = xx
-                                                        pQue[idx - 2].x = xx
-                                                    }else{
-                                                        pQue[idx - 1].y = yy
-                                                        pQue[idx - 2].y = yy
-                                                    }
-                                                }
-                                            if(idx == pQueLen - 1){
-                                                pQue1.pop()
-                                                correctFn()
-                                            }
-                                            else{
-                                                correctFn(true)
-                                                return null
-                                            }
-                                        }
-                                    }
-                                    pQue1.push(p)
-                                })
-                                
-                                let nPMs = Util.subArray(pQue1, 1, -1)
-                                // let nPMs = Util.subArray(pQue, 1, -1)
-                                console.log(pQue, pQue1)
+                                let nPMs = Util.subArray(pQue, 1, -1)
                                 ln.updAttr({
                                     MPs: nPMs
                                 })
-                                */
-                                // 等处理，pQue 中重合的连接点 
-                                // @todo 2018年4月24日 星期二
-                                let nPMs = Util.subArray(pQue, 1, -1)
-                                // let nPMs = Util.subArray(pQue, 1, -1)
-                                //    console.log(pQue, pQue1)
-                                // console.log(pQue, nPMs)
-                                ln.updAttr({
-                                       MPs: nPMs
-                                })
+                                ln.select()
                                 $this.rmTempElem(tElemKey)
                             }
                         )
@@ -967,6 +871,84 @@ export default class WorkerEditor{
                 }
             )
             // console.log(ln)
+        }
+    }
+    /**
+     * 基本节点时间绑定，用于外部处理以及所有节点需要的时间
+     * @param nd 
+     */
+    private _baseNodeBindEvt(nd: rSu.Node){
+        this._nodeToolTip(nd)
+    }
+    /**
+     * 序列号获取
+     * @param {string} type 类型 [c, n, t]
+     * @param {string} prev
+     * @param {string} ref
+     * @returns {string | number}
+     * @private
+     */
+    private _order(type: string, prev?: string, ref?: string): string|number{
+        let newStr: string|number
+        prev = prev? prev: ''
+        if(type){
+            if('undefined' != typeof this.idxDick[type]){
+                this.idxDick[type] += 1
+                newStr = ref? ref: prev + this.idxDick[type]
+                switch(type){
+                    case 'c':
+                        if(this.connDick[newStr]){
+                            newStr = this._order(type, prev)
+                        }
+                        break
+                    case 'n':
+                        if(this.nodeDick[newStr]){
+                            newStr = this._order(type, prev)
+                        }
+                        break
+                    case 't':
+                        if(this.textDick[newStr]){
+                            newStr = this._order(type, prev)
+                        }
+                        break
+                }
+            }
+        }
+        return newStr
+    }
+    /**
+     * dom 监听
+     */
+    private _domListener(){
+        let {dom} = this.config,
+            $this = this
+        // 双击
+        dom.find('svg').dblclick(function(){
+            $this.removeAllSeled()
+        })
+    }
+    /**
+     * 节点title提示绑定，包括 node/text/conn
+     * @param {rSu.Node} node
+     */
+    private _nodeToolTip(node: rSu.Node): void{
+        if(!this.config.closeToolTip && node){
+            let $this = this
+            node.c.hover(
+                function(){
+                    let textTip = node.textTip
+                    if(textTip){
+                        let offset = $this.getDomOffset()
+                        $this.tooltip(textTip, 
+                            this.attr('x') + offset.left + 20, 
+                            this.attr('y') + offset.top + 2
+                        )
+                    }
+                },
+                function(){
+                    $this.tooltip('')
+                }
+            )
         }
     }
     /**
@@ -1013,7 +995,7 @@ export default class WorkerEditor{
         let $this = this
         // 生成全选遮挡层
         this.rmTempElem('allBorde')
-        var tP: rSu.P = {x: 0, y: 0},
+        let tP: rSu.P = {x: 0, y: 0},
             pS: rSu.MapP = {}
         let allBorde = this.paper.rect(x, y, w, h)
             .attr('fill-opacity', 0.75)
@@ -1146,39 +1128,7 @@ export default class WorkerEditor{
         Util.each(this.nodeDick, (i: number, v: rSu.Node) => {
             v.background(type)
         })
-    }
-    /**
-     * 序列号获取
-     * @param type 
-     */
-    private _order(type: string, prev?: string, ref?: string): string|number{
-        let newStr: string|number
-        prev = prev? prev: ''
-        if(type){
-            if('undefined' != typeof this.idxDick[type]){
-                this.idxDick[type] += 1
-                newStr = ref? ref: prev + this.idxDick[type]
-                switch(type){
-                    case 'c':
-                        if(this.connDick[newStr]){
-                            newStr = this._order(type, prev)
-                        }
-                        break
-                    case 'n':
-                        if(this.nodeDick[newStr]){
-                            newStr = this._order(type, prev)
-                        }
-                        break
-                    case 't':
-                        if(this.textDick[newStr]){
-                            newStr = this._order(type, prev)
-                        }
-                        break
-                }
-            }
-        }
-        return newStr
-    }
+    }    
     /**
      * 移除临时元素字典（支持模糊查询）
      * @param key 
@@ -1207,7 +1157,7 @@ export default class WorkerEditor{
      */
     last(): rSu.Node{
         let lastNode:rSu.Node = null
-        for(var key in this.nodeDick){
+        for(let key in this.nodeDick){
             lastNode = this.nodeDick[key]
         }
         return lastNode
@@ -1218,7 +1168,7 @@ export default class WorkerEditor{
     remove(code?: string| rSu.Node){
         let isSuccess = false
         // 删除节点
-        var removeNode = (node: rSu.Node) => {
+        let removeNode = (node: rSu.Node) => {
             if(node){
                 let NodeType = node.NodeType,
                     value = node.code
@@ -1267,14 +1217,14 @@ export default class WorkerEditor{
      * @param {string|null} type 类型 c-conn, t-text
      */
     tab(type?: string){
-        var cSelEd: rSu.Node = this.select(),
+        let cSelEd: rSu.Node = this.select(),
             code: string = cSelEd? cSelEd.code : null,
             findLastMk: boolean = false,    // 找到最后一个
             successMk: boolean = false,     // 匹配到标志
             nt: string = cSelEd? cSelEd.NodeType: ''    // 节点类型
         
         // 节点选择处理函数            
-        var handlerNodeSelFn = (cd: string, node: rSu.Node) => {
+        let handlerNodeSelFn = (cd: string, node: rSu.Node) => {
             if(!cSelEd){
                 node.select()
                 successMk = true
@@ -1452,8 +1402,8 @@ export default class WorkerEditor{
     copy(): rSu.bsMap[]{
         // >>>
             //>> [{code:code, opt: nodeOpt, cls: ''}]
-        var data: rSu.bsMap[] = []
-        var pushToData = (code: string, type: string, node: rSu.Node) => {
+        let data: rSu.bsMap[] = []
+        let pushToData = (code: string, type: string, node: rSu.Node) => {
             data.push({
                 code, 
                 opt: $.extend(true, {}, node.opt),
@@ -1483,7 +1433,7 @@ export default class WorkerEditor{
      * 获取选中的实例
      */
     select(): rSu.Node{     
-        var selectedNode: rSu.Node = null
+        let selectedNode: rSu.Node = null
         // 节点扫描
         Util.each(this.nodeDick, (k: string, node: rSu.Node) => {
             if(node.isSelEd){
@@ -1555,7 +1505,8 @@ export default class WorkerEditor{
             // 坐标点属性值
             _srroo = {
                 opt: node.opt,
-                NodeType: node.NodeType
+                NodeType: node.NodeType,
+                textTip: node.textTip
             }
             let nStep = this.onStep(node, step)
             if(nStep){
@@ -1590,7 +1541,8 @@ export default class WorkerEditor{
             line[cd] = {
                 data: ist.data(),
                 NodeType: ist.NodeType,
-                opt: ist.opt
+                opt: ist.opt,
+                textTip: ist.textTip
             }
         })
         // 文本
@@ -1598,7 +1550,8 @@ export default class WorkerEditor{
             text[cd] = {
                 data: ist.data(),
                 NodeType: ist.NodeType,
-                opt: ist.opt
+                opt: ist.opt,
+                textTip: ist.textTip
             }
         })
         _srroo = {node: nodeSrroo, line, text}
@@ -1669,7 +1622,9 @@ export default class WorkerEditor{
             // 保存到字典中
             $node.data('_code', cd)
             let cdIdx = Util.inArray(cd, <any[]>rCodes)
-            
+            // 悬停提示
+            $node.textTip = nd.textTip || null
+
             // 生成图标
             let iconState: rSu.bsMap = icon.state || {}
             let createIconFn = (iconSrc: string) => {
@@ -1714,8 +1669,7 @@ export default class WorkerEditor{
                                 title = '正在运行中'
                                 break
                         }
-                        let paper = this.paper,
-                            offset = $this.getDomOffset()
+                        let offset = $this.getDomOffset()
                         $this.tooltip(title, 
                             this.attr('x') + offset.left + 20, 
                             this.attr('y') + offset.top + 2
@@ -1771,6 +1725,8 @@ export default class WorkerEditor{
                     $ln.inlineEle.attr('fill', nodeBkg)
                 }
             }
+            // 悬停提示
+            $ln.textTip = ln.textTip || null
         })
         // 文本生成
         Util.each(_srroo.text, (cd: string, dd: rSu.bsMap) => {
@@ -1792,6 +1748,8 @@ export default class WorkerEditor{
 
             this._nodeBindEvt($ist)
             this.textDick[cd] = $ist
+            // 悬停提示
+            $ist.textTip = dd.textTip || null
         })
 
         // 自动撑高
@@ -1910,18 +1868,7 @@ export default class WorkerEditor{
             left: dom[0].offsetLeft,
             top: dom[0].offsetTop
         }
-    }
-    /**
-     * dom 监听
-     */
-    _domListener(){
-        let {dom} = this.config,
-            $this = this
-        // 双击
-        dom.find('svg').dblclick(function(){
-            $this.removeAllSeled()
-        })
-    }
+    }    
     /**
      * 操作助手事件
      */
@@ -1962,7 +1909,7 @@ export default class WorkerEditor{
                 
                 // 移动，方向移动：缩放
                 else if($.inArray(code, [38, 40, 37, 39, 107, 109]) > -1){
-                    var nodeSelEd: rSu.Node = $this.select()
+                    let nodeSelEd: rSu.Node = $this.select()
                     if(nodeSelEd){
                         switch(code){
                             case 38: nodeSelEd.move2T(); break;
@@ -1987,7 +1934,8 @@ export default class WorkerEditor{
      * 错误连线
      * @param {boolean} noClear
      */
-    errorLine(noClear?: boolean): void{
+    errorLine(noClear?: boolean): boolean{
+        let hasErr: boolean = false
         if(!noClear){
             this.removeAllSeled()
         }
@@ -1995,14 +1943,17 @@ export default class WorkerEditor{
             let data = node.data()
             if(!data.to_code || !data.from_code){
                 node.select()
+                hasErr = true
             }
         })
+        return hasErr
     }
     /**
      * 获取的节点
      * @param {boolean} noClear
      */
-    errorNode(noClear?: boolean): void{
+    errorNode(noClear?: boolean): boolean{
+        let hasErr: boolean = false
         if(!noClear){
             this.removeAllSeled()
         }
@@ -2014,17 +1965,22 @@ export default class WorkerEditor{
                     step = data.step
                 if(!step.next || !step.prev){
                     node.select()
+                    hasErr = true
                 }
             }
         })
+        return hasErr
     }
     /**
      * 显示所有错误
      */
-    error(){
+    error(): boolean{
+        let hasErr: boolean = false
         this.removeAllSeled()
-        this.errorLine(true)
-        this.errorNode(true)
+        hasErr = this.errorLine(true)
+        let hasErr2: boolean = this.errorNode(true)
+        hasErr = hasErr? hasErr : hasErr2
+        return hasErr
     }
     /**
      * 获取节点最大的宽度
@@ -2061,7 +2017,7 @@ export default class WorkerEditor{
         return m
     }
     /**
-     * 自动撑大尺寸
+     * 尺寸自适应，为弥补不同画布之间尺寸不一致
      * @memberof WorkerEditor
      */
     autoSize(): void{

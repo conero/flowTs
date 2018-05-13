@@ -3,6 +3,22 @@
 
 ## ***V2.2.x/alpha-date*** alpha 类型模板
 
+### ***V2.2.5/20180513***
+- src/WorkerEditor.ts
+    - (+) **_baseNodeBindEvt** 新增方法用户实现公共节点(包括节点、连线和文本)事件绑定
+    - (+) **_nodeToolTip** 显示悬停提示文本
+    - (+) **closeToolTip** 参数实现关闭悬停文本，默认开启
+    - (优化) **error/errorLine/errorNode** 方法返回 “bool”
+    - (优化) **_lineBindEvt** 优化折线拖动以后重新选中，修复拖动后选中点与实际不一致
+- src/util.ts
+    - (+) **MergeArr** 实现数组合并
+- src/node/NodeAbstract.ts
+    - (+) 添加属性 **textTip**， 实现悬停文本提示    
+- src/node/NodeLnPoly.ts
+    - (优化) **_mpsMerge** 方法使用“左右坐标点检测法”以判断坐标是否为重复中间点
+    - (优化) **opt2Attr** 优化端点和中间点连线，不为直线时则修复
+
+
 ### ***V2.2.4/20180512***
 - src/WorkerEditor.ts
     - **autoSize** 方法优化并测试通过，可达到功能要求
@@ -43,7 +59,7 @@
     - (优化) **load** 方法，节点背景色采用 “状态” 图形描述法，且添加 **icon** 图标
     - (+) 添加 **previewMk** 属性，开启时“节点禁止拖动”，以及隐藏编辑器。使用 **preview** 方法管理
     - (+) 添加 **rmAllText** 方法，且修复全部移除忽略文本
-    -- (+) 新增 **_domListener** 实现，双击页面dom移除全部选中状态
+    - (+) 新增 **_domListener** 实现，双击页面dom移除全部选中状态
 - src/ToolBar.ts
     - (+) 新增 **show/hide** 方法用于显示隐藏工具栏    
 - src/node/NodeAbstract.ts

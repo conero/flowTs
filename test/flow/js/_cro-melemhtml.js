@@ -895,6 +895,25 @@ var Util = /** @class */ (function () {
         }
         return -1;
     };
+    /**
+     * 数组合并
+     * @param arrs
+     */
+    Util.MergeArr = function () {
+        var arrs = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            arrs[_i] = arguments[_i];
+        }
+        var newArr = [];
+        for (var i = 0; i < arrs.length; i++) {
+            var arr = arrs[i];
+            arr = 'object' == typeof arr ? arr : [arr];
+            // let tArr: any[] = []
+            // newArr = tArr.concat(newArr, arr)
+            newArr = newArr.concat(arr);
+        }
+        return newArr;
+    };
     return Util;
 }());
 
@@ -1597,6 +1616,7 @@ $(function(){
         }
         // , icon: {}              // 配置空时加载默认
         , toolBar: {hasIcon: true}
+        // , closeToolTip : true
     })
     
 
@@ -1775,11 +1795,7 @@ var WorkerEditor = /** @class */ (function () {
         this.ndMer = new __WEBPACK_IMPORTED_MODULE_4__NodeQue__["a" /* NodeQue */](this.paper);
         // 配置参数处理
         this._configMergeToDefule();
-        this._rIdx = 0; // 内部索引，用于生成代码
-        this._code2EidDick = {}; // 内部代码与元素id的映射字段
-        this._LineDragingP = null; // RaphaelElement 直线正在拖动记录点
         // 内部缓存数组件容器： 节点、连接线、独立文本
-        this.MagneticCore = null; // 连线磁化中心点，用于节点关联，单状态的结构 data: {type: from/to}        
         this._cerateToolBar();
         // 数据加载
         if (config.data) {
@@ -1988,6 +2004,7 @@ var WorkerEditor = /** @class */ (function () {
      * @param {rSu.Node} node 输入为空时绑定所有值
      */
     WorkerEditor.prototype._nodeBindEvt = function (node) {
+        this._baseNodeBindEvt(node);
         var $this = this, _a = this, ndMer = _a.ndMer, config = _a.config, bkg = config.bkg || {};
         // 事件绑定处理
         var toBindNodeEvts = function (nd) {
@@ -2015,14 +2032,14 @@ var WorkerEditor = /** @class */ (function () {
                     if (config.disConnNode) {
                         return null;
                     }
-                    var tmpP = { x: 0, y: 0 };
+                    var tmpP_1 = { x: 0, y: 0 };
                     pnt.drag(function (dx, dy) {
                         if (!tmpLnIst) {
                             console.log('选择框连线拖动出错！');
                             return;
                         }
-                        dx += tmpP.x;
-                        dy += tmpP.y;
+                        dx += tmpP_1.x;
+                        dy += tmpP_1.y;
                         var collNode = $this.collisionByP(dx, dy);
                         $this.allBackground();
                         if (collNode) {
@@ -2059,9 +2076,9 @@ var WorkerEditor = /** @class */ (function () {
                         // 删除所有联系那选中状态
                         $this.removeAllSeled('conn');
                         // 处理
-                        tmpP.x = this.attr('cx');
-                        tmpP.y = this.attr('cy');
-                        var newOpt = {}, lx = tmpP.x, ly = tmpP.y;
+                        tmpP_1.x = this.attr('cx');
+                        tmpP_1.y = this.attr('cy');
+                        var newOpt = {}, lx = tmpP_1.x, ly = tmpP_1.y;
                         if ($this.lineCnMode.type == 'ln') {
                             newOpt = {
                                 P1: { x: lx, y: ly },
@@ -2279,11 +2296,12 @@ var WorkerEditor = /** @class */ (function () {
      * @param ln
      */
     WorkerEditor.prototype._lineBindEvt = function (ln) {
+        this._baseNodeBindEvt(ln);
         var $this = this;
         if (ln) {
             var bkg_1 = this.config.bkg || {};
             // 起点移动处理
-            var startPFn = function (elem) {
+            var startPFn_1 = function (elem) {
                 var p1 = { x: 0, y: 0 };
                 elem.drag(function (dx, dy) {
                     dx += p1.x;
@@ -2316,7 +2334,7 @@ var WorkerEditor = /** @class */ (function () {
                 }, function () { });
             };
             // 终点移动处理
-            var endPFn = function (elem) {
+            var endPFn_1 = function (elem) {
                 var p1 = { x: 0, y: 0 };
                 elem.drag(function (dx, dy) {
                     dx += p1.x;
@@ -2361,10 +2379,10 @@ var WorkerEditor = /** @class */ (function () {
                     var pcode = pElem.data('pcode'), posi = pElem.data('posi');
                     // 起点
                     if ('f' == posi) {
-                        startPFn(pElem);
+                        startPFn_1(pElem);
                     }
                     else if ('t' == posi) {
-                        endPFn(pElem);
+                        endPFn_1(pElem);
                     }
                 };
                 // 连线选中
@@ -2388,10 +2406,10 @@ var WorkerEditor = /** @class */ (function () {
                     var pcode = pElem.data('pcode'), posi = pElem.data('posi'), MPs = ln.opt.MPs, fMIdx = (2 + MPs.length) * 2 - 2, // 聚焦点最大索引
                     fMIdxStr = 'f' + fMIdx;
                     if ('f0' == posi) { // 起点
-                        startPFn(pElem);
+                        startPFn_1(pElem);
                     }
                     else if (fMIdxStr == posi) { // 终点
-                        endPFn(pElem);
+                        endPFn_1(pElem);
                     }
                     else { // 中间点
                         var tP_1 = { x: 0, y: 0 }, MPsTmp = [], MPsLn_1, // 中间点串联成的临时连线
@@ -2400,22 +2418,6 @@ var WorkerEditor = /** @class */ (function () {
                             dx += tP_1.x;
                             dy += tP_1.y;
                             var MPsLnAttr = __WEBPACK_IMPORTED_MODULE_6__node_NodeUtil__["a" /* default */].path2ps(MPsLn_1), len = MPsLnAttr.length, fp = MPsLnAttr[0], tp = MPsLnAttr[len - 1];
-                            /*
-                                // console.log(MPsLnAttr, fp, tp)
-                            let pAttr: rSu.P[] = [fp],
-                                cp: rSu.P = {x: dx, y: dy},  // 当前指向的节点
-                                rp: rSu.P                       // 正在运行的节点
-                            
-                            rp = NodeUtil.point2Poly(fp, cp)
-                            if(rp){ pAttr.push(rp) }
-                            pAttr.push(cp)
-
-                            rp = NodeUtil.point2Poly(cp, tp)
-                            if(rp){ pAttr.push(rp) }
-
-                            pAttr.push(tp)
-                            MPsLn.attr('path', NodeUtil.ps2Path(pAttr))
-                            */
                             var pAttr = [fp];
                             // 同 x/y 轴坐标
                             if (fp.x == tp.x || fp.y == tp.y) {
@@ -2471,82 +2473,11 @@ var WorkerEditor = /** @class */ (function () {
                                     pQue.push(p);
                                 }
                             });
-                            /*
-                            // 检测可以合并的点
-                            let pQue1: rSu.P[] = [],
-                                pQueLen: number = pQue.length
-                            
-                            Util.each(pQue, (idx: number, p: rSu.P): any => {
-                                // 索引比较
-                                if(idx > 2){
-                                    let {x, y} = p,
-                                        th1n = pQue[idx - 1],    // 子1代
-                                        th2n = pQue[idx - 2],    // 子2代
-                                        dev: number = 0   // 误差 - deviation
-                                    if(
-                                        (Math.abs(x - th1n.x) < dev && Math.abs(x - th2n.x) < dev) ||
-                                        (Math.abs(y - th1n.y) < dev && Math.abs(y - th2n.y) < dev)
-                                    ){
-                                        let isSameX = Math.abs(x - th1n.x) < dev && Math.abs(x - th2n.x) < dev,
-                                        //**
-                                        // * @param chgSelf 更新自身
-                                        // *
-                                            correctFn = (chgSelf?: boolean) => { // 修正值
-                                                let xx = x, yy = y
-                                                // 涉及 起点
-                                                if(idx == 3){
-                                                    if(isSameX){
-                                                        xx = pQue[0].x
-                                                        if(chgSelf){
-                                                            p.x = xx
-                                                        }
-                                                    }else{
-                                                        yy = pQue[0].y
-                                                        if(chgSelf){
-                                                            p.y = yy
-                                                        }
-                                                    }
-                                                }
-                                                // 涉及 终点
-                                                // else if(idx == pQueLen - 1){
-                                                // }
-                                                if(isSameX){
-                                                    pQue[idx - 1].x = xx
-                                                    pQue[idx - 2].x = xx
-                                                }else{
-                                                    pQue[idx - 1].y = yy
-                                                    pQue[idx - 2].y = yy
-                                                }
-                                            }
-                                        if(idx == pQueLen - 1){
-                                            pQue1.pop()
-                                            correctFn()
-                                        }
-                                        else{
-                                            correctFn(true)
-                                            return null
-                                        }
-                                    }
-                                }
-                                pQue1.push(p)
-                            })
-                            
-                            let nPMs = Util.subArray(pQue1, 1, -1)
-                            // let nPMs = Util.subArray(pQue, 1, -1)
-                            console.log(pQue, pQue1)
-                            ln.updAttr({
-                                MPs: nPMs
-                            })
-                            */
-                            // 等处理，pQue 中重合的连接点 
-                            // @todo 2018年4月24日 星期二
                             var nPMs = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].subArray(pQue, 1, -1);
-                            // let nPMs = Util.subArray(pQue, 1, -1)
-                            //    console.log(pQue, pQue1)
-                            // console.log(pQue, nPMs)
                             ln.updAttr({
                                 MPs: nPMs
                             });
+                            ln.select();
                             $this.rmTempElem(tElemKey_1);
                         });
                     }
@@ -2575,6 +2506,77 @@ var WorkerEditor = /** @class */ (function () {
                 }
             });
             // console.log(ln)
+        }
+    };
+    /**
+     * 基本节点时间绑定，用于外部处理以及所有节点需要的时间
+     * @param nd
+     */
+    WorkerEditor.prototype._baseNodeBindEvt = function (nd) {
+        this._nodeToolTip(nd);
+    };
+    /**
+     * 序列号获取
+     * @param {string} type 类型 [c, n, t]
+     * @param {string} prev
+     * @param {string} ref
+     * @returns {string | number}
+     * @private
+     */
+    WorkerEditor.prototype._order = function (type, prev, ref) {
+        var newStr;
+        prev = prev ? prev : '';
+        if (type) {
+            if ('undefined' != typeof this.idxDick[type]) {
+                this.idxDick[type] += 1;
+                newStr = ref ? ref : prev + this.idxDick[type];
+                switch (type) {
+                    case 'c':
+                        if (this.connDick[newStr]) {
+                            newStr = this._order(type, prev);
+                        }
+                        break;
+                    case 'n':
+                        if (this.nodeDick[newStr]) {
+                            newStr = this._order(type, prev);
+                        }
+                        break;
+                    case 't':
+                        if (this.textDick[newStr]) {
+                            newStr = this._order(type, prev);
+                        }
+                        break;
+                }
+            }
+        }
+        return newStr;
+    };
+    /**
+     * dom 监听
+     */
+    WorkerEditor.prototype._domListener = function () {
+        var dom = this.config.dom, $this = this;
+        // 双击
+        dom.find('svg').dblclick(function () {
+            $this.removeAllSeled();
+        });
+    };
+    /**
+     * 节点title提示绑定，包括 node/text/conn
+     * @param {rSu.Node} node
+     */
+    WorkerEditor.prototype._nodeToolTip = function (node) {
+        if (!this.config.closeToolTip && node) {
+            var $this_1 = this;
+            node.c.hover(function () {
+                var textTip = node.textTip;
+                if (textTip) {
+                    var offset = $this_1.getDomOffset();
+                    $this_1.tooltip(textTip, this.attr('x') + offset.left + 20, this.attr('y') + offset.top + 2);
+                }
+            }, function () {
+                $this_1.tooltip('');
+            });
         }
     };
     /**
@@ -2764,38 +2766,6 @@ var WorkerEditor = /** @class */ (function () {
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (i, v) {
             v.background(type);
         });
-    };
-    /**
-     * 序列号获取
-     * @param type
-     */
-    WorkerEditor.prototype._order = function (type, prev, ref) {
-        var newStr;
-        prev = prev ? prev : '';
-        if (type) {
-            if ('undefined' != typeof this.idxDick[type]) {
-                this.idxDick[type] += 1;
-                newStr = ref ? ref : prev + this.idxDick[type];
-                switch (type) {
-                    case 'c':
-                        if (this.connDick[newStr]) {
-                            newStr = this._order(type, prev);
-                        }
-                        break;
-                    case 'n':
-                        if (this.nodeDick[newStr]) {
-                            newStr = this._order(type, prev);
-                        }
-                        break;
-                    case 't':
-                        if (this.textDick[newStr]) {
-                            newStr = this._order(type, prev);
-                        }
-                        break;
-                }
-            }
-        }
-        return newStr;
     };
     /**
      * 移除临时元素字典（支持模糊查询）
@@ -3167,7 +3137,8 @@ var WorkerEditor = /** @class */ (function () {
             // 坐标点属性值
             _srroo = {
                 opt: node.opt,
-                NodeType: node.NodeType
+                NodeType: node.NodeType,
+                textTip: node.textTip
             };
             var nStep = this.onStep(node, step);
             if (nStep) {
@@ -3197,7 +3168,8 @@ var WorkerEditor = /** @class */ (function () {
             line[cd] = {
                 data: ist.data(),
                 NodeType: ist.NodeType,
-                opt: ist.opt
+                opt: ist.opt,
+                textTip: ist.textTip
             };
         });
         // 文本
@@ -3205,7 +3177,8 @@ var WorkerEditor = /** @class */ (function () {
             text[cd] = {
                 data: ist.data(),
                 NodeType: ist.NodeType,
-                opt: ist.opt
+                opt: ist.opt,
+                textTip: ist.textTip
             };
         });
         _srroo = { node: nodeSrroo, line: line, text: text };
@@ -3267,6 +3240,8 @@ var WorkerEditor = /** @class */ (function () {
             // 保存到字典中
             $node.data('_code', cd);
             var cdIdx = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].inArray(cd, rCodes);
+            // 悬停提示
+            $node.textTip = nd.textTip || null;
             // 生成图标
             var iconState = icon.state || {};
             var createIconFn = function (iconSrc) {
@@ -3309,7 +3284,7 @@ var WorkerEditor = /** @class */ (function () {
                             title = '正在运行中';
                             break;
                     }
-                    var paper = this.paper, offset = $this.getDomOffset();
+                    var offset = $this.getDomOffset();
                     $this.tooltip(title, this.attr('x') + offset.left + 20, this.attr('y') + offset.top + 2);
                 }, function () {
                     $this.tooltip('');
@@ -3353,6 +3328,8 @@ var WorkerEditor = /** @class */ (function () {
                     $ln.inlineEle.attr('fill', nodeBkg);
                 }
             }
+            // 悬停提示
+            $ln.textTip = ln.textTip || null;
         });
         // 文本生成
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(_srroo.text, function (cd, dd) {
@@ -3373,6 +3350,8 @@ var WorkerEditor = /** @class */ (function () {
             $ist.data(_data);
             _this._nodeBindEvt($ist);
             _this.textDick[cd] = $ist;
+            // 悬停提示
+            $ist.textTip = dd.textTip || null;
         });
         // 自动撑高
         if (!config.closeSize) {
@@ -3486,16 +3465,6 @@ var WorkerEditor = /** @class */ (function () {
         };
     };
     /**
-     * dom 监听
-     */
-    WorkerEditor.prototype._domListener = function () {
-        var dom = this.config.dom, $this = this;
-        // 双击
-        dom.find('svg').dblclick(function () {
-            $this.removeAllSeled();
-        });
-    };
-    /**
      * 操作助手事件
      */
     WorkerEditor.prototype.operHelpEvts = function () {
@@ -3570,6 +3539,7 @@ var WorkerEditor = /** @class */ (function () {
      * @param {boolean} noClear
      */
     WorkerEditor.prototype.errorLine = function (noClear) {
+        var hasErr = false;
         if (!noClear) {
             this.removeAllSeled();
         }
@@ -3577,8 +3547,10 @@ var WorkerEditor = /** @class */ (function () {
             var data = node.data();
             if (!data.to_code || !data.from_code) {
                 node.select();
+                hasErr = true;
             }
         });
+        return hasErr;
     };
     /**
      * 获取的节点
@@ -3586,6 +3558,7 @@ var WorkerEditor = /** @class */ (function () {
      */
     WorkerEditor.prototype.errorNode = function (noClear) {
         var _this = this;
+        var hasErr = false;
         if (!noClear) {
             this.removeAllSeled();
         }
@@ -3596,17 +3569,22 @@ var WorkerEditor = /** @class */ (function () {
                 var data = _this.step(node), step = data.step;
                 if (!step.next || !step.prev) {
                     node.select();
+                    hasErr = true;
                 }
             }
         });
+        return hasErr;
     };
     /**
      * 显示所有错误
      */
     WorkerEditor.prototype.error = function () {
+        var hasErr = false;
         this.removeAllSeled();
-        this.errorLine(true);
-        this.errorNode(true);
+        hasErr = this.errorLine(true);
+        var hasErr2 = this.errorNode(true);
+        hasErr = hasErr ? hasErr : hasErr2;
+        return hasErr;
     };
     Object.defineProperty(WorkerEditor.prototype, "maxHw", {
         /**
@@ -3640,7 +3618,7 @@ var WorkerEditor = /** @class */ (function () {
         configurable: true
     });
     /**
-     * 自动撑大尺寸
+     * 尺寸自适应，为弥补不同画布之间尺寸不一致
      * @memberof WorkerEditor
      */
     WorkerEditor.prototype.autoSize = function () {
@@ -3671,7 +3649,6 @@ var WorkerEditor = /** @class */ (function () {
     WorkerEditor.prototype.onStep = function (node, data) {
         return data;
     };
-    // toolNodeIstQue: any[]     // 工具栏部件节点队列
     // 静态属性
     WorkerEditor.version = __WEBPACK_IMPORTED_MODULE_1__version__["a" /* LibVersion */];
     return WorkerEditor;
@@ -3950,7 +3927,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.2.4", "release": "20180512", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.2.5", "release": "20180513", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),
@@ -4860,7 +4837,19 @@ var NodeLnPoly = /** @class */ (function (_super) {
         pQue = [P1]; // 起点
         // 中间点计算
         if (MPs.length > 0) { // 使用默认的点列
+            // 起点与第一个相邻点非折线时，纠正
+            if (MPs[0].x != P1.x && MPs[0].y != P1.y) {
+                var p1Ng = this.getMiddP(P1, MPs[0]);
+                MPs = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].MergeArr([p1Ng], MPs);
+            }
+            // 起点与第一个相邻点非折线时，纠正
+            var last = MPs.length - 1;
+            if (MPs[last].x != P2.x && MPs[last].y != P2.y) {
+                var p2Ng = this.getMiddP(MPs[last], P2);
+                MPs = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].MergeArr(MPs, [p2Ng]);
+            }
             pQue = pQue.concat(MPs);
+            this.opt.MPs = MPs;
         }
         else {
             var x1 = P1.x, y1 = P1.y, x2 = P2.x, y2 = P2.y;
@@ -4963,27 +4952,22 @@ var NodeLnPoly = /** @class */ (function (_super) {
         return fPsDick;
     };
     /**
-     * 2018年5月12日 星期六: 合并相同的点
+     * 2018年5月12日 星期六: 左右相等检测法
      * 中间点合并
      */
     NodeLnPoly.prototype._mpsMerge = function () {
-        var opt = this.opt, MPs = opt.MPs, nMPs = [], Ps = [], dt = 1;
-        Ps = [opt.P1, opt.P2];
+        var opt = this.opt, MPs = opt.MPs, nMPs = [], dt = 1;
+        var MPsLen = MPs.length;
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(MPs, function (i, p) {
-            var samePMk = false;
-            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(Ps, function (j, p1) {
-                // 相同坐标的点
-                if (Math.abs(p.x - p1.x) <= dt && Math.abs(p.y - p1.y) <= dt) {
-                    samePMk = true;
-                    return false;
-                }
-            });
-            if (!samePMk) {
-                nMPs.push(p);
-                Ps.push(p);
+            var afterP = i == 0 ? opt.P1 : MPs[i - 1];
+            var nextP = i == MPsLen - 1 ? opt.P2 : MPs[i + 1];
+            // 左右相等检测是否坐标同直线
+            if ((Math.abs(afterP.x - p.x) <= dt && Math.abs(nextP.x - p.x) <= dt) ||
+                (Math.abs(afterP.y - p.y) <= dt && Math.abs(nextP.y - p.y) <= dt)) {
+                return;
             }
+            nMPs.push(p);
         });
-        // console.log(MPs, nMPs)
         this.updAttr({
             MPs: nMPs
         });

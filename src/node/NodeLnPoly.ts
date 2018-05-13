@@ -40,7 +40,22 @@ export default class NodeLnPoly extends NodeAbstract{
         pQue = [P1] // 起点
         // 中间点计算
         if(MPs.length > 0){ // 使用默认的点列
+            // 起点与第一个相邻点非折线时，纠正
+            if(MPs[0].x != P1.x && MPs[0].y != P1.y){
+                let p1Ng: rSu.P = this.getMiddP(P1, MPs[0])
+                MPs = Util.MergeArr([p1Ng], MPs)
+
+            }
+
+            // 起点与第一个相邻点非折线时，纠正
+            let last = MPs.length - 1
+            if(MPs[last].x != P2.x && MPs[last].y != P2.y){
+                let p2Ng: rSu.P = this.getMiddP(MPs[last], P2)
+                MPs = Util.MergeArr(MPs, [p2Ng])
+            }
+
             pQue = pQue.concat(MPs)
+            this.opt.MPs = MPs
         }else{
             let x1 = P1.x, y1 = P1.y,
                 x2 = P2.x, y2 = P2.y
@@ -51,7 +66,9 @@ export default class NodeLnPoly extends NodeAbstract{
                 this.opt.MPs = MPs
             }
         }
+
         pQue.push(P2)   // 终点
+        
 
         // 箭头坐标
         let arrowPs: rSu.bsMap = {}
@@ -152,31 +169,27 @@ export default class NodeLnPoly extends NodeAbstract{
         return fPsDick
     }
     /**
-     * 2018年5月12日 星期六: 合并相同的点
+     * 2018年5月12日 星期六: 左右相等检测法
      * 中间点合并
      */
     private _mpsMerge(): void{
         let opt: rSu.NodeOpt = this.opt,
             MPs: rSu.P[] = opt.MPs,
             nMPs: rSu.P[] = [],
-            Ps: rSu.P[] = [],
             dt: number = 1
-        Ps = [opt.P1, opt.P2]
+        let MPsLen: number = MPs.length
         Util.each(MPs, (i: number, p: rSu.P) => {
-            let samePMk: boolean = false
-            Util.each(Ps, (j: number, p1: rSu.P) => {
-                // 相同坐标的点
-                if(Math.abs(p.x - p1.x) <= dt && Math.abs(p.y - p1.y) <= dt){
-                    samePMk = true
-                    return false
-                }
-            })
-            if(!samePMk){
-                nMPs.push(p)
-                Ps.push(p)
+            let afterP: rSu.P = i == 0? opt.P1 : MPs[i-1]
+            let nextP: rSu.P = i == MPsLen-1? opt.P2 : MPs[i+1]
+            // 左右相等检测是否坐标同直线
+            if(
+                (Math.abs(afterP.x - p.x) <= dt && Math.abs(nextP.x - p.x) <= dt) ||
+                (Math.abs(afterP.y - p.y) <= dt && Math.abs(nextP.y - p.y) <= dt)
+            ){
+                return
             }
+            nMPs.push(p)
         })
-        // console.log(MPs, nMPs)
         this.updAttr({
             MPs: nMPs
         })

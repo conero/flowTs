@@ -109,6 +109,7 @@
             }
         }
         closeSize: 'default=false bool 关闭自动撑高'
+        closeToolTip: 'default=false 关闭选题提示'
     }
 ```
 

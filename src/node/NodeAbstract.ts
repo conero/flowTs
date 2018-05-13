@@ -31,6 +31,7 @@ export default abstract class NodeAbstract{
     c?: RaphaelElement          // 容器元素
     paper: RaphaelPaper         // Raphael 绘制对象器
     isSelEd: boolean            // 选中标记
+    textTip?: string             // 悬停提示
 
     // 审核、合并
     xRate?: number           // 移除边框百分比
