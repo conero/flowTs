@@ -1598,7 +1598,9 @@ $(function(){
         // h: 600
         h: 570,
         data: cacheDt
+        , readonly : 'true'
         // , noToolBar: true
+        // , disConnNode: true
         // noToolBar: true
         // , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10', 'A11*']
         // , rCodes: ['A1', 'A2', 'A3', 'A5', 'A13', 'A14', 'A2*']
@@ -1797,6 +1799,7 @@ var WorkerEditor = /** @class */ (function () {
         this.ndMer = new __WEBPACK_IMPORTED_MODULE_4__NodeQue__["a" /* NodeQue */](this.paper);
         // 配置参数处理
         this._configMergeToDefule();
+        this._readonly();
         // 内部缓存数组件容器： 节点、连接线、独立文本
         this._cerateToolBar();
         // 数据加载
@@ -2024,7 +2027,7 @@ var WorkerEditor = /** @class */ (function () {
             // 处理接口            
             nd.onCreateBoxPnt = function (pnt) {
                 // 预览标识
-                if ($this.previewMk) {
+                if ($this.previewMk || $this.config.disDragble) {
                     return null;
                 }
                 var tmpLnIst;
@@ -2374,8 +2377,8 @@ var WorkerEditor = /** @class */ (function () {
             };
             if ('ln' == ln.NodeType) {
                 ln.onCreateBoxPnt = function (pElem) {
-                    // 预览标识
-                    if ($this.previewMk) {
+                    // 预览标识，禁止拖动
+                    if ($this.previewMk || $this.config.disDragble) {
                         return null;
                     }
                     var pcode = pElem.data('pcode'), posi = pElem.data('posi');
@@ -2402,7 +2405,7 @@ var WorkerEditor = /** @class */ (function () {
                 // 边框点
                 ln.onCreateBoxPnt = function (pElem) {
                     // 预览标识
-                    if ($this.previewMk) {
+                    if ($this.previewMk || $this.config.disDragble) {
                         return null;
                     }
                     var pcode = pElem.data('pcode'), posi = pElem.data('posi'), MPs = ln.opt.MPs, fMIdx = (2 + MPs.length) * 2 - 2, // 聚焦点最大索引
@@ -2579,6 +2582,17 @@ var WorkerEditor = /** @class */ (function () {
             }, function () {
                 $this_1.tooltip('');
             });
+        }
+    };
+    /**
+     * 只读属性
+     */
+    WorkerEditor.prototype._readonly = function () {
+        if (this.config.readonly) {
+            this.config.noToolBar = true;
+            this.config.disEpDragble = true;
+            this.config.disConnNode = true;
+            this.config.disDragble = true;
         }
     };
     /**
@@ -3245,26 +3259,29 @@ var WorkerEditor = /** @class */ (function () {
             nd.opt.bkg = bkg.urunNd || '#CDC5BF';
             nd.opt.bkgTxt = bkg.urunTxt || '#000000';
             var $node = _this.ndMer.make(nd.NodeType, nd.opt)
-                .creator()
-                .moveable({
-                beforeMv: function (node) {
-                    if ($this.previewMk) {
-                        return false;
+                .creator();
+            // 禁止拖动     
+            if (!config.disDragble) {
+                $node.moveable({
+                    beforeMv: function (node) {
+                        if ($this.previewMk) {
+                            return false;
+                        }
+                    },
+                    afterUpd: function (x, y, node) {
+                        $this._lineMoveSync(x, y, node);
+                        // 图标处理，存在图片同步移动
+                        var icon = $node.tRElem['icon'];
+                        if (icon) {
+                            var iconP = $node.getIconP();
+                            icon.attr({
+                                x: iconP.x,
+                                y: iconP.y
+                            });
+                        }
                     }
-                },
-                afterUpd: function (x, y, node) {
-                    $this._lineMoveSync(x, y, node);
-                    // 图标处理，存在图片同步移动
-                    var icon = $node.tRElem['icon'];
-                    if (icon) {
-                        var iconP = $node.getIconP();
-                        icon.attr({
-                            x: iconP.x,
-                            y: iconP.y
-                        });
-                    }
-                }
-            });
+                });
+            }
             // 保存到字典中
             $node.data('_code', cd);
             // 悬停提示
@@ -3276,17 +3293,20 @@ var WorkerEditor = /** @class */ (function () {
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(_srroo.line, function (cd, ln) {
             var _data = ln.data;
             var $ln = _this.ndMer.make(ln.NodeType, ln.opt)
-                .creator()
-                .moveable({
-                beforeMv: function (node) {
-                    if ($this.previewMk) {
-                        return false;
+                .creator();
+            // 禁止拖动     
+            if (!config.disDragble) {
+                $ln.moveable({
+                    beforeMv: function (node) {
+                        if ($this.previewMk) {
+                            return false;
+                        }
+                    },
+                    afterUpd: function (x, y, node) {
+                        $this._lineMoveSync(x, y, node);
                     }
-                },
-                afterUpd: function (x, y, node) {
-                    $this._lineMoveSync(x, y, node);
-                }
-            });
+                });
+            }
             $ln.data('_code', cd);
             $ln.data(_data);
             var fCode = _data.from_code, tCode = _data.to_code;
@@ -3306,17 +3326,20 @@ var WorkerEditor = /** @class */ (function () {
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(_srroo.text, function (cd, dd) {
             var _data = dd.data;
             var $ist = _this.ndMer.make(dd.NodeType, dd.opt)
-                .creator()
-                .moveable({
-                beforeMv: function (node) {
-                    if ($this.previewMk) {
-                        return false;
+                .creator();
+            // 禁止拖动     
+            if (!config.disDragble) {
+                $ist.moveable({
+                    beforeMv: function (node) {
+                        if ($this.previewMk) {
+                            return false;
+                        }
+                    },
+                    afterUpd: function (x, y, node) {
+                        $this._lineMoveSync(x, y, node);
                     }
-                },
-                afterUpd: function (x, y, node) {
-                    $this._lineMoveSync(x, y, node);
-                }
-            });
+                });
+            }
             $ist.data('_code', cd);
             $ist.data(_data);
             _this._nodeBindEvt($ist);

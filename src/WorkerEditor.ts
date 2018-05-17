@@ -65,6 +65,7 @@ export default class WorkerEditor{
         this.ndMer = new NodeQue(this.paper)
         // 配置参数处理
         this._configMergeToDefule()
+        this._readonly()
         // 内部缓存数组件容器： 节点、连接线、独立文本
         this._cerateToolBar()
         // 数据加载
@@ -315,7 +316,7 @@ export default class WorkerEditor{
             // 处理接口            
             nd.onCreateBoxPnt = function(pnt: RaphaelElement){
                 // 预览标识
-                if($this.previewMk){
+                if($this.previewMk || $this.config.disDragble){
                     return null
                 }
                 let tmpLnIst: rSu.Node
@@ -698,10 +699,10 @@ export default class WorkerEditor{
             }
             if('ln' == ln.NodeType){
                 ln.onCreateBoxPnt = function(pElem: RaphaelElement){
-                    // 预览标识
-                    if($this.previewMk){
+                    // 预览标识，禁止拖动
+                    if($this.previewMk || $this.config.disDragble){
                         return null
-                    }
+                    }                    
                     let pcode = pElem.data('pcode'),
                         posi = pElem.data('posi')
                     // 起点
@@ -726,7 +727,7 @@ export default class WorkerEditor{
                 // 边框点
                 ln.onCreateBoxPnt = function(pElem: RaphaelElement){
                     // 预览标识
-                    if($this.previewMk){
+                    if($this.previewMk || $this.config.disDragble){
                         return null
                     }
                     let pcode = pElem.data('pcode'),
@@ -951,6 +952,17 @@ export default class WorkerEditor{
                     $this.tooltip('')
                 }
             )
+        }
+    }
+    /**
+     * 只读属性
+     */
+    private _readonly(){
+        if(this.config.readonly){
+            this.config.noToolBar = true
+            this.config.disEpDragble = true
+            this.config.disConnNode = true
+            this.config.disDragble = true
         }
     }
     /**
@@ -1624,8 +1636,10 @@ export default class WorkerEditor{
             nd.opt.bkg = bkg.urunNd || '#CDC5BF'
             nd.opt.bkgTxt = bkg.urunTxt || '#000000'
             let $node = this.ndMer.make(nd.NodeType, nd.opt)
-                .creator()
-                .moveable({
+                .creator()           
+            // 禁止拖动     
+            if(!config.disDragble){
+                $node.moveable({
                     beforeMv: function(node: rSu.Node){
                         if($this.previewMk){
                             return false
@@ -1645,6 +1659,7 @@ export default class WorkerEditor{
                         }
                     }
                 })
+            }
             // 保存到字典中
             $node.data('_code', cd)
 
@@ -1658,8 +1673,10 @@ export default class WorkerEditor{
         Util.each(_srroo.line, (cd: string, ln: rSu.bsMap)=>{
             let _data = ln.data
             let $ln = this.ndMer.make(ln.NodeType, ln.opt)
-                .creator()
-                .moveable({
+                .creator()                
+            // 禁止拖动     
+            if(!config.disDragble){
+                $ln.moveable({
                     beforeMv: function(node: rSu.Node){
                         if($this.previewMk){
                             return false
@@ -1669,7 +1686,7 @@ export default class WorkerEditor{
                         $this._lineMoveSync(x, y, node)
                     }
                 })
-            
+            }
             $ln.data('_code', cd)     
             $ln.data(_data)
             
@@ -1695,7 +1712,10 @@ export default class WorkerEditor{
             let _data = dd.data
             let $ist = this.ndMer.make(dd.NodeType, dd.opt)
                 .creator()
-                .moveable({
+                
+            // 禁止拖动     
+            if(!config.disDragble){
+                $ist.moveable({
                     beforeMv: function(node: rSu.Node){
                         if($this.previewMk){
                             return false
@@ -1705,6 +1725,7 @@ export default class WorkerEditor{
                         $this._lineMoveSync(x, y, node)
                     }
                 })
+            }
             $ist.data('_code', cd)            
             $ist.data(_data)
 

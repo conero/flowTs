@@ -21,7 +21,9 @@ $(function(){
         // h: 600
         h: 570,
         data: cacheDt
+        , readonly : 'true'
         // , noToolBar: true
+        // , disConnNode: true
         // noToolBar: true
         // , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10', 'A11*']
         // , rCodes: ['A1', 'A2', 'A3', 'A5', 'A13', 'A14', 'A2*']

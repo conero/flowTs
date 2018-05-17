@@ -86,6 +86,7 @@
                 [value]: string
             ]
         },
+        noToolBar: 'bool 关闭工具栏'
         data: 'obejct'  // 保存的历史数据
         rCodes: 'string|string[]'   // 运行过的节点代码， 字符串 'A1, A2, A*' => ['A1', 'A2', 'A*']
         bkg: {  // 背景色
@@ -98,6 +99,7 @@
             lnHover: '#FF0000'         // 连续聚焦颜色
         }
         disEpDragble: '端点禁止拖动大小'
+        disDragble: '禁止拖动，包括：连线，节点等'
         disConnNode: '禁止节点连线'
         bindOEvts: 'bool-绑定操作事件'
         onKeydown: (code) => {} //  bindOEvts 绑定事件以后
@@ -110,6 +112,7 @@
         }
         closeSize: 'default=false bool 关闭自动撑高'
         closeToolTip: 'default=false 关闭选题提示'
+        readonly: 'true'        // 只读
     }
 ```
 
@@ -122,6 +125,11 @@
     }
 }
 ```
+
+### **readonly** 只读属性
+
+> 快捷配置，仅仅用户显示用过
+
 
 ## 系统保存数据格式说明
 ```json
