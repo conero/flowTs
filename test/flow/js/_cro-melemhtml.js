@@ -1600,7 +1600,9 @@ $(function(){
         data: cacheDt
         // , noToolBar: true
         // noToolBar: true
-        , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10', 'A11*']
+        // , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10', 'A11*']
+        // , rCodes: ['A1', 'A2', 'A3', 'A5', 'A13', 'A14', 'A2*']
+        , rCodes: ['A1', 'A2', 'A3', 'A5', 'A6', 'A11', 'A15', 'A16', 'A18', 'A19', 'A20', 'A2*']
 
         // 事件绑定
         , bindOEvts: true
@@ -1899,9 +1901,11 @@ var WorkerEditor = /** @class */ (function () {
                 }
                 // 默认颜色，新增节点未运行状态
                 ndOpt.bkg = bkg.urunNd || '#CDC5BF';
-                ndAst = $this.ndMer.make(key, ndOpt)
-                    .creator()
-                    .moveable({
+                ndAst = $this.ndMer
+                    .make(key, ndOpt)
+                    .creator();
+            }, function () {
+                ndAst.moveable({
                     beforeMv: function (node) {
                         if ($this.previewMk) {
                             return false;
@@ -1924,8 +1928,6 @@ var WorkerEditor = /** @class */ (function () {
                     ndAst.data('_code', _index);
                     $this.nodeDick[_index] = ndAst;
                 }
-            }, function () {
-                console.log(this, '测试：end');
             });
         });
         // 连接线 -----------------
@@ -2842,7 +2844,15 @@ var WorkerEditor = /** @class */ (function () {
             }
         };
         if (!code) {
-            removeNode(this.select());
+            var _a = this.selectGroup(), node = _a.node, text = _a.text, conn = _a.conn;
+            var eachNodeFn = function (rs) {
+                __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(rs, function (i, nd) {
+                    removeNode(nd);
+                });
+            };
+            eachNodeFn(node);
+            eachNodeFn(text);
+            eachNodeFn(conn);
         }
         else if ('object' == typeof code) {
             removeNode(code);
@@ -3067,7 +3077,7 @@ var WorkerEditor = /** @class */ (function () {
         return data;
     };
     /**
-     * 获取选中的实例
+     * 获取选中的实例(单节点)
      */
     WorkerEditor.prototype.select = function () {
         var selectedNode = null;
@@ -3097,6 +3107,36 @@ var WorkerEditor = /** @class */ (function () {
             });
         }
         return selectedNode;
+    };
+    /**
+     * 选中连接实例的点(分组，所有节点)
+     * @returns {object} {type: node[]} -> {node: [], conn: [], text: []}
+     */
+    WorkerEditor.prototype.selectGroup = function () {
+        var mNode = {
+            node: [],
+            conn: [],
+            text: []
+        };
+        // 节点
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (cd, nd) {
+            if (nd.isSelEd) {
+                mNode.node.push(nd);
+            }
+        });
+        // 连线
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.connDick, function (cd, nd) {
+            if (nd.isSelEd) {
+                mNode.node.push(nd);
+            }
+        });
+        // 文本
+        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.textDick, function (cd, nd) {
+            if (nd.isSelEd) {
+                mNode.node.push(nd);
+            }
+        });
+        return mNode;
     };
     /**
      * 获取节点属性
@@ -3198,19 +3238,7 @@ var WorkerEditor = /** @class */ (function () {
         var $this = this, lineQue = {};
         var step = data.step, _srroo = data._srroo;
         // 文件加载以后才显示
-        var config = this.config, rCodes = config.rCodes || null, bkg = config.bkg || {}, ranNodeBkg = bkg.ranNode || '', noIcon = 'undefined' == typeof config.icon, icon = config.icon || {};
-        rCodes = rCodes ? ('object' == typeof rCodes ? rCodes : [rCodes]) : [];
-        var isRunning = null; //  正在运行的脚本
-        var rCodesTmp = [];
-        __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(rCodes, function (i, rc) {
-            if (rc.indexOf('*') > -1) {
-                isRunning = rc.replace('*', '');
-            }
-            else {
-                rCodesTmp.push(rc);
-            }
-        });
-        rCodes = rCodesTmp;
+        var config = this.config, rCodes = config.rCodes || null, bkg = config.bkg || {}, noIcon = 'undefined' == typeof config.icon, icon = config.icon || {};
         // 节点生成复原
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(_srroo.node, function (cd, nd) {
             // 节点生成
@@ -3239,57 +3267,8 @@ var WorkerEditor = /** @class */ (function () {
             });
             // 保存到字典中
             $node.data('_code', cd);
-            var cdIdx = __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].inArray(cd, rCodes);
             // 悬停提示
             $node.textTip = nd.textTip || null;
-            // 生成图标
-            var iconState = icon.state || {};
-            var createIconFn = function (iconSrc) {
-                if (noIcon) {
-                    return;
-                }
-                var iconP = $node.getIconP();
-                if (iconP) {
-                    var rect = 10;
-                    $node.tRElem['icon'] = _this.paper.image(iconSrc, iconP.x, iconP.y, rect, rect);
-                }
-            };
-            // 生成图标
-            if (cdIdx > -1) { // 已经运行
-                $node.data('state', 'isRan');
-                createIconFn(iconState.ran || 'state_ran.png');
-                $node.opt.bkg = bkg.ranNd || '#32CD32';
-                $node.opt.bkgTxt = bkg.ranTxt || '#FFFFFF';
-                $node.background(['node', 'text']);
-            }
-            else if (isRunning && cd == isRunning) { // 正在运行
-                $node.data('state', 'isRunning');
-                createIconFn(iconState.runing || 'state_running.png');
-                $node.opt.bkg = bkg.runningNd || '#0000FF';
-                $node.opt.bkgTxt = bkg.runningTxt || '#FFFFFF';
-                $node.background(['node', 'text']);
-            }
-            // 徽标
-            var iconImg = $node.tRElem['icon'];
-            if (iconImg) {
-                iconImg.hover(function () {
-                    // f_in
-                    var state = $node.data('state');
-                    var title = '';
-                    switch (state) {
-                        case 'isRan':
-                            title = '已经运行';
-                            break;
-                        case 'isRunning':
-                            title = '正在运行中';
-                            break;
-                    }
-                    var offset = $this.getDomOffset();
-                    $this.tooltip(title, this.attr('x') + offset.left + 20, this.attr('y') + offset.top + 2);
-                }, function () {
-                    $this.tooltip('');
-                });
-            }
             _this._nodeBindEvt($node);
             $this.nodeDick[cd] = $node;
         });
@@ -3319,14 +3298,6 @@ var WorkerEditor = /** @class */ (function () {
             }
             if (tIst) { // 终点
                 tIst.line(cd, true);
-                var nodeBkg = tIst.opt.bkg;
-                $ln.opt.bkg = nodeBkg;
-                $ln.c.attr('stroke', nodeBkg);
-                // 箭头，箭体颜色一致性变化
-                if ($ln.inlineEle) {
-                    $ln.inlineEle.attr('stroke', nodeBkg);
-                    $ln.inlineEle.attr('fill', nodeBkg);
-                }
             }
             // 悬停提示
             $ln.textTip = ln.textTip || null;
@@ -3357,9 +3328,116 @@ var WorkerEditor = /** @class */ (function () {
         if (!config.closeSize) {
             this.autoSize();
         }
+        this.stateRender();
         return this;
     };
-    // removeTmpNode(value?: any){
+    /**
+     * 状态渲染
+     */
+    WorkerEditor.prototype.stateRender = function () {
+        var _this = this;
+        var config = this.config, rCodes = config.rCodes, $this = this;
+        // 运行状态
+        if (rCodes) {
+            var bkg = config.bkg || {}, urunNd = bkg.urunNd || '#CDC5BF', urunTxt = bkg.urunNd || '#000000', runningNd_1 = bkg.runningNd || '#0000FF', runningTxt_1 = bkg.runningTxt || '#FFFFFF', ranNd_1 = bkg.ranNd || '#32CD32', ranTxt_1 = bkg.ranTxt || '#FFFFFF';
+            var noIcon_1 = 'undefined' == typeof config.icon, icon = config.icon || {};
+            // 字符串转数组类型
+            if ('object' != typeof rCodes) {
+                if (rCodes.indexOf(',') > -1) {
+                    rCodes = rCodes.replace(/\s/g, '');
+                    rCodes = rCodes.split(',');
+                }
+                else {
+                    rCodes = [rCodes];
+                }
+            }
+            // 生成图标
+            var iconState_1 = icon.state || {};
+            var createIconFn_1 = function (iconSrc, node) {
+                if (noIcon_1) {
+                    return;
+                }
+                var iconP = node.getIconP();
+                if (iconP) {
+                    var rect = 10;
+                    node.tRElem['icon'] = _this.paper.image(iconSrc, iconP.x, iconP.y, rect, rect);
+                }
+            };
+            // 变量连线，用于连线渲染
+            var conRendMap_1 = {};
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.connDick, function (cd, ist) {
+                var cData = ist.data(), from_code = cData.from_code, to_code = cData.to_code;
+                if (!from_code || !to_code) {
+                    return;
+                }
+                var crmKey = from_code + "_" + to_code;
+                conRendMap_1[crmKey] = cd;
+            });
+            // console.log(conRendMap);
+            // 渲染处理
+            __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(rCodes, function (i, cd) {
+                // 正在运行
+                var isRunningMk = false;
+                if (cd.indexOf('*') > -1) {
+                    cd = cd.replace('*', '');
+                    isRunningMk = true;
+                }
+                var node = _this.nodeDick[cd];
+                if (!node) {
+                    return;
+                }
+                // 节点渲染
+                if (isRunningMk) { // 正在运行
+                    node.data('state', 'isRunning');
+                    node.opt.bkg = runningNd_1;
+                    node.opt.bkgTxt = runningTxt_1;
+                    node.background(['node', 'text']);
+                    createIconFn_1(iconState_1.ran || 'state_ran.png', node);
+                }
+                else { // 已经运行
+                    node.data('state', 'isRan');
+                    node.opt.bkg = ranNd_1;
+                    node.opt.bkgTxt = ranTxt_1;
+                    node.background(['node', 'text']);
+                    createIconFn_1(iconState_1.ran || 'state_ran.png', node);
+                }
+                // 徽标
+                var iconImg = node.tRElem['icon'];
+                if (iconImg) {
+                    iconImg.hover(function () {
+                        // f_in
+                        var state = node.data('state');
+                        var title = '';
+                        switch (state) {
+                            case 'isRan':
+                                title = '已经运行';
+                                break;
+                            case 'isRunning':
+                                title = '正在运行中';
+                                break;
+                        }
+                        var offset = $this.getDomOffset();
+                        $this.tooltip(title, this.attr('x') + offset.left + 20, this.attr('y') + offset.top + 2);
+                    }, function () {
+                        $this.tooltip('');
+                    });
+                }
+                // 连线渲染
+                var crmKey2 = i > 0 ? rCodes[i - 1] + "_" + cd : null, lnCd, lnIst;
+                if (crmKey2 && (lnCd = conRendMap_1[crmKey2]) && (lnIst = _this.connDick[lnCd])) {
+                    var bkgCol = isRunningMk ? runningNd_1 : ranNd_1;
+                    lnIst.opt.bkg = bkgCol;
+                    lnIst.c.attr('stroke', bkgCol);
+                    // 箭头，箭体颜色一致性变化
+                    if (lnIst.inlineEle) {
+                        lnIst.inlineEle.attr('stroke', bkgCol);
+                        lnIst.inlineEle.attr('fill', bkgCol);
+                    }
+                }
+            });
+        }
+        return this;
+    };
     WorkerEditor.prototype.removeTmpNode = function (value) {
         var _this = this;
         if (value) {
@@ -3543,11 +3621,23 @@ var WorkerEditor = /** @class */ (function () {
         if (!noClear) {
             this.removeAllSeled();
         }
+        var cRecordM = {}; // 节点连线记录
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.connDick, function (code, node) {
-            var data = node.data();
-            if (!data.to_code || !data.from_code) {
+            var data = node.data(), to_code = data.to_code, from_code = data.from_code;
+            if (!to_code || !from_code) {
                 node.select();
                 hasErr = true;
+            }
+            else {
+                // 重复的连线
+                var key = from_code + "__" + to_code;
+                if (cRecordM[key]) {
+                    node.select();
+                    hasErr = true;
+                }
+                else {
+                    cRecordM[key] = true;
+                }
             }
         });
         return hasErr;
@@ -3927,7 +4017,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.2.5", "release": "20180513", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.2.6", "release": "20180517", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),

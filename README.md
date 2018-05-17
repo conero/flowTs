@@ -87,7 +87,7 @@
             ]
         },
         data: 'obejct'  // 保存的历史数据
-        rCodes: 'string|string[]'   // 运行过的节点代码
+        rCodes: 'string|string[]'   // 运行过的节点代码， 字符串 'A1, A2, A*' => ['A1', 'A2', 'A*']
         bkg: {  // 背景色
             urunNd: '#CDC5BF'  // 未运行节点
             urunTxt: '#000000' // 未运行文本

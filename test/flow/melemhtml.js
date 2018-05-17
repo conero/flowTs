@@ -23,7 +23,9 @@ $(function(){
         data: cacheDt
         // , noToolBar: true
         // noToolBar: true
-        , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10', 'A11*']
+        // , rCodes: ['A1', 'A6', 'A5', 'A7', 'A12', 'A10', 'A11*']
+        // , rCodes: ['A1', 'A2', 'A3', 'A5', 'A13', 'A14', 'A2*']
+        , rCodes: ['A1', 'A2', 'A3', 'A5', 'A6', 'A11', 'A15', 'A16', 'A18', 'A19', 'A20', 'A2*']
 
         // 事件绑定
         , bindOEvts: true

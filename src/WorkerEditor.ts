@@ -166,54 +166,56 @@ export default class WorkerEditor{
             // }
             let ndAst: rSu.Node,
                 tP: rSu.P = {x: 0, y:0}
-            nd.c.drag(function(dx: number, dy: number): any{
-                dx += tP.x
-                dy += tP.y
-                if(ndAst){
-                    ndAst.updAttr({cx: dx, cy: dy})
-                }                    
-            },
-            function(): any{
-                let {cx, cy} = nd.opt
-                tP.x = cx
-                tP.y = cy
-                cx += 25
-                let ndOpt:rSu.NodeOpt = {cx, cy, w: 50, h:40}
-                if(cNode[key]){
-                    ndOpt.text = cNode[key].text
-                }           
-                // 默认颜色，新增节点未运行状态
-                ndOpt.bkg = bkg.urunNd || '#CDC5BF'
-
-                ndAst = $this.ndMer.make(key, ndOpt)
-                    .creator()
-                    .moveable({
-                        beforeMv: function(node: rSu.Node){
-                            if($this.previewMk){
-                                return false
+            
+            nd.c.drag(
+                function(dx: number, dy: number): any{
+                    dx += tP.x
+                    dy += tP.y
+                    if(ndAst){
+                        ndAst.updAttr({cx: dx, cy: dy})
+                    }                    
+                },
+                function(): any{
+                    let {cx, cy} = nd.opt
+                    tP.x = cx
+                    tP.y = cy
+                    cx += 25
+                    let ndOpt:rSu.NodeOpt = {cx, cy, w: 50, h:40}
+                    if(cNode[key]){
+                        ndOpt.text = cNode[key].text
+                    }           
+                    // 默认颜色，新增节点未运行状态
+                    ndOpt.bkg = bkg.urunNd || '#CDC5BF'
+                    ndAst = $this.ndMer
+                        .make(key, ndOpt)
+                        .creator()
+                },
+                function(): any{
+                    ndAst.moveable({
+                            beforeMv: function(node: rSu.Node){
+                                if($this.previewMk){
+                                    return false
+                                }
+                            },
+                            afterUpd: function(x: number, y: number, node: rSu.Node){
+                                $this._lineMoveSync(x, y, node)
                             }
-                        },
-                        afterUpd: function(x: number, y: number, node: rSu.Node){
-                            $this._lineMoveSync(x, y, node)
-                        }
-                    })
-                $this._nodeBindEvt(ndAst)
-                if('text' == ndAst.NodeType){
-                    let tIdx = $this._order('t', 'T')
-                    // 保存到字典中
-                    ndAst.data('_code', tIdx)
-                    $this.textDick[tIdx] = ndAst
+                        })
+                    $this._nodeBindEvt(ndAst)
+                    if('text' == ndAst.NodeType){
+                        let tIdx = $this._order('t', 'T')
+                        // 保存到字典中
+                        ndAst.data('_code', tIdx)
+                        $this.textDick[tIdx] = ndAst
+                    }
+                    else{
+                        let _index = $this._order('n', 'A')
+                        // 保存到字典中
+                        ndAst.data('_code', _index)
+                        $this.nodeDick[_index] = ndAst
+                    }      
                 }
-                else{
-                    let _index = $this._order('n', 'A')
-                    // 保存到字典中
-                    ndAst.data('_code', _index)
-                    $this.nodeDick[_index] = ndAst
-                }                
-            },
-            function(): any{
-                console.log(this, '测试：end')
-            })
+            )
         })
         // 连接线 -----------------
         let {lnCon, lnPolyCon} = connElems,
@@ -1204,7 +1206,15 @@ export default class WorkerEditor{
             }
         }
         if(!code){
-            removeNode(this.select())
+            let {node, text, conn} = this.selectGroup()
+            let eachNodeFn = (rs: rSu.bsMap) => {
+                Util.each(rs, (i: number, nd: rSu.Node) => {
+                    removeNode(nd)
+                })
+            }
+            eachNodeFn(node)
+            eachNodeFn(text)
+            eachNodeFn(conn)
         }else if('object' == typeof code){
             removeNode(code)
         }else{
@@ -1430,7 +1440,7 @@ export default class WorkerEditor{
         return data
     }
     /**
-     * 获取选中的实例
+     * 获取选中的实例(单节点)
      */
     select(): rSu.Node{     
         let selectedNode: rSu.Node = null
@@ -1460,6 +1470,36 @@ export default class WorkerEditor{
             })
         }
         return selectedNode
+    }
+    /**
+     * 选中连接实例的点(分组，所有节点)
+     * @returns {object} {type: node[]} -> {node: [], conn: [], text: []}
+     */
+    selectGroup(): rSu.bsMap{
+        let mNode: rSu.bsMap = {
+            node: [],
+            conn: [],
+            text: []
+        }
+        // 节点
+        Util.each(this.nodeDick, (cd: string, nd: rSu.Node) => {
+            if(nd.isSelEd){
+                mNode.node.push(nd)
+            }
+        })
+        // 连线
+        Util.each(this.connDick, (cd: string, nd: rSu.Node) => {
+            if(nd.isSelEd){
+                mNode.node.push(nd)
+            }
+        })
+        // 文本
+        Util.each(this.textDick, (cd: string, nd: rSu.Node) => {
+            if(nd.isSelEd){
+                mNode.node.push(nd)
+            }
+        })
+        return mNode
     }
     /**
      * 获取节点属性
@@ -1575,22 +1615,8 @@ export default class WorkerEditor{
         let config = this.config,
             rCodes: string| string[] = config.rCodes || null,
             bkg: rSu.bsMap = config.bkg || {},
-            ranNodeBkg = bkg.ranNode || '',
             noIcon: boolean = 'undefined' == typeof config.icon,
             icon: rSu.bsMap = config.icon || {}   
-
-        rCodes = rCodes? ('object' == typeof rCodes? rCodes: [rCodes]): []
-        let isRunning: string = null //  正在运行的脚本
-
-        let rCodesTmp: string[] = []
-        Util.each(rCodes, (i: number, rc: string) => {
-            if(rc.indexOf('*') > -1){
-                isRunning = rc.replace('*', '')
-            }else{
-                rCodesTmp.push(rc)
-            }
-        })
-        rCodes = rCodesTmp
 
         // 节点生成复原
         Util.each(_srroo.node, (cd: string, nd: rSu.bsMap) => {
@@ -1621,65 +1647,9 @@ export default class WorkerEditor{
                 })
             // 保存到字典中
             $node.data('_code', cd)
-            let cdIdx = Util.inArray(cd, <any[]>rCodes)
+
             // 悬停提示
             $node.textTip = nd.textTip || null
-
-            // 生成图标
-            let iconState: rSu.bsMap = icon.state || {}
-            let createIconFn = (iconSrc: string) => {
-                if(noIcon){
-                    return
-                }
-                let iconP: rSu.P = $node.getIconP()
-                if(iconP){                    
-                    let rect: number = 10
-                    $node.tRElem['icon'] = this.paper.image(iconSrc, iconP.x, iconP.y, rect, rect)
-                }
-            }
-
-            // 生成图标
-            if(cdIdx > -1){ // 已经运行
-                $node.data('state', 'isRan')
-                createIconFn(iconState.ran || 'state_ran.png')
-                $node.opt.bkg = bkg.ranNd || '#32CD32'
-                $node.opt.bkgTxt = bkg.ranTxt || '#FFFFFF'
-                $node.background(['node', 'text'])
-            }
-            else if(isRunning && cd == isRunning){    // 正在运行
-                $node.data('state', 'isRunning')
-                createIconFn(iconState.runing || 'state_running.png')
-                $node.opt.bkg = bkg.runningNd || '#0000FF'
-                $node.opt.bkgTxt = bkg.runningTxt || '#FFFFFF'
-                $node.background(['node', 'text'])
-            }
-            // 徽标
-            let iconImg = $node.tRElem['icon']
-            if(iconImg){
-                iconImg.hover(
-                    function(){
-                        // f_in
-                        let state = $node.data('state')
-                        let title = ''
-                        switch(state){
-                            case 'isRan':
-                                title = '已经运行'
-                                break
-                            case 'isRunning':
-                                title = '正在运行中'
-                                break
-                        }
-                        let offset = $this.getDomOffset()
-                        $this.tooltip(title, 
-                            this.attr('x') + offset.left + 20, 
-                            this.attr('y') + offset.top + 2
-                        )
-                    },
-                    function(){
-                        $this.tooltip('')
-                    },
-                )
-            }
 
             this._nodeBindEvt($node)
             $this.nodeDick[cd] = $node
@@ -1716,14 +1686,6 @@ export default class WorkerEditor{
             }
             if(tIst){   // 终点
                 tIst.line(cd, true)
-                let nodeBkg: string = tIst.opt.bkg
-                $ln.opt.bkg = nodeBkg
-                $ln.c.attr('stroke', nodeBkg)
-                // 箭头，箭体颜色一致性变化
-                if($ln.inlineEle){
-                    $ln.inlineEle.attr('stroke', nodeBkg)
-                    $ln.inlineEle.attr('fill', nodeBkg)
-                }
             }
             // 悬停提示
             $ln.textTip = ln.textTip || null
@@ -1756,10 +1718,143 @@ export default class WorkerEditor{
         if(!config.closeSize){
             this.autoSize()
         }
+        this.stateRender()
+        return this
+    }
+    /**
+     * 状态渲染
+     */
+    stateRender(){
+        let {config} = this, 
+            {rCodes} = config,
+            $this = this
+        // 运行状态
+        if(rCodes){
+            let bkg: rSu.bsMap = config.bkg || {},
+                urunNd = bkg.urunNd || '#CDC5BF',
+                urunTxt = bkg.urunNd || '#000000',
+                runningNd = bkg.runningNd || '#0000FF',
+                runningTxt = bkg.runningTxt || '#FFFFFF',
+                ranNd = bkg.ranNd || '#32CD32',
+                ranTxt = bkg.ranTxt || '#FFFFFF'
+
+            let noIcon: boolean = 'undefined' == typeof config.icon,
+                icon: rSu.bsMap = config.icon || {}   
+
+            // 字符串转数组类型
+            if('object' != typeof rCodes){
+                if(rCodes.indexOf(',') > -1){
+                    rCodes = rCodes.replace(/\s/g, '')
+                    rCodes = rCodes.split(',')
+                }
+                else{
+                    rCodes = [rCodes]
+                }
+            }
+
+            // 生成图标
+            let iconState: rSu.bsMap = icon.state || {}
+            let createIconFn = (iconSrc: string, node: rSu.Node) => {
+                if(noIcon){
+                    return
+                }
+                let iconP: rSu.P = node.getIconP()
+                if(iconP){                    
+                    let rect: number = 10
+                    node.tRElem['icon'] = this.paper.image(iconSrc, iconP.x, iconP.y, rect, rect)
+                }
+            }
+            
+            // 变量连线，用于连线渲染
+            let conRendMap: rSu.bsMap = {}
+            Util.each(this.connDick, (cd: string, ist: rSu.Node) => {
+                let cData: rSu.bsMap = ist.data(),
+                    {from_code, to_code} = cData
+                if(!from_code || !to_code){
+                    return
+                }
+                let crmKey: string = `${from_code}_${to_code}`
+                conRendMap[crmKey] = cd
+            })
+            // console.log(conRendMap);
+
+            // 渲染处理
+            Util.each(rCodes, (i: number, cd: string) => {
+                // 正在运行
+                let isRunningMk: boolean = false
+                if(cd.indexOf('*') > -1){
+                    cd = cd.replace('*', '')
+                    isRunningMk = true
+                }
+                let node: rSu.Node = this.nodeDick[cd]
+                if(!node){
+                    return
+                }
+                // 节点渲染
+                if(isRunningMk){   // 正在运行
+                    node.data('state', 'isRunning')
+                    node.opt.bkg = runningNd
+                    node.opt.bkgTxt = runningTxt
+                    node.background(['node', 'text'])
+
+                    createIconFn(iconState.ran || 'state_ran.png', node)
+                }
+                else{   // 已经运行
+                    node.data('state', 'isRan')
+                    node.opt.bkg = ranNd
+                    node.opt.bkgTxt = ranTxt
+                    node.background(['node', 'text'])
+
+                    createIconFn(iconState.ran || 'state_ran.png', node)
+                }
+
+                // 徽标
+                let iconImg = node.tRElem['icon']
+                if(iconImg){
+                    iconImg.hover(
+                        function(){
+                            // f_in
+                            let state = node.data('state')
+                            let title = ''
+                            switch(state){
+                                case 'isRan':
+                                    title = '已经运行'
+                                    break
+                                case 'isRunning':
+                                    title = '正在运行中'
+                                    break
+                            }
+                            let offset = $this.getDomOffset()
+                            $this.tooltip(title, 
+                                this.attr('x') + offset.left + 20, 
+                                this.attr('y') + offset.top + 2
+                            )
+                        },
+                        function(){
+                            $this.tooltip('')
+                        },
+                    )
+                }
+
+                // 连线渲染
+                let crmKey2: string = i>0? `${rCodes[i-1]}_${cd}` : null,
+                    lnCd: string,
+                    lnIst: rSu.Node
+                if(crmKey2 && (lnCd = conRendMap[crmKey2]) && (lnIst = this.connDick[lnCd])){
+                    let bkgCol: string = isRunningMk? runningNd : ranNd
+                    lnIst.opt.bkg = bkgCol
+                    lnIst.c.attr('stroke', bkgCol)
+                    // 箭头，箭体颜色一致性变化
+                    if(lnIst.inlineEle){
+                        lnIst.inlineEle.attr('stroke', bkgCol)
+                        lnIst.inlineEle.attr('fill', bkgCol)
+                    }
+                }
+            })
+        }
 
         return this
     }
-    // removeTmpNode(value?: any){
     removeTmpNode(value?: string | string[]){
        if(value){
            let queue: string[] = []
@@ -1939,11 +2034,24 @@ export default class WorkerEditor{
         if(!noClear){
             this.removeAllSeled()
         }
+        let cRecordM: rSu.bsMap = {}    // 节点连线记录
         Util.each(this.connDick, (code: string, node: rSu.Node) => {
-            let data = node.data()
-            if(!data.to_code || !data.from_code){
+            let data = node.data(),
+                {to_code, from_code} = data
+            if(!to_code || !from_code){
                 node.select()
                 hasErr = true
+            }
+            else{               
+                // 重复的连线
+                let key: string =  `${from_code}__${to_code}`
+                if(cRecordM[key]){
+                    node.select()
+                    hasErr = true
+                }
+                else{
+                    cRecordM[key] = true
+                }                
             }
         })
         return hasErr

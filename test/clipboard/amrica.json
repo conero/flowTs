@@ -1,0 +1,535 @@
+{
+    "data": [
+        {
+            "code": "A1",
+            "opt": {
+                "cx": 241,
+                "cy": 57,
+                "w": 50,
+                "h": 40,
+                "text": "开始",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                }
+            },
+            "NodeType": "begin",
+            "data": {
+                "_code": "A1"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A2",
+            "opt": {
+                "cx": 241,
+                "cy": 152,
+                "w": 50,
+                "h": 40,
+                "text": "预选",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                }
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A2"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A3",
+            "opt": {
+                "cx": 240,
+                "cy": 228,
+                "w": 102,
+                "h": 24,
+                "text": "总统候选人提名",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                }
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A3"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A4",
+            "opt": {
+                "cx": 241,
+                "cy": 300.5,
+                "w": 66,
+                "h": 31,
+                "text": "竞选运动",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                }
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A4"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A5",
+            "opt": {
+                "cx": 242.5,
+                "cy": 390,
+                "w": 65,
+                "h": 28,
+                "text": "全国选举",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                }
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A5"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A6",
+            "opt": {
+                "cx": 244.5,
+                "cy": 493,
+                "w": 81,
+                "h": 26,
+                "text": "选举出总统",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                }
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A6"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A7",
+            "opt": {
+                "cx": 464,
+                "cy": 491.5,
+                "w": 82,
+                "h": 33,
+                "text": "提名副总统",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                }
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A7"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A8",
+            "opt": {
+                "cx": 464.5,
+                "cy": 388,
+                "w": 71,
+                "h": 40,
+                "text": "国会同意",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                }
+            },
+            "NodeType": "cond",
+            "data": {
+                "_code": "A8"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A9",
+            "opt": {
+                "cx": 461.20000000000005,
+                "cy": 281.2,
+                "w": 96,
+                "h": 26,
+                "text": "选举出副总统",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                }
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A9"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A10",
+            "opt": {
+                "cx": 659,
+                "cy": 284,
+                "w": 50,
+                "h": 40,
+                "text": "结束",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                }
+            },
+            "NodeType": "end",
+            "data": {
+                "_code": "A10"
+            },
+            "type": "node"
+        },
+        {
+            "code": "C1",
+            "opt": {
+                "P1": {
+                    "x": 240.99999999999997,
+                    "y": 80
+                },
+                "P2": {
+                    "x": 241,
+                    "y": 129
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "from_code": "A1",
+                "from_posi": "f",
+                "to_code": "A2",
+                "to_posi": "b",
+                "_code": "C1"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C2",
+            "opt": {
+                "P1": {
+                    "x": 241,
+                    "y": 175
+                },
+                "P2": {
+                    "x": 240,
+                    "y": 213
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "from_code": "A2",
+                "from_posi": "f",
+                "to_code": "A3",
+                "to_posi": "b",
+                "_code": "C2"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C3",
+            "opt": {
+                "P1": {
+                    "x": 240,
+                    "y": 243
+                },
+                "P2": {
+                    "x": 241,
+                    "y": 282
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "from_code": "A3",
+                "from_posi": "f",
+                "to_code": "A4",
+                "to_posi": "b",
+                "_code": "C3"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C4",
+            "opt": {
+                "P1": {
+                    "x": 241,
+                    "y": 319
+                },
+                "P2": {
+                    "x": 242.5,
+                    "y": 373
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "from_code": "A4",
+                "from_posi": "f",
+                "to_code": "A5",
+                "to_posi": "b",
+                "_code": "C4"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C5",
+            "opt": {
+                "P1": {
+                    "x": 242.5,
+                    "y": 407
+                },
+                "P2": {
+                    "x": 244.5,
+                    "y": 477
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "from_code": "A5",
+                "from_posi": "f",
+                "to_code": "A6",
+                "to_posi": "b",
+                "_code": "C5"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C6",
+            "opt": {
+                "P1": {
+                    "x": 288,
+                    "y": 493
+                },
+                "P2": {
+                    "x": 420,
+                    "y": 491.5
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "from_code": "A6",
+                "from_posi": "d",
+                "to_code": "A7",
+                "to_posi": "h",
+                "_code": "C6"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C7",
+            "opt": {
+                "P1": {
+                    "x": 464,
+                    "y": 472
+                },
+                "P2": {
+                    "x": 464.5,
+                    "y": 411
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "from_code": "A7",
+                "from_posi": "b",
+                "to_code": "A8",
+                "to_posi": "f",
+                "_code": "C7"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C8",
+            "opt": {
+                "P1": {
+                    "x": 464.5,
+                    "y": 365
+                },
+                "P2": {
+                    "x": 461.20000000000005,
+                    "y": 297.2
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "from_code": "A8",
+                "from_posi": "b",
+                "to_code": "A9",
+                "to_posi": "f",
+                "_code": "C8"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C9",
+            "opt": {
+                "P1": {
+                    "x": 512.2,
+                    "y": 281.2
+                },
+                "P2": {
+                    "x": 630.9627026924215,
+                    "y": 284
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "from_code": "A9",
+                "from_posi": "d",
+                "to_code": "A10",
+                "to_posi": "h",
+                "_code": "C9"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C11",
+            "opt": {
+                "P1": {
+                    "x": 503,
+                    "y": 388
+                },
+                "P2": {
+                    "x": 508,
+                    "y": 491.5
+                },
+                "r": 5,
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "MPs": [
+                    {
+                        "x": 533,
+                        "y": 388
+                    },
+                    {
+                        "x": 533,
+                        "y": 491.5
+                    }
+                ],
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln_poly",
+            "data": {
+                "from_code": "A8",
+                "from_posi": "d",
+                "to_code": "A7",
+                "to_posi": "d",
+                "_code": "C11"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "T1",
+            "opt": {
+                "cx": 567,
+                "cy": 433,
+                "w": 50,
+                "h": 40,
+                "text": "不同意",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                }
+            },
+            "NodeType": "text",
+            "data": {
+                "_code": "T1"
+            },
+            "type": "text"
+        },
+        {
+            "code": "T2",
+            "opt": {
+                "cx": 497,
+                "cy": 331,
+                "w": 50,
+                "h": 40,
+                "text": "同意",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                }
+            },
+            "NodeType": "text",
+            "data": {
+                "_code": "T2"
+            },
+            "type": "text"
+        }
+    ],
+    "name": "zmapp-workflow-ts"
+}

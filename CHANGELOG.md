@@ -3,6 +3,14 @@
 
 ## ***V2.2.x/alpha-date*** alpha 类型模板
 
+### ***V2.2.6/20180517***
+- src/WorkerEditor.ts
+    - (+) **selectGroup** 新增方法实现 “分组选择” 模块
+    - (+) **stateRender** 新增状态渲染方法，实现状态的文本选中；以及优化 **load** 方法
+    - (优化) **errorLine** 方法将重复连接的直线作为错误判断条件
+    - (优化) **remove** 方法删除所有已经选中的节点，不再仅仅单单一个实例
+    - (修复) **_cerateToolBar** 工具栏节点拖动生成时与节点一致性
+
 ### ***V2.2.5/20180513***
 - src/WorkerEditor.ts
     - (+) **_baseNodeBindEvt** 新增方法用户实现公共节点(包括节点、连线和文本)事件绑定
