@@ -101,6 +101,7 @@
         disEpDragble: '端点禁止拖动大小'
         disDragble: '禁止拖动，包括：连线，节点等'
         disConnNode: '禁止节点连线'
+        disSR: 'default=false 禁止状态渲染'
         bindOEvts: 'bool-绑定操作事件'
         onKeydown: (code) => {} //  bindOEvts 绑定事件以后
         // 图标， 设置 icon 时，设置空值时会自动默认

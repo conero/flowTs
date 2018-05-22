@@ -403,8 +403,12 @@ var NodeAbstract = /** @class */ (function () {
         var $this = this;
         data = 'object' == typeof data ? data : {};
         this.c.undrag();
-        var tP = { cx: 0, cy: 0 };
+        var tP = { cx: 0, cy: 0 }, cDnum = 2; // 当前变化的差值
         this.c.drag(function (dx, dy) {
+            // 选中节点，未移动
+            if (dx == dy && dy == 0) {
+                return;
+            }
             if (data.beforeMv && 'function' == typeof data.beforeMv) {
                 // 阻止移动
                 if (false === data.beforeMv($this)) {
@@ -413,6 +417,10 @@ var NodeAbstract = /** @class */ (function () {
             }
             dx += tP.cx;
             dy += tP.cy;
+            // 结点偏移量检测
+            // if(Math.abs(arguments[0]) < cDnum && Math.abs(arguments[1]) < cDnum){
+            //     return
+            // }
             $this.updAttr({ cx: dx, cy: dy });
             $this.select();
             if (data.afterUpd && 'function' == typeof data.afterUpd) {
@@ -1598,7 +1606,7 @@ $(function(){
         // h: 600
         h: 570,
         data: cacheDt
-        , readonly : 'true'
+        // , readonly : 'true'
         // , noToolBar: true
         // , disConnNode: true
         // noToolBar: true
@@ -1621,6 +1629,7 @@ $(function(){
         // , icon: {}              // 配置空时加载默认
         , toolBar: {hasIcon: true}
         // , closeToolTip : true
+        // , disSR: true      // 键值状态渲染
     })
     
 
@@ -3063,14 +3072,25 @@ var WorkerEditor = /** @class */ (function () {
     WorkerEditor.prototype.copy = function () {
         // >>>
         //>> [{code:code, opt: nodeOpt, cls: ''}]
-        var data = [];
+        var data = [], bkg = this.config.bkg || {}, bkgUrunNd = bkg.urunNd || '#CDC5BF', bkgUrunTxt = bkg.urunTxt || '#000000', stateMask = false;
         var pushToData = function (code, type, node) {
+            var opt = $.extend(true, {}, node.opt), NodeType = node.NodeType, dd = node.data();
+            // 状态过滤-2018年5月22日 星期二
+            if (dd.state && opt.bkg) {
+                delete dd.state;
+                // 节点生成
+                opt.bkg = bkgUrunNd;
+                opt.bkgTxt = bkgUrunTxt;
+                stateMask = true;
+            }
+            else if (stateMask && 'conn' == type) {
+                // 节点生成
+                opt.bkg = bkgUrunNd;
+            }
+            // 数据推送到保存栈                
             data.push({
-                code: code,
-                opt: $.extend(true, {}, node.opt),
-                NodeType: node.NodeType,
-                data: node.data(),
-                type: type
+                code: code, opt: opt, NodeType: NodeType, type: type,
+                data: dd
             });
         };
         __WEBPACK_IMPORTED_MODULE_2__util__["a" /* Util */].each(this.nodeDick, function (code, node) {
@@ -3351,7 +3371,10 @@ var WorkerEditor = /** @class */ (function () {
         if (!config.closeSize) {
             this.autoSize();
         }
-        this.stateRender();
+        // 禁止状态渲染
+        if (!config.disSR) {
+            this.stateRender();
+        }
         return this;
     };
     /**
@@ -3456,11 +3479,19 @@ var WorkerEditor = /** @class */ (function () {
                         lnIst.inlineEle.attr('stroke', bkgCol);
                         lnIst.inlineEle.attr('fill', bkgCol);
                     }
+                    // 直线箭体颜色
+                    if ('ln' == lnIst.NodeType) {
+                        lnIst.c.attr('fill', bkgCol);
+                    }
                 }
             });
         }
         return this;
     };
+    /**
+     * 移除临时节点
+     * @param {string|array} value
+     */
     WorkerEditor.prototype.removeTmpNode = function (value) {
         var _this = this;
         if (value) {
@@ -4040,7 +4071,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.2.6", "release": "20180517", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.2.7", "release": "20180522", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),
@@ -5087,6 +5118,8 @@ var NodeLnPoly = /** @class */ (function (_super) {
     };
     /**
      * 端点移动
+     * @param {rSu.P} p 移动的节点
+     * @param {bool} isEnd 是否为终点
      */
     NodeLnPoly.prototype.mvEndPoint = function (p, isEnd) {
         var tP;
@@ -5244,6 +5277,45 @@ var ObjX = /** @class */ (function () {
  */
 
 /**
+ * 内部私有类，用于数据处理
+ * 2018年5月22日 星期二
+ */
+var cSR = /** @class */ (function () {
+    function cSR() {
+    }
+    /**
+     * 代理节点连接点
+     * @param nd 节点
+     * @param posi 位置
+     * @param opt 选项 {dn: number, box: rSu.BoxAttr}
+     */
+    cSR.agentNodeCnP = function (nd, posi, opt) {
+        opt = 'object' == typeof opt ? opt : {};
+        var p, dtNum = opt.dn || 20 // 相差值
+        , box = opt.box || nd.getBBox(), ps = box.ps, tP;
+        switch (posi) {
+            case 'b': // 正上
+                tP = ps.b;
+                p = { x: tP.x, y: tP.y - dtNum };
+                break;
+            case 'd': // 正右
+                tP = ps.d;
+                p = { x: tP.x + dtNum, y: tP.y };
+                break;
+            case 'f': // 正下
+                tP = ps.f;
+                p = { x: tP.x, y: tP.y + dtNum };
+                break;
+            case 'h': // 正左
+                tP = ps.h;
+                p = { x: tP.x - dtNum, y: tP.y };
+                break;
+        }
+        return p;
+    };
+    return cSR;
+}());
+/**
  * @export
  * @param {rSu.Node} ln
  * @param {rSu.WEditor} work
@@ -5255,10 +5327,36 @@ function LnPolyConn(ln, work, tNd) {
     if (!tNd) {
         tNd = work.nodeDick[to_code];
     }
-    if (tNd) {
-        var fNd = work.nodeDick[from_code], P1 = ln.opt.P1, // 连线起点
+    var fNd = work.nodeDick[from_code];
+    if (tNd && tNd.code == fNd.code) { // 自身连接
+        var AncpOpt = {
+            box: fNd.getBBox()
+        };
+        var ap1 = cSR.agentNodeCnP(fNd, fPosi, AncpOpt), ap2 = cSR.agentNodeCnP(fNd, tPosi, AncpOpt);
+        var apMd = void 0;
+        // = (ap1 && ap2)? NodeUtil.polyP(ap1, ap2, 'ua') : null
+        if ((fPosi == 'f' && (tPosi == 'd' || tPosi == 'h'))
+            || (fPosi == 'b' && (tPosi == 'h' || tPosi == 'd'))) {
+            // 上角拐
+            apMd = __WEBPACK_IMPORTED_MODULE_0__node_NodeUtil__["a" /* default */].polyP(ap1, ap2, 'ua');
+        }
+        else if (((fPosi == 'h' || fPosi == 'd') && tPosi == 'f')
+        // || (fPosi == 'b' && (tPosi == 'h' || tPosi == 'd'))
+        ) {
+            // 下角拐
+            apMd = __WEBPACK_IMPORTED_MODULE_0__node_NodeUtil__["a" /* default */].polyP(ap1, ap2, 'la');
+        }
+        // console.log(ap1, apMd, ap2);
+        if (apMd) {
+            ln.updAttr({
+                MPs: [ap1, apMd, ap2]
+            });
+        }
+    }
+    else if (tNd) {
+        var fNd_1 = work.nodeDick[from_code], P1 = ln.opt.P1, // 连线起点
         P2 = ln.opt.P2, // 连接终点
-        fOpt = fNd.opt, tOpt = tNd.opt, dtX = 10, // X 轴偏差
+        fOpt = fNd_1.opt, tOpt = tNd.opt, dtX = 10, // X 轴偏差
         dtY = 10, // Y 轴偏差
         MPs = [], tx = void 0, ty = void 0;
         // console.log(tPosi, fPosi)

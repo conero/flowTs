@@ -341,12 +341,18 @@ export default abstract class NodeAbstract{
      * @memberof NodeAbstract
      */
     moveable(data?: rSu.bsMap): rSu.Node{
-        var $this = this;
+        let $this = this;
         data = 'object' == typeof data? data : {}
         this.c.undrag()
-        var tP = {cx: 0, cy: 0}
+        let tP = {cx: 0, cy: 0},
+            cDnum: number = 2       // 当前变化的差值
+
         this.c.drag(
             function(dx: number, dy: number){
+                // 选中节点，未移动
+                if(dx == dy && dy == 0){
+                    return
+                }
                 if(data.beforeMv && 'function' == typeof data.beforeMv){
                     // 阻止移动
                     if(false === data.beforeMv($this)){
@@ -356,6 +362,12 @@ export default abstract class NodeAbstract{
 
                 dx += tP.cx
                 dy += tP.cy
+                
+                // 结点偏移量检测
+                // if(Math.abs(arguments[0]) < cDnum && Math.abs(arguments[1]) < cDnum){
+                //     return
+                // }
+
                 $this.updAttr({cx: dx, cy: dy})
                 $this.select()
                 if(data.afterUpd && 'function' == typeof data.afterUpd){

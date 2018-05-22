@@ -1,0 +1,1304 @@
+{
+    "data": [
+        {
+            "code": "A1",
+            "opt": {
+                "cx": 167,
+                "cy": 64,
+                "w": 50,
+                "h": 40,
+                "text": "开始",
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#FFFFFF"
+            },
+            "NodeType": "begin",
+            "data": {
+                "_code": "A1",
+                "state": "isRan"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A2",
+            "opt": {
+                "cx": 166.5,
+                "cy": 139.5,
+                "w": 49,
+                "h": 27,
+                "text": "A2",
+                "bkg": "#0000FF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#FFFFFF"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A2",
+                "state": "isRunning"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A3",
+            "opt": {
+                "cx": 165,
+                "cy": 211,
+                "w": 50,
+                "h": 40,
+                "text": "A3",
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#FFFFFF"
+            },
+            "NodeType": "cond",
+            "data": {
+                "_code": "A3",
+                "state": "isRan"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A4",
+            "opt": {
+                "cx": 165.3,
+                "cy": 289.9,
+                "w": 49,
+                "h": 27,
+                "text": "A4",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#000000"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A4"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A5",
+            "opt": {
+                "cx": 277,
+                "cy": 295,
+                "w": 50,
+                "h": 40,
+                "text": "A5",
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#FFFFFF"
+            },
+            "NodeType": "cond",
+            "data": {
+                "_code": "A5",
+                "state": "isRan"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A6",
+            "opt": {
+                "cx": 278.1,
+                "cy": 386.29999999999995,
+                "w": 49,
+                "h": 27,
+                "text": "A6",
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#FFFFFF"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A6",
+                "state": "isRan"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A7",
+            "opt": {
+                "cx": 163.10000000000002,
+                "cy": 383.29999999999995,
+                "w": 49,
+                "h": 27,
+                "text": "A7",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#000000"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A7"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A8",
+            "opt": {
+                "cx": 163,
+                "cy": 461,
+                "w": 50,
+                "h": 40,
+                "text": "A8",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#000000"
+            },
+            "NodeType": "cond",
+            "data": {
+                "_code": "A8"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A9",
+            "opt": {
+                "cx": 163.90000000000003,
+                "cy": 532.6999999999999,
+                "w": 49,
+                "h": 27,
+                "text": "A9",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#000000"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A9"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A10",
+            "opt": {
+                "cx": 274,
+                "cy": 463.5,
+                "w": 54,
+                "h": 27,
+                "text": "A10",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#000000"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A10"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A11",
+            "opt": {
+                "cx": 418.8,
+                "cy": 464.9,
+                "w": 54,
+                "h": 27,
+                "text": "A11",
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#FFFFFF"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A11",
+                "state": "isRan"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A12",
+            "opt": {
+                "cx": 278.6,
+                "cy": 533.3,
+                "w": 54,
+                "h": 27,
+                "text": "A12",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#000000"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A12"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A13",
+            "opt": {
+                "cx": 420.3,
+                "cy": 298.9,
+                "w": 49,
+                "h": 27,
+                "text": "A13",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#000000"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A13"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A14",
+            "opt": {
+                "cx": 418.1,
+                "cy": 198.29999999999995,
+                "w": 49,
+                "h": 27,
+                "text": "A14",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#000000"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A14"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A15",
+            "opt": {
+                "cx": 523.6,
+                "cy": 469.29999999999995,
+                "w": 54,
+                "h": 27,
+                "text": "A15",
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#FFFFFF"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A15",
+                "state": "isRan"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A16",
+            "opt": {
+                "cx": 625,
+                "cy": 471,
+                "w": 50,
+                "h": 40,
+                "text": "A16",
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#FFFFFF"
+            },
+            "NodeType": "cond",
+            "data": {
+                "_code": "A16",
+                "state": "isRan"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A17",
+            "opt": {
+                "cx": 737.4,
+                "cy": 470.69999999999993,
+                "w": 54,
+                "h": 27,
+                "text": "A17",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#000000"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A17"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A18",
+            "opt": {
+                "cx": 624.1999999999999,
+                "cy": 389.0999999999999,
+                "w": 54,
+                "h": 27,
+                "text": "A18",
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#FFFFFF"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A18",
+                "state": "isRan"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A19",
+            "opt": {
+                "cx": 623.9999999999999,
+                "cy": 315.4999999999999,
+                "w": 54,
+                "h": 27,
+                "text": "A19",
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#FFFFFF"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A19",
+                "state": "isRan"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A20",
+            "opt": {
+                "cx": 623,
+                "cy": 236,
+                "w": 50,
+                "h": 40,
+                "text": "A20",
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#FFFFFF"
+            },
+            "NodeType": "cond",
+            "data": {
+                "_code": "A20",
+                "state": "isRan"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A21",
+            "opt": {
+                "cx": 738.1999999999999,
+                "cy": 388.0999999999999,
+                "w": 54,
+                "h": 27,
+                "text": "A21",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#000000"
+            },
+            "NodeType": "task",
+            "data": {
+                "_code": "A21"
+            },
+            "type": "node"
+        },
+        {
+            "code": "A22",
+            "opt": {
+                "cx": 838,
+                "cy": 388,
+                "w": 50,
+                "h": 40,
+                "text": "结束",
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "boxPadding": 3
+                },
+                "bkgTxt": "#000000"
+            },
+            "NodeType": "end",
+            "data": {
+                "_code": "A22"
+            },
+            "type": "node"
+        },
+        {
+            "code": "C1",
+            "opt": {
+                "P1": {
+                    "x": 167,
+                    "y": 87
+                },
+                "P2": {
+                    "x": 166.5,
+                    "y": 123
+                },
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C1",
+                "from_code": "A1",
+                "from_posi": "f",
+                "to_code": "A2",
+                "to_posi": "b"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C2",
+            "opt": {
+                "P1": {
+                    "x": 166.5,
+                    "y": 156
+                },
+                "P2": {
+                    "x": 165,
+                    "y": 188
+                },
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C2",
+                "from_code": "A2",
+                "from_posi": "f",
+                "to_code": "A3",
+                "to_posi": "b"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C3",
+            "opt": {
+                "P1": {
+                    "x": 165,
+                    "y": 234
+                },
+                "P2": {
+                    "x": 165.3,
+                    "y": 273.4
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C3",
+                "from_code": "A3",
+                "from_posi": "f",
+                "to_code": "A4",
+                "to_posi": "b"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C4",
+            "opt": {
+                "P1": {
+                    "x": 165.3,
+                    "y": 306.4
+                },
+                "P2": {
+                    "x": 163.10000000000002,
+                    "y": 366.79999999999995
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C4",
+                "from_code": "A4",
+                "from_posi": "f",
+                "to_code": "A7",
+                "to_posi": "b"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C5",
+            "opt": {
+                "P1": {
+                    "x": 163.10000000000002,
+                    "y": 399.79999999999995
+                },
+                "P2": {
+                    "x": 163,
+                    "y": 438
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C5",
+                "from_code": "A7",
+                "from_posi": "f",
+                "to_code": "A8",
+                "to_posi": "b"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C6",
+            "opt": {
+                "P1": {
+                    "x": 163,
+                    "y": 484
+                },
+                "P2": {
+                    "x": 163.90000000000003,
+                    "y": 516.1999999999999
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C6",
+                "from_code": "A8",
+                "from_posi": "f",
+                "to_code": "A9",
+                "to_posi": "b"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C7",
+            "opt": {
+                "P1": {
+                    "x": 193,
+                    "y": 211
+                },
+                "P2": {
+                    "x": 277,
+                    "y": 272
+                },
+                "r": 5,
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "MPs": [
+                    {
+                        "x": 277,
+                        "y": 211
+                    }
+                ],
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln_poly",
+            "data": {
+                "_code": "C7",
+                "from_code": "A3",
+                "from_posi": "d",
+                "to_code": "A5",
+                "to_posi": "b"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C8",
+            "opt": {
+                "P1": {
+                    "x": 277,
+                    "y": 318
+                },
+                "P2": {
+                    "x": 278.1,
+                    "y": 369.79999999999995
+                },
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C8",
+                "from_code": "A5",
+                "from_posi": "f",
+                "to_code": "A6",
+                "to_posi": "b"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C9",
+            "opt": {
+                "P1": {
+                    "x": 274,
+                    "y": 447
+                },
+                "P2": {
+                    "x": 274,
+                    "y": 447
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "MPs": [],
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C10",
+                "from_code": "A10",
+                "from_posi": "b",
+                "to_code": "A10",
+                "to_posi": "b"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C10",
+            "opt": {
+                "P1": {
+                    "x": 274,
+                    "y": 447
+                },
+                "P2": {
+                    "x": 274,
+                    "y": 447
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "MPs": [],
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C10",
+                "from_code": "A10",
+                "from_posi": "b",
+                "to_code": "A10",
+                "to_posi": "b"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C11",
+            "opt": {
+                "P1": {
+                    "x": 191.40000000000003,
+                    "y": 532.6999999999999
+                },
+                "P2": {
+                    "x": 248.60000000000002,
+                    "y": 533.3
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C11",
+                "from_code": "A9",
+                "from_posi": "d",
+                "to_code": "A12",
+                "to_posi": "h"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C12",
+            "opt": {
+                "P1": {
+                    "x": 191,
+                    "y": 461
+                },
+                "P2": {
+                    "x": 244,
+                    "y": 463.5
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C12",
+                "from_code": "A8",
+                "from_posi": "d",
+                "to_code": "A10",
+                "to_posi": "h"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C13",
+            "opt": {
+                "P1": {
+                    "x": 304,
+                    "y": 463.5
+                },
+                "P2": {
+                    "x": 388.8,
+                    "y": 464.9
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C13",
+                "from_code": "A10",
+                "from_posi": "d",
+                "to_code": "A11",
+                "to_posi": "h"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C14",
+            "opt": {
+                "P1": {
+                    "x": 305,
+                    "y": 295
+                },
+                "P2": {
+                    "x": 392.8,
+                    "y": 298.9
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C14",
+                "from_code": "A5",
+                "from_posi": "d",
+                "to_code": "A13",
+                "to_posi": "h"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C15",
+            "opt": {
+                "P1": {
+                    "x": 420.3,
+                    "y": 282.4
+                },
+                "P2": {
+                    "x": 418.1,
+                    "y": 214.79999999999995
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C15",
+                "from_code": "A13",
+                "from_posi": "b",
+                "to_code": "A14",
+                "to_posi": "f"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C16",
+            "opt": {
+                "P1": {
+                    "x": 418.1,
+                    "y": 181.79999999999995
+                },
+                "P2": {
+                    "x": 194,
+                    "y": 139.5
+                },
+                "r": 5,
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "MPs": [
+                    {
+                        "x": 418.1,
+                        "y": 139.5
+                    }
+                ],
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln_poly",
+            "data": {
+                "_code": "C16",
+                "from_code": "A14",
+                "from_posi": "b",
+                "to_code": "A2",
+                "to_posi": "d"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C17",
+            "opt": {
+                "P1": {
+                    "x": 305.6,
+                    "y": 386.29999999999995
+                },
+                "P2": {
+                    "x": 418.8,
+                    "y": 448.4
+                },
+                "r": 5,
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "MPs": [
+                    {
+                        "x": 418.8,
+                        "y": 386.29999999999995
+                    }
+                ],
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln_poly",
+            "data": {
+                "_code": "C17",
+                "from_code": "A6",
+                "from_posi": "d",
+                "to_code": "A11",
+                "to_posi": "b"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C18",
+            "opt": {
+                "P1": {
+                    "x": 308.6,
+                    "y": 533.3
+                },
+                "P2": {
+                    "x": 388.8,
+                    "y": 464.9
+                },
+                "r": 5,
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "MPs": [
+                    {
+                        "x": 358.8,
+                        "y": 533.3
+                    },
+                    {
+                        "x": 358.8,
+                        "y": 464.9
+                    }
+                ],
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln_poly",
+            "data": {
+                "_code": "C18",
+                "from_code": "A12",
+                "from_posi": "d",
+                "to_code": "A11",
+                "to_posi": "h"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C19",
+            "opt": {
+                "P1": {
+                    "x": 448.8,
+                    "y": 464.9
+                },
+                "P2": {
+                    "x": 493.6,
+                    "y": 469.29999999999995
+                },
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C19",
+                "from_code": "A11",
+                "from_posi": "d",
+                "to_code": "A15",
+                "to_posi": "h"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C20",
+            "opt": {
+                "P1": {
+                    "x": 553.6,
+                    "y": 469.29999999999995
+                },
+                "P2": {
+                    "x": 597,
+                    "y": 471
+                },
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C20",
+                "from_code": "A15",
+                "from_posi": "d",
+                "to_code": "A16",
+                "to_posi": "h"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C21",
+            "opt": {
+                "P1": {
+                    "x": 625,
+                    "y": 448
+                },
+                "P2": {
+                    "x": 624.1999999999999,
+                    "y": 405.5999999999999
+                },
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C21",
+                "from_code": "A16",
+                "from_posi": "b",
+                "to_code": "A18",
+                "to_posi": "f"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C22",
+            "opt": {
+                "P1": {
+                    "x": 653,
+                    "y": 471
+                },
+                "P2": {
+                    "x": 707.4,
+                    "y": 470.69999999999993
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C22",
+                "from_code": "A16",
+                "from_posi": "d",
+                "to_code": "A17",
+                "to_posi": "h"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C23",
+            "opt": {
+                "P1": {
+                    "x": 624.1999999999999,
+                    "y": 372.5999999999999
+                },
+                "P2": {
+                    "x": 623.9999999999999,
+                    "y": 331.9999999999999
+                },
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C23",
+                "from_code": "A18",
+                "from_posi": "b",
+                "to_code": "A19",
+                "to_posi": "f"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C24",
+            "opt": {
+                "P1": {
+                    "x": 623.9999999999999,
+                    "y": 298.9999999999999
+                },
+                "P2": {
+                    "x": 623,
+                    "y": 259
+                },
+                "bkg": "#32CD32",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C24",
+                "from_code": "A19",
+                "from_posi": "b",
+                "to_code": "A20",
+                "to_posi": "f"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C25",
+            "opt": {
+                "P1": {
+                    "x": 623,
+                    "y": 213
+                },
+                "P2": {
+                    "x": 194,
+                    "y": 139.5
+                },
+                "r": 5,
+                "bkg": "#0000FF",
+                "bkgMagnetic": "#FF0000",
+                "MPs": [
+                    {
+                        "x": 623,
+                        "y": 139.5
+                    }
+                ],
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln_poly",
+            "data": {
+                "_code": "C25",
+                "from_code": "A20",
+                "from_posi": "b",
+                "to_code": "A2",
+                "to_posi": "d"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C26",
+            "opt": {
+                "P1": {
+                    "x": 737.4,
+                    "y": 454.19999999999993
+                },
+                "P2": {
+                    "x": 738.1999999999999,
+                    "y": 404.5999999999999
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C26",
+                "from_code": "A17",
+                "from_posi": "b",
+                "to_code": "A21",
+                "to_posi": "f"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C27",
+            "opt": {
+                "P1": {
+                    "x": 768.1999999999999,
+                    "y": 388.0999999999999
+                },
+                "P2": {
+                    "x": 809.9627026924214,
+                    "y": 388
+                },
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln",
+            "data": {
+                "maxR": 5,
+                "_code": "C27",
+                "from_code": "A21",
+                "from_posi": "d",
+                "to_code": "A22",
+                "to_posi": "h"
+            },
+            "type": "conn"
+        },
+        {
+            "code": "C28",
+            "opt": {
+                "P1": {
+                    "x": 651,
+                    "y": 236
+                },
+                "P2": {
+                    "x": 738.1999999999999,
+                    "y": 371.5999999999999
+                },
+                "r": 5,
+                "bkg": "#CDC5BF",
+                "bkgMagnetic": "#FF0000",
+                "MPs": [
+                    {
+                        "x": 738.1999999999999,
+                        "y": 236
+                    }
+                ],
+                "features": {
+                    "focusPBkg": "#990000"
+                }
+            },
+            "NodeType": "ln_poly",
+            "data": {
+                "_code": "C28",
+                "from_code": "A20",
+                "from_posi": "d",
+                "to_code": "A21",
+                "to_posi": "b"
+            },
+            "type": "conn"
+        }
+    ],
+    "name": "zmapp-workflow-ts"
+}

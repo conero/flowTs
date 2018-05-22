@@ -197,6 +197,8 @@ export default class NodeLnPoly extends NodeAbstract{
     }
     /**
      * 端点移动
+     * @param {rSu.P} p 移动的节点
+     * @param {bool} isEnd 是否为终点
      */
     mvEndPoint(p: rSu.P, isEnd?: boolean){
         let tP: rSu.P

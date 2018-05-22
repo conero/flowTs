@@ -21,7 +21,7 @@ $(function(){
         // h: 600
         h: 570,
         data: cacheDt
-        , readonly : 'true'
+        // , readonly : 'true'
         // , noToolBar: true
         // , disConnNode: true
         // noToolBar: true
@@ -44,6 +44,7 @@ $(function(){
         // , icon: {}              // 配置空时加载默认
         , toolBar: {hasIcon: true}
         // , closeToolTip : true
+        // , disSR: true      // 键值状态渲染
     })
     
 

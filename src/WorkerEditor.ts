@@ -139,7 +139,6 @@ export default class WorkerEditor{
                 let to_code = toLn.data('to_code'),
                     to_posi = toLn.data('to_posi'),
                     {ps} = node.getBBox()
-                // toLn.updAttr({P2: ps[to_posi]})
                 ;(<any>toLn).mvEndPoint(ps[to_posi], true)
             }
         })
@@ -1424,14 +1423,36 @@ export default class WorkerEditor{
     copy(): rSu.bsMap[]{
         // >>>
             //>> [{code:code, opt: nodeOpt, cls: ''}]
-        let data: rSu.bsMap[] = []
+        let data: rSu.bsMap[] = [],
+            bkg: rSu.bsMap = this.config.bkg || {},
+            bkgUrunNd: string = bkg.urunNd || '#CDC5BF',
+            bkgUrunTxt: string = bkg.urunTxt || '#000000',
+            stateMask: boolean = false
+
+
         let pushToData = (code: string, type: string, node: rSu.Node) => {
+            let opt = $.extend(true, {}, node.opt),
+                {NodeType} = node,
+                dd = node.data()
+            
+            // 状态过滤-2018年5月22日 星期二
+            if(dd.state && opt.bkg){
+                delete dd.state
+                // 节点生成
+                opt.bkg = bkgUrunNd
+                opt.bkgTxt = bkgUrunTxt
+                stateMask = true
+            }
+            else if(stateMask && 'conn' == type){
+                // 节点生成
+                opt.bkg = bkgUrunNd
+            }
+
+            // 数据推送到保存栈                
             data.push({
-                code, 
-                opt: $.extend(true, {}, node.opt),
-                NodeType: node.NodeType,
-                data: node.data(),
-                type
+                code,  opt, NodeType, type,
+                data: dd
+                
             })
         }
         Util.each(this.nodeDick, (code: string, node: rSu.Node) => {
@@ -1739,7 +1760,10 @@ export default class WorkerEditor{
         if(!config.closeSize){
             this.autoSize()
         }
-        this.stateRender()
+        // 禁止状态渲染
+        if(!config.disSR){
+            this.stateRender()
+        }        
         return this
     }
     /**
@@ -1870,12 +1894,20 @@ export default class WorkerEditor{
                         lnIst.inlineEle.attr('stroke', bkgCol)
                         lnIst.inlineEle.attr('fill', bkgCol)
                     }
+                    // 直线箭体颜色
+                    if('ln' == lnIst.NodeType){
+                        lnIst.c.attr('fill', bkgCol)
+                    }
                 }
             })
         }
 
         return this
     }
+    /**
+     * 移除临时节点
+     * @param {string|array} value 
+     */
     removeTmpNode(value?: string | string[]){
        if(value){
            let queue: string[] = []

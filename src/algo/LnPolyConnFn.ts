@@ -3,7 +3,48 @@
  * 折线连线处理算法，函数
  */
 import NodeUtil from "../node/NodeUtil";
- 
+
+/**
+ * 内部私有类，用于数据处理
+ * 2018年5月22日 星期二
+ */
+class cSR{
+    /**
+     * 代理节点连接点
+     * @param nd 节点
+     * @param posi 位置
+     * @param opt 选项 {dn: number, box: rSu.BoxAttr}
+     */
+    static agentNodeCnP(nd: rSu.Node, posi: string, opt?: rSu.bsMap): rSu.P{
+        opt = 'object' == typeof opt? opt : {}
+        let p: rSu.P,
+            dtNum: number = opt.dn || 20     // 相差值
+            , box: rSu.BoxAttr = opt.box || nd.getBBox()
+            , ps: rSu.bsMap = box.ps
+            , tP: rSu.P
+
+        switch(posi){
+            case 'b':   // 正上
+                tP = ps.b
+                p = {x: tP.x, y: tP.y - dtNum}
+                break
+            case 'd':   // 正右
+                tP = ps.d
+                p = {x: tP.x + dtNum, y: tP.y}
+                break
+            case 'f':   // 正下
+                tP = ps.f
+                p = {x: tP.x, y: tP.y + dtNum}
+                break
+            case 'h':   // 正左
+                tP = ps.h
+                p = {x: tP.x - dtNum, y: tP.y}
+                break
+        }
+        return p
+    }
+}
+
 /**
  * @export
  * @param {rSu.Node} ln 
@@ -20,7 +61,42 @@ export function LnPolyConn(ln: rSu.Node, work: rSu.WEditor, tNd?: rSu.Node) {
     if(!tNd){
         tNd = work.nodeDick[to_code]
     }
-    if(tNd){
+    let fNd: rSu.Node = work.nodeDick[from_code]
+    if(tNd && tNd.code == fNd.code){   // 自身连接
+        let AncpOpt: rSu.bsMap = {
+            box: fNd.getBBox()
+        }
+        let ap1: rSu.P = cSR.agentNodeCnP(fNd, fPosi, AncpOpt),
+            ap2: rSu.P = cSR.agentNodeCnP(fNd, tPosi, AncpOpt)
+        
+        let apMd: rSu.P 
+        // = (ap1 && ap2)? NodeUtil.polyP(ap1, ap2, 'ua') : null
+        if(
+            (fPosi == 'f' && (tPosi == 'd' || tPosi == 'h'))
+            || (fPosi == 'b' && (tPosi == 'h' || tPosi == 'd'))
+        ){
+            // 上角拐
+            apMd = NodeUtil.polyP(ap1, ap2, 'ua')
+        }
+        else if(
+            ((fPosi == 'h' || fPosi == 'd') && tPosi == 'f')
+            // || (fPosi == 'b' && (tPosi == 'h' || tPosi == 'd'))
+            
+        ){
+            // 下角拐
+            apMd = NodeUtil.polyP(ap1, ap2, 'la')
+        }
+        
+        // console.log(ap1, apMd, ap2);
+        if(apMd){
+            ln.updAttr({
+                MPs:[ap1, apMd, ap2]
+            })
+        }
+        
+        
+    }
+    else if(tNd){
         let fNd: rSu.Node = work.nodeDick[from_code],
             P1: rSu.P = ln.opt.P1,           // 连线起点
             P2: rSu.P = ln.opt.P2,            // 连接终点

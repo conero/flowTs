@@ -3,6 +3,17 @@
 
 ## ***V2.2.x/alpha-date*** alpha 类型模板
 
+### ***V2.2.7/20180522***
+- src/WorkerEditor.ts
+    - (+) 添加 **disSR** 属性，用于关闭不自动进行状态渲染
+    - (优化) **copy** 过滤状态属性，如：运行状态
+    - (优化) “直线” 进行状态渲染时，箭体颜色一致
+- src/node/NodeAbstract.ts
+    - (优化) **moveable** 过滤移动增量为0的移动，房租选择时触发移动事件   
+- src/algo/LnPolyConnFn.ts    
+    - (+) **cSR.agentNodeCnP** 实现代理转折算法
+    - (+) **LnPolyConn** 优化自节点连线算法
+
 ### ***V2.2.6/20180517***
 - src/WorkerEditor.ts
     - (+) **selectGroup** 新增方法实现 “分组选择” 模块
