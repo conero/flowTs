@@ -5,5 +5,5 @@
         author?: string
         name?: string
     }
-    export const LibVersion: VersionStruct = {"version":"2.2.7","release":"20180522","author":"Joshua Conero","name":"zmapp-workflow-ts"}
+    export const LibVersion: VersionStruct = {"version":"2.2.8","release":"20180620","author":"Joshua Conero","name":"zmapp-workflow-ts"}
     

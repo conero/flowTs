@@ -199,6 +199,7 @@ export default class WorkerEditor{
                             },
                             afterUpd: function(x: number, y: number, node: rSu.Node){
                                 $this._lineMoveSync(x, y, node)
+                                $this.onNodeResize()
                             }
                         })
                     $this._nodeBindEvt(ndAst)
@@ -1330,6 +1331,7 @@ export default class WorkerEditor{
                     },
                     afterUpd: function(x: number, y: number, node: rSu.Node){
                         $this._lineMoveSync(x, y, node)
+                        $this.onNodeResize()
                     }
                 })
             // 切换选中状态
@@ -1374,6 +1376,7 @@ export default class WorkerEditor{
                     },
                     afterUpd: function(x: number, y: number, node: rSu.Node){
                         $this._lineMoveSync(x, y, node)
+                        $this.onNodeResize()
                     }
                 })
                 let _index = this._order('n', 'A', code)
@@ -1678,6 +1681,7 @@ export default class WorkerEditor{
                                 y: iconP.y
                             })
                         }
+                        $this.onNodeResize()
                     }
                 })
             }
@@ -2182,18 +2186,22 @@ export default class WorkerEditor{
      * @memberof WorkerEditor
      */
     autoSize(): void{
+        let {config} = this
         let hw = this.maxHw,
-            $svg = this.config.dom.find('svg'),
-            cW: number = $svg.attr('width'),
-            cH: number = $svg.attr('height'),
-            dt: number = 5
-        let tSvg = this.config.dom.find('svg')
-        if(cW < hw.w){
+            $svg = config.dom.find('svg'),
+            // cW: number = $svg.attr('width'),
+            // cH: number = $svg.attr('height'),
+            dt: number = 10
+        
+        // 宽度
+        if(hw.w > config.w){
             $svg.attr('width', hw.w + dt)
-        }          
-        if(cH < hw.h){
+        }
+        
+        // 高度
+        if(hw.h > config.h){
             $svg.attr('height', hw.h + dt)
-        }  
+        }
     }
     /**
      * 双击事件
@@ -2212,5 +2220,11 @@ export default class WorkerEditor{
      */
     onStep(node: rSu.Node, data: any): any{
         return data
+    }
+    /**
+     * 节点重载以后的事件
+     */
+    onNodeResize(){
+        this.autoSize()
     }
 }

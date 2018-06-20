@@ -7,8 +7,25 @@
     流程主体容器 
     网格底色
 */
-
 .flow-body > svg{
+    /* background-color: #677;
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAALUlEQVQ4jWNsbW39z0BFwMLAwMBQVVXFSC0Dmahl0KiBowaOGjhq4KiBNDYQAEuQBCeLBWNhAAAAAElFTkSuQmCC); */
+    
+
+    /* background-color: white;
+    background-image: radial-gradient(gray 20%,transparent 0),
+                        radial-gradient(gray 20%,transparent 0);
+    background-size: 5px 5px;
+    background-position: 0 0, 20px 20px;  */
+
+    background-image:
+        linear-gradient(90deg,rgba(161, 167, 177, 0.329) 12%,transparent 0), 
+        linear-gradient(rgba(161, 167, 177, 0.329) 12%,transparent 0); 
+    background-size:10px 10px;
+}
+
+/* 舍弃布局 */
+.flow-body-no-el > svg{
     /* width: 200px;
     height: 200px; */
     border-left: 1px solid rgb(209, 195, 197);
@@ -32,3 +49,5 @@
     position: absolute;
     background-color: cornsilk;
 }
+
+

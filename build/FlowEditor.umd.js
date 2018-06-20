@@ -1425,6 +1425,7 @@ var WorkerEditor = /** @class */ (function () {
                     },
                     afterUpd: function (x, y, node) {
                         $this._lineMoveSync(x, y, node);
+                        $this.onNodeResize();
                     }
                 });
                 $this._nodeBindEvt(ndAst);
@@ -2481,6 +2482,7 @@ var WorkerEditor = /** @class */ (function () {
                 },
                 afterUpd: function (x, y, node) {
                     $this._lineMoveSync(x, y, node);
+                    $this.onNodeResize();
                 }
             });
             // 切换选中状态
@@ -2524,6 +2526,7 @@ var WorkerEditor = /** @class */ (function () {
                     },
                     afterUpd: function (x, y, node) {
                         $this._lineMoveSync(x, y, node);
+                        $this.onNodeResize();
                     }
                 });
                 var _index = _this._order('n', 'A', code);
@@ -2799,6 +2802,7 @@ var WorkerEditor = /** @class */ (function () {
                                 y: iconP.y
                             });
                         }
+                        $this.onNodeResize();
                     }
                 });
             }
@@ -3266,12 +3270,17 @@ var WorkerEditor = /** @class */ (function () {
      * @memberof WorkerEditor
      */
     WorkerEditor.prototype.autoSize = function () {
-        var hw = this.maxHw, $svg = this.config.dom.find('svg'), cW = $svg.attr('width'), cH = $svg.attr('height'), dt = 5;
-        var tSvg = this.config.dom.find('svg');
-        if (cW < hw.w) {
+        var config = this.config;
+        var hw = this.maxHw, $svg = config.dom.find('svg'), 
+        // cW: number = $svg.attr('width'),
+        // cH: number = $svg.attr('height'),
+        dt = 10;
+        // 宽度
+        if (hw.w > config.w) {
             $svg.attr('width', hw.w + dt);
         }
-        if (cH < hw.h) {
+        // 高度
+        if (hw.h > config.h) {
             $svg.attr('height', hw.h + dt);
         }
     };
@@ -3292,6 +3301,12 @@ var WorkerEditor = /** @class */ (function () {
      */
     WorkerEditor.prototype.onStep = function (node, data) {
         return data;
+    };
+    /**
+     * 节点重载以后的事件
+     */
+    WorkerEditor.prototype.onNodeResize = function () {
+        this.autoSize();
     };
     // 静态属性
     WorkerEditor.version = __WEBPACK_IMPORTED_MODULE_1__version__["a" /* LibVersion */];
@@ -3571,7 +3586,7 @@ process.umask = function() { return 0; };
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LibVersion; });
-var LibVersion = { "version": "2.2.7", "release": "20180522", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.2.8", "release": "20180620", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),

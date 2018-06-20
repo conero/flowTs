@@ -3,6 +3,10 @@
 
 ## ***V2.2.x/alpha-date*** alpha 类型模板
 
+### ***V2.2.8/20180620***
+- src/WorkerEditor.ts
+    - (+) 添加接口 *onNodeResize*， 用于实现拖动以后svg屏幕自动撑宽
+
 ### ***V2.2.7/20180522***
 - src/WorkerEditor.ts
     - (+) 添加 **disSR** 属性，用于关闭不自动进行状态渲染
