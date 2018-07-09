@@ -2,6 +2,11 @@
 
 
 ## ***V2.2.x/alpha-date*** alpha 类型模板
+### ***V2.2.9/20180709***
+- webpack 升级
+    - 系统打包工具由 v3 升级到 v4
+    - 采用新的 wp4-msr 包实现 webpack4打包工具
+    - package.json 系统以及先关的文件处理
 
 ### ***V2.2.8/20180620***
 - src/WorkerEditor.ts
