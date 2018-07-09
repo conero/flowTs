@@ -2,8 +2,9 @@
  * webpack 打包配置
  * 2018年1月4日 星期四
  */
-
+const fs = require('fs')
 const {Msr4} = require('./wp4-msr/src/Msr4')
+const Pkg = require('./package.json')
 
 // 公共数据
 let publicOpt = {
@@ -78,5 +79,29 @@ webpackFiles.push(
         })
         .data
 )
+
+
+// 编译时时间运行
+;(function(){
+    var _json = {
+        version: Pkg.version,
+        release: Pkg.release,
+        author: Pkg.author,
+        name: Pkg.name
+    }
+    
+    // 版本信息脚本
+    var versionSrpt = `
+    export interface VersionStruct {
+        version?: string
+        release?: string
+        author?: string
+        name?: string
+    }
+    export const LibVersion: VersionStruct = ${JSON.stringify(_json)}
+    `
+    fs.writeFileSync('./version.ts', versionSrpt)
+})()
+
 
 module.exports = webpackFiles
