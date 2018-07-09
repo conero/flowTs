@@ -652,6 +652,7 @@ var WorkerEditor = /** @class */ (function () {
         this.config = config; // 系统配置参数
         this.paper = _helper__WEBPACK_IMPORTED_MODULE_0__["default"].createInstance(config); // Raphael 对象        
         this.ndMer = new _NodeQue__WEBPACK_IMPORTED_MODULE_4__["NodeQue"](this.paper);
+        this._magnCoreHistory = {};
         // 配置参数处理
         this._configMergeToDefule();
         this._readonly();
@@ -691,10 +692,13 @@ var WorkerEditor = /** @class */ (function () {
     };
     /**
      * 连线同步
-     * @param x
-     * @param y
+     * @param {number} x
+     * @param {number} y
+     * @param {rSu.Node} node
+     * @private
      */
     WorkerEditor.prototype._lineMoveSync = function (x, y, node) {
+        var _this = this;
         var conLns = node.conLns, from = conLns.from, to = conLns.to, $this = this;
         // 处理起点
         _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(from, function (k, v) {
@@ -706,6 +710,8 @@ var WorkerEditor = /** @class */ (function () {
             else {
                 var from_code = fromLn.data('from_code'), from_posi = fromLn.data('from_posi'), ps = node.getBBox().ps;
                 fromLn.mvEndPoint(ps[from_posi]);
+                // 折线连接线处理
+                Object(_algo_LnPolyConnFn__WEBPACK_IMPORTED_MODULE_7__["LnPolyConn"])(fromLn, _this);
             }
         });
         // 处理终点
@@ -720,6 +726,8 @@ var WorkerEditor = /** @class */ (function () {
                 toLn.updAttr({ P2: { x: x, y: y } });
                 var to_code = toLn.data('to_code'), to_posi = toLn.data('to_posi'), ps = node.getBBox().ps;
                 toLn.mvEndPoint(ps[to_posi], true);
+                // 折线连接线处理
+                Object(_algo_LnPolyConnFn__WEBPACK_IMPORTED_MODULE_7__["LnPolyConn"])(toLn, _this, node);
             }
         });
     };
@@ -880,7 +888,7 @@ var WorkerEditor = /** @class */ (function () {
                 $this.onDbClick(nd);
             });
             //nd
-            // 处理接口            
+            // 端点处理
             nd.onCreateBoxPnt = function (pnt) {
                 // 预览标识
                 if ($this.previewMk || $this.config.disDragble) {
@@ -906,6 +914,7 @@ var WorkerEditor = /** @class */ (function () {
                         if (collNode) {
                             var rElem = collNode.magnCore(dx, dy);
                             if (rElem) {
+                                $this._magnCoreHistory[rElem.id] = rElem; // 历史值
                                 dx = rElem.attr('cx');
                                 dy = rElem.attr('cy');
                                 tmpLnIst.data('to_code', rElem.data('pcode'))
@@ -916,6 +925,7 @@ var WorkerEditor = /** @class */ (function () {
                         else {
                             tmpLnIst.data('to_code', null)
                                 .data('to_posi', null);
+                            $this._clearMagnCoreHistory();
                         }
                         if ($this.lineCnMode.type == 'ln') {
                             tmpLnIst.updAttr({
@@ -1154,7 +1164,8 @@ var WorkerEditor = /** @class */ (function () {
     };
     /**
      * 连接线事件绑定
-     * @param ln
+     * @param {rSu.Node} ln
+     * @private
      */
     WorkerEditor.prototype._lineBindEvt = function (ln) {
         this._baseNodeBindEvt(ln);
@@ -1371,7 +1382,8 @@ var WorkerEditor = /** @class */ (function () {
     };
     /**
      * 基本节点时间绑定，用于外部处理以及所有节点需要的时间
-     * @param nd
+     * @param {rSu.Node} nd
+     * @private
      */
     WorkerEditor.prototype._baseNodeBindEvt = function (nd) {
         this._nodeToolTip(nd);
@@ -1452,6 +1464,18 @@ var WorkerEditor = /** @class */ (function () {
         }
     };
     /**
+     * 删除磁化描点
+     * @private
+     */
+    WorkerEditor.prototype._clearMagnCoreHistory = function () {
+        var _this = this;
+        // 磁化历史点
+        _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(this._magnCoreHistory, function (str, el) {
+            el.remove();
+            delete _this._magnCoreHistory[str];
+        });
+    };
+    /**
      * 移除所有选中中元素
      */
     WorkerEditor.prototype.removeAllSeled = function (type) {
@@ -1483,6 +1507,8 @@ var WorkerEditor = /** @class */ (function () {
             removeAllSeledNodeFn(dick);
         });
         this.rmTempElem('allBorde');
+        // 磁化历史点
+        this._clearMagnCoreHistory();
     };
     /**
      * 全选
@@ -1676,12 +1702,15 @@ var WorkerEditor = /** @class */ (function () {
     };
     /**
      * 删除节点
+     * @param {string | rSu.Node} code
+     * @returns {boolean}
      */
     WorkerEditor.prototype.remove = function (code) {
         var _this = this;
         var isSuccess = false;
+        var removeNode;
         // 删除节点
-        var removeNode = function (node) {
+        removeNode = function (node) {
             if (node) {
                 var NodeType = node.NodeType, value = node.code;
                 if ('ln' == NodeType || 'ln_poly' == NodeType) { // 连线删除
@@ -1694,6 +1723,16 @@ var WorkerEditor = /** @class */ (function () {
                     if (tNodeIst) {
                         tNodeIst.rmLine(value, true);
                     }
+                }
+                // 节点删除，并删除与之相连连接线
+                if ('node' == _this.getNdType(node)) {
+                    var conLns = node.conLns;
+                    _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(conLns.from, function (i, cd) {
+                        removeNode(_this.connDick[cd]);
+                    });
+                    _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(conLns.to, function (i, cd) {
+                        removeNode(_this.connDick[cd]);
+                    });
                 }
                 node.delete();
                 if (_this.nodeDick[value]) {
@@ -1731,6 +1770,29 @@ var WorkerEditor = /** @class */ (function () {
             removeNode(this.nodeDick[code]);
         }
         return isSuccess;
+    };
+    /**
+     * 获取节点类型
+     * @param {string | rSu.Node} code
+     * @returns {string}
+     */
+    WorkerEditor.prototype.getNdType = function (code) {
+        if ('object' == typeof code) {
+            code = code.code;
+        }
+        var type;
+        if (code) {
+            if (this.nodeDick[code]) {
+                type = 'node';
+            }
+            else if (this.connDick[code]) {
+                type = 'conn';
+            }
+            else if (this.textDick[code]) {
+                type = 'text';
+            }
+        }
+        return type;
     };
     /**
      * 循环获取节点， tab 节点选择切换
@@ -2478,8 +2540,11 @@ var WorkerEditor = /** @class */ (function () {
                 else if (82 == code) { // shift + R 删除
                     $this.allRemove();
                 }
-                else if (86 == code) { // shitf + v 克隆
+                else if (86 == code) { // shift + v 克隆
                     $this.clone();
+                }
+                else if (69 == code) { // shift + E 错误检测
+                    $this.error();
                 }
                 // 移动，方向移动：缩放
                 else if ($.inArray(code, [38, 40, 37, 39, 107, 109]) > -1) {
@@ -2513,6 +2578,9 @@ var WorkerEditor = /** @class */ (function () {
                         config.onKeydown(code, $this);
                     }
                 }
+            }
+            else if (46 == code) { // delete 键删除
+                $this.remove();
             }
         });
     };
@@ -3158,8 +3226,9 @@ var NodeAbstract = /** @class */ (function () {
     };
     /**
      * 移除连接线
-     * @param type
-     * @param code
+     * @param {string} value
+     * @param {boolean} isEnd
+     * @returns {rSu.Node}
      */
     NodeAbstract.prototype.rmLine = function (value, isEnd) {
         if (value) {
@@ -5388,7 +5457,7 @@ window.workerflow = _src_WorkerEditor__WEBPACK_IMPORTED_MODULE_0__["default"]
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LibVersion", function() { return LibVersion; });
-var LibVersion = { "version": "2.2.8", "release": "20180620", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.2.10", "release": "20180709", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ })

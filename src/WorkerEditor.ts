@@ -5,7 +5,7 @@
  */
 import H from './helper'            // 助手方法
 import {VersionStruct, LibVersion} from '../version'
-import { Util } from './util';
+import {Util} from './util';
 import ToolBar from './ToolBar';
 import { NodeQue } from './NodeQue';
 import {cNode} from './confNode'
@@ -30,17 +30,18 @@ export default class WorkerEditor{
     protected toolNodeIstQue: any[]     // 工具栏部件节点队列
 
     private ndMer: rSu.NodeQue
-    private idxDick: rSu.bsMap          // 连线处理栈 {c: numer-连线, a: number-字母}
-    private lineCnMode: {               // 直线连接模式
+    private idxDick: rSu.bsMap              // 连线处理栈 {c: numer-连线, a: number-字母}
+    private lineCnMode: {                   // 直线连接模式
         isSelEd: boolean,
         type: string,
-        fromIst?: rSu.Node                // 连线起点节点实例
-        toIst?: rSu.Node                  // 连线终点节点实例
-        lnIst?: rSu.Node                  // 连线实例
+        fromIst?: rSu.Node                  // 连线起点节点实例
+        toIst?: rSu.Node                    // 连线终点节点实例
+        lnIst?: rSu.Node                    // 连线实例
     }
-    private tmpNodeMap: rSu.mapNode     // 临时节点字典
-    private tmpMapRElm: rSu.MapRElm     // 临时节点
-    private previewMk: boolean          // 预览模式
+    private tmpNodeMap: rSu.mapNode         // 临时节点字典
+    private tmpMapRElm: rSu.MapRElm         // 临时节点
+    private previewMk: boolean              // 预览模式
+    private _magnCoreHistory: rSu.MapRElm    //磁化几点历史记录，用于消除未使用的磁化点
     
     // 静态属性
     static version: VersionStruct = LibVersion
@@ -63,6 +64,7 @@ export default class WorkerEditor{
         this.config = config            // 系统配置参数
         this.paper = H.createInstance(config) // Raphael 对象        
         this.ndMer = new NodeQue(this.paper)
+        this._magnCoreHistory = {}
         // 配置参数处理
         this._configMergeToDefule()
         this._readonly()
@@ -103,8 +105,10 @@ export default class WorkerEditor{
     }
     /**
      * 连线同步
-     * @param x 
-     * @param y 
+     * @param {number} x
+     * @param {number} y
+     * @param {rSu.Node} node
+     * @private
      */
     private _lineMoveSync(x: number, y: number, node: rSu.Node){
         let conLns = node.conLns,
@@ -123,6 +127,8 @@ export default class WorkerEditor{
                     from_posi = fromLn.data('from_posi'),
                     {ps} = node.getBBox()
                 ; (<any>fromLn).mvEndPoint(ps[from_posi])
+                // 折线连接线处理
+                LnPolyConn(fromLn, this)
             }
         })
         // 处理终点
@@ -140,6 +146,8 @@ export default class WorkerEditor{
                     to_posi = toLn.data('to_posi'),
                     {ps} = node.getBBox()
                 ;(<any>toLn).mvEndPoint(ps[to_posi], true)
+                // 折线连接线处理
+                LnPolyConn(toLn, this, node)
             }
         })
     }
@@ -313,7 +321,7 @@ export default class WorkerEditor{
                 $this.onDbClick(nd)
             })
             //nd
-            // 处理接口            
+            // 端点处理
             nd.onCreateBoxPnt = function(pnt: RaphaelElement){
                 // 预览标识
                 if($this.previewMk || $this.config.disDragble){
@@ -340,6 +348,7 @@ export default class WorkerEditor{
                             if(collNode){                                
                                 let rElem = collNode.magnCore(dx, dy)
                                 if(rElem){
+                                    $this._magnCoreHistory[rElem.id] = rElem    // 历史值
                                     dx = rElem.attr('cx')
                                     dy = rElem.attr('cy')
                                     tmpLnIst.data('to_code', rElem.data('pcode'))
@@ -349,6 +358,7 @@ export default class WorkerEditor{
                             }else{
                                 tmpLnIst.data('to_code', null)
                                         .data('to_posi', null)
+                                $this._clearMagnCoreHistory()
                             }
                             if($this.lineCnMode.type == 'ln'){
                                 tmpLnIst.updAttr({
@@ -606,7 +616,8 @@ export default class WorkerEditor{
     }
     /**
      * 连接线事件绑定
-     * @param ln 
+     * @param {rSu.Node} ln
+     * @private
      */
     private _lineBindEvt(ln?: rSu.Node){
         this._baseNodeBindEvt(ln)
@@ -878,7 +889,8 @@ export default class WorkerEditor{
     }
     /**
      * 基本节点时间绑定，用于外部处理以及所有节点需要的时间
-     * @param nd 
+     * @param {rSu.Node} nd
+     * @private
      */
     private _baseNodeBindEvt(nd: rSu.Node){
         this._nodeToolTip(nd)
@@ -965,6 +977,18 @@ export default class WorkerEditor{
             this.config.disDragble = true
         }
     }
+
+    /**
+     * 删除磁化描点
+     * @private
+     */
+    private _clearMagnCoreHistory(){
+        // 磁化历史点
+        Util.each(this._magnCoreHistory, (str: string, el: RaphaelElement) => {
+            el.remove()
+            delete this._magnCoreHistory[str]
+        })
+    }
     /**
      * 移除所有选中中元素
      */
@@ -994,6 +1018,8 @@ export default class WorkerEditor{
             removeAllSeledNodeFn(dick)
         })
         this.rmTempElem('allBorde')
+        // 磁化历史点
+        this._clearMagnCoreHistory()
     }
     /**
      * 全选
@@ -1178,11 +1204,14 @@ export default class WorkerEditor{
     }
     /**
      * 删除节点
+     * @param {string | rSu.Node} code
+     * @returns {boolean}
      */
     remove(code?: string| rSu.Node){
         let isSuccess = false
+        let removeNode: any
         // 删除节点
-        let removeNode = (node: rSu.Node) => {
+        removeNode = (node: rSu.Node) => {
             if(node){
                 let NodeType = node.NodeType,
                     value = node.code
@@ -1199,7 +1228,16 @@ export default class WorkerEditor{
                         tNodeIst.rmLine(value, true)
                     }           
                 }
-                
+                // 节点删除，并删除与之相连连接线
+                if('node' == this.getNdType(node)){
+                    let {conLns} = node
+                    Util.each(conLns.from, (i: number, cd: string) => {
+                        removeNode(this.connDick[cd])
+                    })
+                    Util.each(conLns.to, (i: number, cd: string) => {
+                        removeNode(this.connDick[cd])
+                    })
+                }
                 node.delete()
                 if(this.nodeDick[value]){
                     delete this.nodeDick[value]
@@ -1234,6 +1272,29 @@ export default class WorkerEditor{
         }
         return isSuccess
     }
+
+    /**
+     * 获取节点类型
+     * @param {string | rSu.Node} code
+     * @returns {string}
+     */
+    getNdType(code: string|rSu.Node){
+        if('object' == typeof  code){
+            code = code.code
+        }
+        let type: string
+        if(code){
+            if(this.nodeDick[code]){
+                type = 'node'
+            }else if(this.connDick[code]){
+                type = 'conn'
+            }else if(this.textDick[code]){
+                type = 'text'
+            }
+        }
+        return type
+    }
+
     /**
      * 循环获取节点， tab 节点选择切换
      * @param {string|null} type 类型 c-conn, t-text
@@ -2055,10 +2116,12 @@ export default class WorkerEditor{
                 else if(82 == code){    // shift + R 删除
 					$this.allRemove();
                 }
-                else if(86 == code){ // shitf + v 克隆
+                else if(86 == code){ // shift + v 克隆
 					$this.clone();
                 }
-                
+                else if(69 == code){    // shift + E 错误检测
+                    $this.error()
+                }
                 // 移动，方向移动：缩放
                 else if($.inArray(code, [38, 40, 37, 39, 107, 109]) > -1){
                     let nodeSelEd: rSu.Node = $this.select()
@@ -2079,6 +2142,9 @@ export default class WorkerEditor{
                         config.onKeydown(code, $this)
                     }
                 }
+            }
+            else if(46 == code){    // delete 键删除
+                $this.remove()
             }
         })
     }

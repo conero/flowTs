@@ -207,8 +207,9 @@ export default abstract class NodeAbstract{
     }
     /**
      * 移除连接线
-     * @param type 
-     * @param code 
+     * @param {string} value
+     * @param {boolean} isEnd
+     * @returns {rSu.Node}
      */
     rmLine(value: string, isEnd?: boolean): rSu.Node{
         if(value){

@@ -1,12 +1,12 @@
 {
   "name": "zmapp-workflow-ts",
-  "version": "2.2.9",
+  "version": "2.2.10",
   "release": "20180709",
   "description": "workflow chart",
   "author": "Joshua Conero",
   "main": "index.js",
   "scripts": {
-    "test-flow": "webpack --watch --config=test/flow/webpack.config.js",
+    "test-flow": "webpack --watch --config=test/flow/webpack.config.js --hide-modules",
     "tflow-src": "webpack --devtool=source-map --hide-modules --config=test/flow/webpack.config.js",
     "prod": "webpack --mode=production --progress --hide-modules",
     "watch": "webpack --mode=production --watch --hide-modules",

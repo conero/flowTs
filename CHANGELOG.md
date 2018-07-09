@@ -2,6 +2,15 @@
 
 
 ## ***V2.2.x/alpha-date*** alpha 类型模板
+
+### ***V2.2.10/20180709***
+- src/WorkerEditor.ts
+    - (+) 添加方法 *getNdType* 用于识别节点的类型是否为text/conn/node
+    - (优化) *operHelpEvts* 方法添加 *delete* 为节点删除快捷键；“shift+E” 错误检测
+    - (优化) *remove* 删除节点是同事删除与之相连的连线
+    - (优化) *_lineMoveSync* 如果处理的连线为折线的话，自动做折线算法适应
+    - (修复) 修复 *_nodeBindEvt* 磁化端点样式清理不彻底的问题，采用内部缓存值处理
+
 ### ***V2.2.9/20180709***
 - webpack 升级
     - 系统打包工具由 v3 升级到 v4
@@ -102,6 +111,8 @@
             - (修复) 修复箭体算法偏差，造成折线拐弯后处理事件无效 
 - src/util.ts
     - (+) 新增 **inArray** 方法，尽量避免jQuery数据处理方法，以及期减少外部库依赖
+
+## **V2.1.x** 系列版本
 
 ### ***V2.1.7/20180427***
 - src/WorkerEditor.ts
