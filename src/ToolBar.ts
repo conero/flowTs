@@ -10,9 +10,10 @@ import { cNode } from "./confNode";
 
 export default class ToolBar{
     private paper: RaphaelPaper
+    private ndMer: rSu.NodeQue
+
     option: rSu.bsMap       // 全局参数配置
     config: rSu.bsMap       // 工具栏接口配置 {option: config}
-    private ndMer: rSu.NodeQue
     headElems: rSu.MapRElm  // 头部元素集合
     nodeElems: rSu.MapRElm  // 节点元素集合
     connElems: rSu.MapRElm  // 连接元素集合
@@ -35,6 +36,10 @@ export default class ToolBar{
     cBodyNds: rSu.mapNode
 
     protected _tools: RaphaelElement[] = []     // 工具栏
+    /**
+     * @param {RaphaelPaper} paper
+     * @param {rSu.bsMap} opt
+     */
     constructor(paper: RaphaelPaper, opt?: rSu.bsMap){
         this.rData = {
             cp: {x: 5, y: 5},
@@ -68,7 +73,7 @@ export default class ToolBar{
      * 标题栏
      */
     private _headBar(){
-        var $this = this,
+        let $this = this,
             {cp, cw, th0} = this.rData,
             {x, y} = cp,
             paper = this.paper,
@@ -98,7 +103,7 @@ export default class ToolBar{
      * 节点栏
      */
     private _nodeBar(){
-        var $this = this,
+        let $this = this,
             {cp, cw, th1, nh} = this.rData,
             {x, y} = cp,
             {paper, ndMer, config} = this,
@@ -198,7 +203,7 @@ export default class ToolBar{
      * 连线栏
      */
     private _connBar(){
-        var $this = this,
+        let $this = this,
             {cp, cw, th2, ch, th0, th1, nh} = this.rData,
             {x, y} = cp,
             {paper, ndMer, config} = this,
@@ -245,10 +250,7 @@ export default class ToolBar{
             // .attr(conAttr)
         let ly = y + prevH/4*0.7,
             lx = x + 20
-        ist = ndMer.make('ln', {
-            P1: {x: lx-5, y: ly},
-            P2: {x: lx+25, y: ly}
-        })
+        ist = ndMer.make('ln', this._lnConXyCrt(x, y, lx, ly))
             .creator()
         cBodyNds.ln = ist
         
@@ -260,11 +262,7 @@ export default class ToolBar{
             // .attr(conAttr)
         ly = y + prevH/4*0.7,
             lx = x + 20
-        ist = ndMer.make('lnPoly', {
-            P1: {x: lx-5, y: ly},            
-            P2: {x: lx+20, y: ly + 4},
-            h: 4
-        })
+        ist = ndMer.make('lnPoly', this._lnPolyConXyCrt(x, y, lx, ly))
             .creator()
         cBodyNds.lnPoly = ist
 
@@ -273,11 +271,47 @@ export default class ToolBar{
         this.connElems['lnCon'].attr('height', ch/2)
         this.connElems['lnPolyCon'].attr('height', ch/2)
     }
+
+    /**
+     * 折线坐标点生成器
+     * @param {number} x
+     * @param {number} y
+     * @param {number} lx
+     * @param {number} ly
+     * @returns {{P1: {x: number; y: number}; P2: {x: number; y: number}; h: number}}
+     * @private
+     */
+    private _lnPolyConXyCrt(x: number, y: number, lx: number, ly: number){
+        let polyAttr = {
+            P1: {x: lx-5, y: ly-5},
+            P2: {x: lx+25, y: ly + 2},
+            h: 4
+        }
+        return polyAttr
+    }
+
+    /**
+     * 直线坐标点生成器
+     * @param {number} x
+     * @param {number} y
+     * @param {number} lx
+     * @param {number} ly
+     * @returns {{P1: {x: number; y: number}; P2: {x: number; y: number}}}
+     * @private
+     */
+    private _lnConXyCrt(x: number, y: number, lx: number, ly: number){
+        let lnAttr = {
+            P1: {x: lx-5, y: ly},
+            P2: {x: lx+25, y: ly}
+        }
+        return lnAttr
+    }
     /**
      * 连线框占据节点框
+     * @param {boolean} backMk
      */
     connSizeNode(backMk?: boolean){
-        var {title, icon, lnCon, lnPolyCon} = this.connElems,
+        let {title, icon, lnCon, lnPolyCon} = this.connElems,
             {cp, cw, th2, ch, th0, th1, nh} = this.rData,
             {x, y} = cp,
             {ln, lnPoly} = this.cBodyNds
@@ -293,21 +327,15 @@ export default class ToolBar{
         // 直线
         let ly = y + prevH/4*0.7,
             lx = x + 20
-        ln.updAttr({
-            P1: {x: lx-5, y: ly},
-            P2: {x: lx+25, y: ly}
-        })
+        ln.updAttr(this._lnConXyCrt(x, y, lx, ly))
 
         // 折线
         y += 20
         lnPolyCon.attr('y', y)
         ly = y + prevH/4*0.7,
             lx = x + 20
-        lnPoly.updAttr({
-            P1: {x: lx-5, y: ly},            
-            P2: {x: lx+20, y: ly + 4},
-            h: 4
-        })
+        lnPoly.opt.MPs = []
+        lnPoly.updAttr(this._lnPolyConXyCrt(x, y, lx, ly))
     }
 
     /**
@@ -316,7 +344,7 @@ export default class ToolBar{
      * @param {boolean} includeTit 包含标题
      */
     tToggle(type?:string, includeTit?: boolean){
-        var tBodyNds = this.tBodyNds,
+        let tBodyNds = this.tBodyNds,
             nodeElems = this.nodeElems,
             {tBody} = nodeElems
         if('H' != type){
@@ -349,9 +377,10 @@ export default class ToolBar{
     /**
      * 标题栏显示与隐藏
      * @param {string} type 显示与隐藏， H/S
+     * @param {boolean} includeTit 包含提示文本
      */
     cToggle(type?:string, includeTit?: boolean){
-        var cBodyNds = this.cBodyNds,
+        let cBodyNds = this.cBodyNds,
             connElems = this.connElems,
             {lnCon, lnPolyCon} = connElems
         if('H' != type){

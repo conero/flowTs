@@ -11,9 +11,10 @@ import { NodeQue } from './NodeQue';
 import {cNode} from './confNode'
 import NodeUtil from './node/NodeUtil';
 import {LnPolyConn} from './algo/LnPolyConnFn';
+import WePlg from "./WePlg";
 
 // 什么jQuery/RaphaelJs
-declare var $: any;
+declare const $: any;
 
 /**
  * 工作流编辑器轻量级
@@ -78,11 +79,8 @@ export default class WorkerEditor{
                 console.log(error)
             }            
         }
-        // 绑定协助事件
-        if(this.config.bindOEvts){
-            this.operHelpEvts()
-        }
         this._domListener()
+        new WePlg(this)
     }
     /**
      * 配置参数与默认参数和合并处理
@@ -1661,7 +1659,7 @@ export default class WorkerEditor{
      * @memberof WorkerEditor
      */
     save(){
-        var stepStru: any[] = [],
+        let stepStru: any[] = [],
             nodeSrroo: rSu.bsMap = {},
             line: rSu.bsMap = {},
             text: rSu.bsMap = {},
@@ -2081,72 +2079,6 @@ export default class WorkerEditor{
             left: dom[0].offsetLeft,
             top: dom[0].offsetTop
         }
-    }    
-    /**
-     * 操作助手事件
-     */
-    operHelpEvts(){
-        let {config} = this,
-            {dom} = config,
-            $this = this
-        // tabindex ="0" 是元素可以聚焦，outline 取消边框
-        dom.attr('tabindex', '0')
-            .css({'outline':'none'})
-        dom.off('keydown').on('keydown', function(evt: any){
-            let code = evt.keyCode
-            // console.log(code)
-            // shift + 
-            if(evt.shiftKey){
-                // 基本操作
-                if(68 == code){	// shift + D	删除当前的选择节点
-                    $this.remove()
-                }
-                else if(84 == code){ // shitf + T tab 循环
-					$this.tab()
-                }
-                else if(67 == code){    // shift + C tab 循环 conn
-                    $this.tab('c')
-                }
-                else if(76 == code){    // shift + L tab 循环 text/lable
-                    $this.tab('t')
-                }
-                else if(65 == code){ // shift + A 全选择
-					$this.allSelect()
-                }
-                else if(82 == code){    // shift + R 删除
-					$this.allRemove();
-                }
-                else if(86 == code){ // shift + v 克隆
-					$this.clone();
-                }
-                else if(69 == code){    // shift + E 错误检测
-                    $this.error()
-                }
-                // 移动，方向移动：缩放
-                else if($.inArray(code, [38, 40, 37, 39, 107, 109]) > -1){
-                    let nodeSelEd: rSu.Node = $this.select()
-                    if(nodeSelEd){
-                        switch(code){
-                            case 38: nodeSelEd.move2T(); break;
-                            case 40: nodeSelEd.move2B(); break;
-                            case 37: nodeSelEd.move2L(); break;
-                            case 39: nodeSelEd.move2R(); break;
-                            case 107: nodeSelEd.zoomOut(); break;
-                            case 109: nodeSelEd.zoomIn(); break;
-                        }
-                    }
-                }
-                else{
-                    // 键盘
-                    if(config.onKeydown && 'function' == typeof config.onKeydown){
-                        config.onKeydown(code, $this)
-                    }
-                }
-            }
-            else if(46 == code){    // delete 键删除
-                $this.remove()
-            }
-        })
     }
     /**
      * 错误连线

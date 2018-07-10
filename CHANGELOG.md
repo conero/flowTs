@@ -3,6 +3,17 @@
 
 ## ***V2.2.x/alpha-date*** alpha 类型模板
 
+### ***V2.2.11/20180710***
+- src/ToolBar.ts
+  - (优化) 优化代码使之更加符合 *typescript* 语言特性
+  - (修复) 修复工具栏显示隐藏时，折线坐标服务其他工具；删除中间点 使之保持一致
+  - (+) 添加 *_lnPolyConXyCrt* / *_lnConXyCrt* 方法分布用于生成折线、直线坐标点生成规则
+- src/WorkerEditor.ts
+  - (优化) 优化代码使之更加符合 *typescript* 语言特性
+  - (优化) *operHelpEvts* 转移到 *src/WePlg.ts* 中
+- (+) src/WePlg.ts 新增WEditor插件
+  - (优化) 内部事件绑定除了根据 *bindOEvts* 开启外，也可根据 *onKeydown* 事件存在性判断；以及绑定事件用户自定义优先化，可中断
+
 ### ***V2.2.10/20180709***
 - src/WorkerEditor.ts
     - (+) 添加方法 *getNdType* 用于识别节点的类型是否为text/conn/node

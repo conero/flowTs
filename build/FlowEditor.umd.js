@@ -273,6 +273,10 @@ __webpack_require__.r(__webpack_exports__);
  * 工具栏
  */
 var ToolBar = /** @class */ (function () {
+    /**
+     * @param {RaphaelPaper} paper
+     * @param {rSu.bsMap} opt
+     */
     function ToolBar(paper, opt) {
         this._tools = []; // 工具栏
         this.rData = {
@@ -451,10 +455,7 @@ var ToolBar = /** @class */ (function () {
             .attr('fill', lnDefBkg);
         // .attr(conAttr)
         var ly = y + prevH / 4 * 0.7, lx = x + 20;
-        ist = ndMer.make('ln', {
-            P1: { x: lx - 5, y: ly },
-            P2: { x: lx + 25, y: ly }
-        })
+        ist = ndMer.make('ln', this._lnConXyCrt(x, y, lx, ly))
             .creator();
         cBodyNds.ln = ist;
         // 折线
@@ -464,11 +465,7 @@ var ToolBar = /** @class */ (function () {
         // .attr(conAttr)
         ly = y + prevH / 4 * 0.7,
             lx = x + 20;
-        ist = ndMer.make('lnPoly', {
-            P1: { x: lx - 5, y: ly },
-            P2: { x: lx + 20, y: ly + 4 },
-            h: 4
-        })
+        ist = ndMer.make('lnPoly', this._lnPolyConXyCrt(x, y, lx, ly))
             .creator();
         cBodyNds.lnPoly = ist;
         this.cBodyNds = cBodyNds;
@@ -477,7 +474,41 @@ var ToolBar = /** @class */ (function () {
         this.connElems['lnPolyCon'].attr('height', ch / 2);
     };
     /**
+     * 折线坐标点生成器
+     * @param {number} x
+     * @param {number} y
+     * @param {number} lx
+     * @param {number} ly
+     * @returns {{P1: {x: number; y: number}; P2: {x: number; y: number}; h: number}}
+     * @private
+     */
+    ToolBar.prototype._lnPolyConXyCrt = function (x, y, lx, ly) {
+        var polyAttr = {
+            P1: { x: lx - 5, y: ly - 5 },
+            P2: { x: lx + 25, y: ly + 2 },
+            h: 4
+        };
+        return polyAttr;
+    };
+    /**
+     * 直线坐标点生成器
+     * @param {number} x
+     * @param {number} y
+     * @param {number} lx
+     * @param {number} ly
+     * @returns {{P1: {x: number; y: number}; P2: {x: number; y: number}}}
+     * @private
+     */
+    ToolBar.prototype._lnConXyCrt = function (x, y, lx, ly) {
+        var lnAttr = {
+            P1: { x: lx - 5, y: ly },
+            P2: { x: lx + 25, y: ly }
+        };
+        return lnAttr;
+    };
+    /**
      * 连线框占据节点框
+     * @param {boolean} backMk
      */
     ToolBar.prototype.connSizeNode = function (backMk) {
         var _a = this.connElems, title = _a.title, icon = _a.icon, lnCon = _a.lnCon, lnPolyCon = _a.lnPolyCon, _b = this.rData, cp = _b.cp, cw = _b.cw, th2 = _b.th2, ch = _b.ch, th0 = _b.th0, th1 = _b.th1, nh = _b.nh, x = cp.x, y = cp.y, _c = this.cBodyNds, ln = _c.ln, lnPoly = _c.lnPoly;
@@ -489,20 +520,14 @@ var ToolBar = /** @class */ (function () {
         lnCon.attr('y', y);
         // 直线
         var ly = y + prevH / 4 * 0.7, lx = x + 20;
-        ln.updAttr({
-            P1: { x: lx - 5, y: ly },
-            P2: { x: lx + 25, y: ly }
-        });
+        ln.updAttr(this._lnConXyCrt(x, y, lx, ly));
         // 折线
         y += 20;
         lnPolyCon.attr('y', y);
         ly = y + prevH / 4 * 0.7,
             lx = x + 20;
-        lnPoly.updAttr({
-            P1: { x: lx - 5, y: ly },
-            P2: { x: lx + 20, y: ly + 4 },
-            h: 4
-        });
+        lnPoly.opt.MPs = [];
+        lnPoly.updAttr(this._lnPolyConXyCrt(x, y, lx, ly));
     };
     /**
      * 标题栏显示与隐藏
@@ -541,6 +566,7 @@ var ToolBar = /** @class */ (function () {
     /**
      * 标题栏显示与隐藏
      * @param {string} type 显示与隐藏， H/S
+     * @param {boolean} includeTit 包含提示文本
      */
     ToolBar.prototype.cToggle = function (type, includeTit) {
         var cBodyNds = this.cBodyNds, connElems = this.connElems, lnCon = connElems.lnCon, lnPolyCon = connElems.lnPolyCon;
@@ -610,6 +636,116 @@ var ToolBar = /** @class */ (function () {
 
 /***/ }),
 
+/***/ "./src/WePlg.ts":
+/*!**********************!*\
+  !*** ./src/WePlg.ts ***!
+  \**********************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/**
+ * WorkerEditor Plugin 插件级别
+ * 2018年7月10日 星期二
+ */
+var WePlg = /** @class */ (function () {
+    function WePlg(worker) {
+        this.worker = worker;
+        this._addPlg();
+    }
+    WePlg.prototype._addPlg = function () {
+        var config = this.worker.config;
+        // 用户绑定事件，以及传入绑定事件时
+        if (config.bindOEvts || (config.onKeydown && 'function' == typeof config.onKeydown)) {
+            config.bindOEvts = true;
+            this.operHelpEvts();
+        }
+    };
+    /**
+     * 操作助手事件
+     */
+    WePlg.prototype.operHelpEvts = function () {
+        var $this = this.worker, config = $this.config, dom = config.dom;
+        // tabindex ="0" 是元素可以聚焦，outline 取消边框
+        dom.attr('tabindex', '0')
+            .css({ 'outline': 'none' });
+        dom.off('keydown').on('keydown', function (evt) {
+            var code = evt.keyCode;
+            // 用户自定义键盘事件
+            if (config.onKeydown && 'function' == typeof config.onKeydown) {
+                var breakMk = config.onKeydown(code, $this, evt);
+                if (breakMk === false) {
+                    return;
+                }
+            }
+            // console.log(code)
+            // shift +
+            if (evt.shiftKey) {
+                // 基本操作
+                if (68 == code) { // shift + D	删除当前的选择节点
+                    $this.remove();
+                }
+                else if (84 == code) { // shitf + T tab 循环
+                    $this.tab();
+                }
+                else if (67 == code) { // shift + C tab 循环 conn
+                    $this.tab('c');
+                }
+                else if (76 == code) { // shift + L tab 循环 text/lable
+                    $this.tab('t');
+                }
+                else if (65 == code) { // shift + A 全选择
+                    $this.allSelect();
+                }
+                else if (82 == code) { // shift + R 删除
+                    $this.allRemove();
+                }
+                else if (86 == code) { // shift + v 克隆
+                    $this.clone();
+                }
+                else if (69 == code) { // shift + E 错误检测
+                    $this.error();
+                }
+                // 移动，方向移动：缩放
+                else if ($.inArray(code, [38, 40, 37, 39, 107, 109]) > -1) {
+                    var nodeSelEd = $this.select();
+                    if (nodeSelEd) {
+                        switch (code) {
+                            case 38:
+                                nodeSelEd.move2T();
+                                break;
+                            case 40:
+                                nodeSelEd.move2B();
+                                break;
+                            case 37:
+                                nodeSelEd.move2L();
+                                break;
+                            case 39:
+                                nodeSelEd.move2R();
+                                break;
+                            case 107:
+                                nodeSelEd.zoomOut();
+                                break;
+                            case 109:
+                                nodeSelEd.zoomIn();
+                                break;
+                        }
+                    }
+                }
+            }
+            else if (46 == code) { // delete 键删除
+                $this.remove();
+            }
+        });
+    };
+    return WePlg;
+}());
+/* harmony default export */ __webpack_exports__["default"] = (WePlg);
+
+
+/***/ }),
+
 /***/ "./src/WorkerEditor.ts":
 /*!*****************************!*\
   !*** ./src/WorkerEditor.ts ***!
@@ -627,12 +763,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _confNode__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./confNode */ "./src/confNode.ts");
 /* harmony import */ var _node_NodeUtil__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./node/NodeUtil */ "./src/node/NodeUtil.ts");
 /* harmony import */ var _algo_LnPolyConnFn__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./algo/LnPolyConnFn */ "./src/algo/LnPolyConnFn.ts");
+/* harmony import */ var _WePlg__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./WePlg */ "./src/WePlg.ts");
 ///<reference path='../index.d.ts' />
 /**
  * 2018年3月1日 星期四
  * worker 工作流编辑器
  */
  // 助手方法
+
 
 
 
@@ -677,11 +815,8 @@ var WorkerEditor = /** @class */ (function () {
                 console.log(error);
             }
         }
-        // 绑定协助事件
-        if (this.config.bindOEvts) {
-            this.operHelpEvts();
-        }
         this._domListener();
+        new _WePlg__WEBPACK_IMPORTED_MODULE_8__["default"](this);
     }
     /**
      * 配置参数与默认参数和合并处理
@@ -2517,82 +2652,6 @@ var WorkerEditor = /** @class */ (function () {
             left: dom[0].offsetLeft,
             top: dom[0].offsetTop
         };
-    };
-    /**
-     * 操作助手事件
-     */
-    WorkerEditor.prototype.operHelpEvts = function () {
-        var config = this.config, dom = config.dom, $this = this;
-        // tabindex ="0" 是元素可以聚焦，outline 取消边框
-        dom.attr('tabindex', '0')
-            .css({ 'outline': 'none' });
-        dom.off('keydown').on('keydown', function (evt) {
-            var code = evt.keyCode;
-            // console.log(code)
-            // shift + 
-            if (evt.shiftKey) {
-                // 基本操作
-                if (68 == code) { // shift + D	删除当前的选择节点
-                    $this.remove();
-                }
-                else if (84 == code) { // shitf + T tab 循环
-                    $this.tab();
-                }
-                else if (67 == code) { // shift + C tab 循环 conn
-                    $this.tab('c');
-                }
-                else if (76 == code) { // shift + L tab 循环 text/lable
-                    $this.tab('t');
-                }
-                else if (65 == code) { // shift + A 全选择
-                    $this.allSelect();
-                }
-                else if (82 == code) { // shift + R 删除
-                    $this.allRemove();
-                }
-                else if (86 == code) { // shift + v 克隆
-                    $this.clone();
-                }
-                else if (69 == code) { // shift + E 错误检测
-                    $this.error();
-                }
-                // 移动，方向移动：缩放
-                else if ($.inArray(code, [38, 40, 37, 39, 107, 109]) > -1) {
-                    var nodeSelEd = $this.select();
-                    if (nodeSelEd) {
-                        switch (code) {
-                            case 38:
-                                nodeSelEd.move2T();
-                                break;
-                            case 40:
-                                nodeSelEd.move2B();
-                                break;
-                            case 37:
-                                nodeSelEd.move2L();
-                                break;
-                            case 39:
-                                nodeSelEd.move2R();
-                                break;
-                            case 107:
-                                nodeSelEd.zoomOut();
-                                break;
-                            case 109:
-                                nodeSelEd.zoomIn();
-                                break;
-                        }
-                    }
-                }
-                else {
-                    // 键盘
-                    if (config.onKeydown && 'function' == typeof config.onKeydown) {
-                        config.onKeydown(code, $this);
-                    }
-                }
-            }
-            else if (46 == code) { // delete 键删除
-                $this.remove();
-            }
-        });
     };
     /**
      * 错误连线
@@ -5303,7 +5362,7 @@ var Util = /** @class */ (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LibVersion", function() { return LibVersion; });
-var LibVersion = { "version": "2.2.10", "release": "20180709", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "2.2.11", "release": "20180710", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),

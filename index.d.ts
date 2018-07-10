@@ -252,7 +252,10 @@ declare namespace rSu{
         connDick: rSu.mapNode       // 连线字典 c{index}
         textDick: rSu.mapNode       // 文本字典 t{index}
 
+        allRemove(): void
         removeAllSeled(type?: string|string[]): any
+        remove(code?: string| rSu.Node): void
+        tab(type?: string): void
         allSelect(): any
         getAllSelPs(): any
         allNdSeled(type?: string | string[]): any
@@ -266,6 +269,7 @@ declare namespace rSu{
         error(): boolean
         errorNode(noClear?: boolean): boolean
         errorLine(noClear?: boolean): boolean
+
     }
 }
 
