@@ -1,7 +1,43 @@
 # 更新日志
 
 
-## ***V2.2.x/alpha-date*** alpha 类型模板
+
+## V3.0.x
+
+**<font color="red">@todo</font>**
+
+- 依赖更新
+  - webpack      （_**<font color="blue">#DONE</font>**_）
+  - typescript    （_**<font color="blue">#DONE</font>**_）
+- 工具栏
+  - 实现漂浮状态，即固定在制定个的位置
+- 节点
+  - 拖动时，如到底部页面随之进行变动
+  - [BUG] “字和节点”事件监听不一致, 导致选中字的时候拖动等无效
+  - [BUG] 节点变形时其边界描点未联动
+- 移除对 *jQuery* 依赖,减少程序耦合性
+
+
+
+### v3.0.0/alpha-todo
+
+> **<font color="red">@todo</font>**
+
+- 依赖升级
+  - *babel-loader*     @7.1.5->8.0.5
+  - *css-loader*     @0.28.7->2.1.0
+  - *node-sass*     @4.7.2->4.11.0
+  - *sass-loader*     @6.0.6->7.1.0
+  - *style-loader*     @0.19.1->0.23.1
+  - *ts-loader*          @4.4.2->5.3.3
+  - *typescript*        @2.9.2->3.2.2
+  - *webpack*         @4.15.1->4.28.1
+  - *webpack-cli*     @3.0.8->3.2.1
+
+
+
+
+## V2.2.x
 
 ### ***V2.2.11/20180710***
 - src/ToolBar.ts

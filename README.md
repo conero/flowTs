@@ -156,6 +156,7 @@
 
 ### NodeAbstract
 - 边框选择点( ***rSu.Node.select()*** )
+
     - 特定属性： *** {pcode, posi} ***
 - 属性值
     - tRElem
@@ -177,3 +178,14 @@
 - .flowts-tip
     - div
     - 坐标悬停提示控件        
+
+
+
+
+
+
+
+## 参考
+
+- `typescript 类型库` https://github.com/DefinitelyTyped/DefinitelyTyped
+
