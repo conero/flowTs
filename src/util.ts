@@ -41,7 +41,7 @@ class Util{
      */
     static each(obj: any, callback: any){
         if('object' == typeof obj){
-            if($.isArray(obj)){
+            if(this.isArray(obj)){
                 for(var i=0; i<obj.length; i++){
                     if(false === callback(i, obj[i])){
                         break

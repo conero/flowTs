@@ -2,6 +2,7 @@
  * WorkerEditor Plugin 插件级别
  * 2018年7月10日 星期二
  */
+import {Util} from "./util";
 
 export default class WePlg {
     worker: rSu.WEditor
@@ -65,7 +66,7 @@ export default class WePlg {
                     $this.error()
                 }
                 // 移动，方向移动：缩放
-                else if($.inArray(code, [38, 40, 37, 39, 107, 109]) > -1){
+                else if(Util.inArray(code, [38, 40, 37, 39, 107, 109]) > -1){
                     let nodeSelEd: rSu.Node = $this.select()
                     if(nodeSelEd){
                         switch(code){

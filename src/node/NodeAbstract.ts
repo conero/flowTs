@@ -9,7 +9,6 @@
 // declare var $: jQuery
 // declare var $: jquery
     // BUG[180331]  <reference path="../types/jquery.ts"/> 无效
-declare var $: any
 import { Util } from "../util"
 import {cNode} from '../confNode'
 import NodeUtil from "./NodeUtil";
@@ -707,7 +706,7 @@ export default abstract class NodeAbstract{
                 tArr = [key]
             }
             Util.each(this.tRElem, (k: string, elem: RaphaelElement) => {
-                if($.inArray(k, tArr) > -1){
+                if(Util.inArray(k, tArr) > -1){
                     elem.remove()
                     delete this.tRElem[k]
                 }
