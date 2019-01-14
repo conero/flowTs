@@ -14,6 +14,7 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@types/jquery": "^3.3.29",
     "es2015": "0.0.0",
     "gojs": "^1.8.10",
     "raphael": "^2.2.7"
@@ -29,6 +30,7 @@
     "ts-loader": "^5.3.3",
     "typescript": "^3.2.2",
     "webpack": "^4.28.1",
-    "webpack-cli": "^3.2.1"
+    "webpack-cli": "^3.2.1",
+    "wp4-msr": "git+https://github.com/conero/JOSHUA.git#wm/v0.0.2"
   }
 }

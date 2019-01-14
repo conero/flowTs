@@ -13,8 +13,6 @@ import NodeUtil from './node/NodeUtil';
 import {LnPolyConn} from './algo/LnPolyConnFn';
 import WePlg from "./WePlg";
 
-// 什么jQuery/RaphaelJs
-declare const $: any;
 
 /**
  * 工作流编辑器轻量级
@@ -1376,7 +1374,7 @@ export default class WorkerEditor{
             node = this.select()
         }
         if(node){
-            let newOpt: rSu.NodeOpt = $.extend(true, {}, node.opt),
+            let newOpt: rSu.NodeOpt = Util.clone(node.opt),
                 rate = 0.2
             newOpt.cx += newOpt.w * rate
             newOpt.cy += newOpt.h * rate
@@ -1493,7 +1491,7 @@ export default class WorkerEditor{
 
 
         let pushToData = (code: string, type: string, node: rSu.Node) => {
-            let opt = $.extend(true, {}, node.opt),
+            let opt = Util.clone(node.opt),
                 {NodeType} = node,
                 dd = node.data()
             

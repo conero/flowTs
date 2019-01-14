@@ -3,7 +3,7 @@
  * 2018年1月4日 星期四
  */
 const fs = require('fs')
-const {Msr4} = require('./wp4-msr/src/Msr4')
+const {Msr4} = require('wp4-msr/src/Msr4')
 const Pkg = require('./package.json')
 
 // 公共数据

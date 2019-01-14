@@ -4,11 +4,7 @@
  */
 ///<reference path="../../index.d.ts"/>
 ///<reference path="../types/raphael.ts"/>
-///<reference path="../types/jquery.ts"/>
 
-// declare var $: jQuery
-// declare var $: jquery
-    // BUG[180331]  <reference path="../types/jquery.ts"/> 无效
 import { Util } from "../util"
 import {cNode} from '../confNode'
 import NodeUtil from "./NodeUtil";

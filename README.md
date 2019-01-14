@@ -1,5 +1,14 @@
 # svg-flow-ts
-- typescript
+
+
+
+> *依赖*
+
+- *[typescript](https://github.com/Microsoft/TypeScript)*
+- *[webpack](https://github.com/webpack/webpack)*
+- [raphael](https://github.com/DmitryBaranovskiy/raphael)
+
+
 
 ## 系统可用节点
 - NodeAbstract 抽象节点
@@ -187,5 +196,6 @@
 
 ## 参考
 
+- [`typescript`](https://www.typescriptlang.org)
 - `typescript 类型库` https://github.com/DefinitelyTyped/DefinitelyTyped
 

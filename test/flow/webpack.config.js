@@ -2,7 +2,7 @@
  * 2018年1月4日 星期四
  */
 
-const {Msr4} = require('../../wp4-msr/src/Msr4')
+const {Msr4} = require('wp4-msr/src/Msr4')
 
 // js 生成函数： editor -> _cro-editor
 const jsCrtHlderFn = function(queue){
