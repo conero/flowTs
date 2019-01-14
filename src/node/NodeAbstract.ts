@@ -8,6 +8,7 @@
 import { Util } from "../util"
 import {cNode} from '../confNode'
 import NodeUtil from "./NodeUtil";
+import WeScreen from "../WeScreen"
 
 
 /**
@@ -358,7 +359,8 @@ export default abstract class NodeAbstract{
 
                 dx += tP.cx
                 dy += tP.cy
-                
+                // 屏幕同步移动监听
+                WeScreen.syncMoving(dx, dy);
                 // 结点偏移量检测
                 // if(Math.abs(arguments[0]) < cDnum && Math.abs(arguments[1]) < cDnum){
                 //     return
