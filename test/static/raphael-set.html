@@ -7,13 +7,23 @@
         #set-n1{
             background-color: antiquewhite;
         }
+        #set-n1 svg{
+            background-color: cornsilk;
+        }
+
+        /*拖动图标*/
+        .wf-gnode:hover{
+            cursor: move;
+        }
+
     </style>
 </head>
 <body>
-    <h4>Set 集合测试</h4>
+    <h4>Set 集合测试 <a href="javascript:;" class="set-n1-dl-svg"><sub>下载svg</sub></a></h4>
     <div id="set-n1"></div>
     <script src="../raphael.js"></script>
     <script src="../jquery.min.js"></script>
+    <script src="../download.js"></script>
     <script src="js/raphael-set.js"></script>
 </body>
 </html>
