@@ -12,6 +12,7 @@ export default class WeScreen{
         let e = <MouseEvent>window.event;
         let {screenX, screenY} = e;
         //console.log([screenX, screenY], [x, y], [e.clientX, e.clientY]);
+        console.log(e);
     }
 
 }
