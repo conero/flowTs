@@ -21,6 +21,11 @@ export default class NodeAudit extends NodeAbstract{
         if(nOpt.text){
             let {x, y} = this._getTextPnt()
             this.label = this.paper.text(x, y, nOpt.text)
+            this.sets = this.paper.set()
+            this.sets.push(
+                this.c,
+                this.label
+            )
         }
     }
     /**

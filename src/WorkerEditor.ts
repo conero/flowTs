@@ -171,7 +171,8 @@ export default class WorkerEditor{
             let ndAst: rSu.Node,
                 tP: rSu.P = {x: 0, y:0}
             
-            nd.c.drag(
+            let btarget = nd.sets || nd.c
+            btarget.drag(
                 function(dx: number, dy: number): any{
                     dx += tP.x
                     dy += tP.y

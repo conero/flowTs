@@ -24,6 +24,11 @@ export default class NodeTask extends NodeAbstract{
         if(opt.text){
             let {x, y} = this._getTextPnt()
             this.label = this.paper.text(x, y, opt.text)
+            this.sets = this.paper.set()
+            this.sets.push(
+                this.c,
+                this.label
+            )
         }
     }
     /**

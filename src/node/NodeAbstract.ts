@@ -37,6 +37,9 @@ export default abstract class NodeAbstract{
     protected _dataQueueDick: rSu.bsMap
     protected _code: string
 
+    // 组合变量
+    sets?: RaphaelSet
+
     constructor(paper: RaphaelPaper, opt?: rSu.NodeOpt){
         this.conLns = {
             from: [],

@@ -149,6 +149,8 @@ declare namespace rSu{
         readonly type?: number                    // 只读属性
         readonly name?: string
 
+        sets?: RaphaelSet                         // 组合集合
+
         //--------> 方法
         // NodeAbstract => NodeAbstract
         // 节点生成器，外部可访问接口
