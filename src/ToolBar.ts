@@ -68,6 +68,7 @@ export default class ToolBar{
         this._headBar()
         this._nodeBar()
         this._connBar()
+        this.newToolBar()
     }
     /**
      * 标题栏
@@ -442,5 +443,163 @@ export default class ToolBar{
         Util.each(this.headElems, (k: string, elem: RaphaelElement) => {
             elem.hide()
         })
+    }
+    /**
+     * 新版工具栏
+     * @memberof ToolBar
+     */
+    newToolBar(){
+        let p = this.paper
+        // 工具栏控件
+        let tBar = p.set()
+        let w = 80, x = 500, y = 30, h = 30;
+        let bsAttr = {x, y, w, h}
+        
+        // 标题
+        let tle = p.set()
+        tle.push(
+            p.rect(x, y, w, h, 5),
+            p.text(535, 46, '工具栏')
+        )
+        tle.attr({
+            fill: 'beige',
+            class: '-we-tool-bar-tle'
+        })
+        tle[1].attr("fill", "red")        
+        
+        // 容器
+        y += h
+        let box = p.rect(x, y, w, h, 2)
+        box.attr('fill', 'azure')
+        
+        // 可选部件
+        let config = this.config
+        let menuSeting: any = config.menu || false          // 菜单设置性
+        if(!menuSeting){        // 默认菜单项
+            menuSeting = [
+                'begin', 'task', 'sign', 'cond', 
+                'subFlow', 'parallel', 'merge', 'end',
+                'text'
+            ]
+            ;
+        }
+
+        // 内用填充
+        let ist: rSu.Node,
+            ndMer = this.ndMer,
+            tBodyNds = this.tBodyNds
+        
+        x += w/2
+
+        Util.each(menuSeting, (mk: string|number, row: any) => {
+            if('object' != typeof row){
+                mk = row
+                row = {}
+            }
+            if(!cNode[mk]){
+                return
+            }
+            // console.log(mk)
+            y += 32
+            let text = row.text || cNode[mk].text,
+                cx = x,
+                cy = y
+            
+            // box 高度自适应
+            if(parseInt(box.attr("height")) < y){
+                box.attr("height", y)
+            }
+            
+            // 特殊坐标调整（坐标修正）
+            if('parallel' == mk){
+                cy += 5
+                cx += 20
+            }
+            else if('merge' == mk){
+                cy += 5
+                cx += 20
+            }
+
+            ist = ndMer.make(<string>mk, {cx, cy, w: 40, h: 20, text: text})
+                .creator()
+            if(ist.label){
+                ist.label.attr('fill', '#FF8C00')
+                // ist.label.attr('fill', '#FFA500')
+                
+            }
+            if(ist.sets){
+                ist.sets.attr('calss', '-we-tb-tle-node')
+            }else{
+                ist.c.attr('class', '-we-tb-tle-node')
+            }
+
+            // 特殊节点处理
+            if('text' == mk){
+                ist.c.attr({
+                    'font-size': 15,
+                    'stroke': 'none'
+                })
+            }
+            tBodyNds[<string>mk] = ist
+        })
+
+        // 连接线
+        // --------------------------------- [连线/begin] -----------------------------
+        // y += 23
+        let ch = h,
+            th2 = 20
+        let cBodyNds = this.cBodyNds
+        ch = y
+        y += th2
+        let prevH = 60  // 预处理高度
+        this.config['lnSeledBkg'] = this.config['lnSeledBkg'] || '#CCFF99'
+        this.config['lnDefBkg'] = this.config['lnDefBkg'] || '#ffffff'
+        let {lnDefBkg} = this.config
+
+        this.connElems['lnCon'] = p.rect(bsAttr.x, y, w, prevH/2)
+            .attr('fill', lnDefBkg)
+            // .attr(conAttr)
+        let ly = y + prevH/4*0.7,
+            lx = x + 20
+        ist = ndMer.make('ln', this._lnConXyCrt(bsAttr.x, y, lx, ly))
+            .creator()
+        cBodyNds.ln = ist
+        
+
+        // 折线
+        y += 20
+        this.connElems['lnPolyCon'] = p.rect(bsAttr.x, y, w, prevH/2)
+            .attr('fill', lnDefBkg)
+            // .attr(conAttr)
+        ly = y + prevH/4*0.7,
+            lx = x + 20
+        ist = ndMer.make('lnPoly', this._lnPolyConXyCrt(bsAttr.x, y, lx, ly))
+            .creator()
+        cBodyNds.lnPoly = ist
+
+        this.cBodyNds = cBodyNds
+        ch = y - ch
+        this.connElems['lnCon'].attr('height', ch/2)
+        this.connElems['lnPolyCon'].attr('height', ch/2)
+
+        // --------------------------------- [连线/end] -----------------------------
+
+        tBar.push(
+            tle,
+            box
+        )
+        
+
+        // 添加样式
+        $('text.-we-tool-bar-tle').css({
+            'font-size': '1.13em'
+        })
+        // $('.-we-tool-bar-tle').css({
+        //     'cursor': 'move'
+        // })
+        // $('.-we-tb-tle-node').css({
+        //     'cursor': 'move'
+        // })
+
     }
 }
