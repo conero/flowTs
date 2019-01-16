@@ -138,9 +138,11 @@
             // el.style.left = e.offsetX + 'px';
             // el.style.top = e.offsetY + 'px';
 
-            el.style.left = e.screenX + 'px';
-            el.style.top = e.screenY + 'px';
-            
+            // el.style.left = e.screenX + 'px';
+            // el.style.top = e.screenY + 'px';
+
+            el.style.left = e.pageX + 'px';
+            el.style.top = e.pageY + 'px';
         })
         
     </script>
