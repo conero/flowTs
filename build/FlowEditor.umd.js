@@ -302,177 +302,13 @@ var ToolBar = /** @class */ (function () {
         }
         this.config.aUpSrc = _ObjX__WEBPACK_IMPORTED_MODULE_1__["default"].value(this.config, 'aUpSrc', hasIcon ? 'arrow_up.png' : null);
         this.config.aDownSrc = _ObjX__WEBPACK_IMPORTED_MODULE_1__["default"].value(this.config, 'aDownSrc', hasIcon ? 'arrow_down.png' : null);
-        this._headBar();
-        this._nodeBar();
-        this._connBar();
-    }
-    /**
-     * 标题栏
-     */
-    ToolBar.prototype._headBar = function () {
-        var $this = this, _a = this.rData, cp = _a.cp, cw = _a.cw, th0 = _a.th0, x = cp.x, y = cp.y, paper = this.paper, ist;
-        this.headElems = {};
-        ist = paper.rect(x, y, cw, th0)
-            .attr('fill', '#3A0088')
-            .click(function () {
-            var toggle = this.data('toggle');
-            if (toggle != 'H') {
-                this.data('toggle', 'H');
-                $this.toggle('H');
-            }
-            else {
-                this.data('toggle', 'S');
-                $this.toggle('S');
-            }
-        });
-        this.headElems['icon'] = ist;
-        ist = paper.text(x + (cw / 2), y + 10, _ObjX__WEBPACK_IMPORTED_MODULE_1__["default"].value(this.config, 'title', '工具栏'))
-            .attr('fill', '#ffffff');
-        this.headElems['title'] = ist;
-    };
-    /**
-     * 节点栏
-     */
-    ToolBar.prototype._nodeBar = function () {
-        var $this = this, _a = this.rData, cp = _a.cp, cw = _a.cw, th1 = _a.th1, nh = _a.nh, x = cp.x, y = cp.y, _b = this, paper = _b.paper, ndMer = _b.ndMer, config = _b.config, ist, tBodyNds = {}; // 内部缓存的节点
-        this.nodeElems = {};
-        var menuSeting = config.menu || false; // 菜单设置性
-        if (!menuSeting) { // 默认菜单项
-            menuSeting = [
-                'begin', 'task', 'sign', 'cond',
-                'subFlow', 'parallel', 'merge', 'end',
-                'text'
-            ];
-        }
-        y += th1;
-        // data: toggle => H/S
-        this.nodeElems['title'] = paper.rect(x, y, cw, 23)
-            .attr('fill', '#E8CCFF')
-            .click(function () {
-            // console.log(this)
-            var toggle = this.data('toggle');
-            var iconIst = $this.nodeElems['icon'];
-            if (toggle != 'H') {
-                this.data('toggle', 'H');
-                if (iconIst) {
-                    iconIst.attr('src', config.aDownSrc);
-                }
-                $this.tToggle('H');
-            }
-            else {
-                this.data('toggle', 'S');
-                if (iconIst) {
-                    iconIst.attr('src', config.aUpSrc);
-                }
-                $this.tToggle('S');
-            }
-        });
-        this.nodeElems['icon'] = paper.image(config.aUpSrc, x + cw * 0.7, y + 1, 20, 20);
-        nh = y;
-        y += 23;
-        this.nodeElems['tBody'] = paper.rect(x, y, cw, 250)
-            .attr('fill', '#ffffff');
-        // 数据处理
-        x += 32;
-        _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(menuSeting, function (mk, row) {
-            if ('object' != typeof row) {
-                mk = row;
-                row = {};
-            }
-            if (!_confNode__WEBPACK_IMPORTED_MODULE_3__["cNode"][mk]) {
-                return;
-            }
-            // console.log(mk)
-            y += 32;
-            var text = row.text || _confNode__WEBPACK_IMPORTED_MODULE_3__["cNode"][mk].text, cx = x, cy = y;
-            // 特殊坐标调整（坐标修正）
-            if ('parallel' == mk) {
-                cy += 5;
-                cx += 20;
-            }
-            else if ('merge' == mk) {
-                cy += 5;
-                cx += 20;
-            }
-            ist = ndMer.make(mk, { cx: cx, cy: cy, w: 40, h: 20, text: text })
-                .creator();
-            if (ist.label) {
-                ist.label.attr('fill', '#FF8C00');
-                // ist.label.attr('fill', '#FFA500')
-            }
-            // 特殊节点处理
-            if ('text' == mk) {
-                ist.c.attr({
-                    'font-size': 15,
-                    'stroke': 'none'
-                });
-            }
-            tBodyNds[mk] = ist;
-        });
-        this.tBodyNds = tBodyNds;
-        this.rData.nh = y - nh;
-        this.nodeElems['tBody'].attr('height', this.rData.nh);
-    };
-    /**
-     * 连线栏
-     */
-    ToolBar.prototype._connBar = function () {
-        var $this = this, _a = this.rData, cp = _a.cp, cw = _a.cw, th2 = _a.th2, ch = _a.ch, th0 = _a.th0, th1 = _a.th1, nh = _a.nh, x = cp.x, y = cp.y, _b = this, paper = _b.paper, ndMer = _b.ndMer, config = _b.config, ist, cBodyNds = {}; // 内部缓存的节点
+        // 属性初始化
+        this.tBodyNds = [];
         this.connElems = {};
-        // 连接线
-        // data: toggle => H/S
-        y += th0 + th1 + nh;
-        this.connElems['title'] = paper.rect(x, y, cw, th2)
-            .attr('fill', '#D1BBFF')
-            .click(function () {
-            // console.log(this)
-            var toggle = this.data('toggle');
-            var iconIst = $this.connElems['icon'];
-            if (toggle != 'H') {
-                this.data('toggle', 'H');
-                if (iconIst) {
-                    iconIst.attr('src', config.aDownSrc);
-                }
-                $this.cToggle('H');
-            }
-            else {
-                this.data('toggle', 'S');
-                if (iconIst) {
-                    iconIst.attr('src', config.aUpSrc);
-                }
-                $this.cToggle('S');
-            }
-        });
-        this.connElems['icon'] = paper.image(config.aUpSrc, x + cw * 0.7, y + 1, 20, 20);
-        // y += 23
-        ch = y;
-        y += th2;
-        var prevH = 60; // 预处理高度
-        this.config['lnSeledBkg'] = this.config['lnSeledBkg'] || '#CCFF99';
-        this.config['lnDefBkg'] = this.config['lnDefBkg'] || '#ffffff';
-        var lnDefBkg = this.config.lnDefBkg;
-        this.connElems['lnCon'] = paper.rect(x, y, cw, prevH / 2)
-            .attr('fill', lnDefBkg);
-        // .attr(conAttr)
-        var ly = y + prevH / 4 * 0.7, lx = x + 20;
-        ist = ndMer.make('ln', this._lnConXyCrt(x, y, lx, ly))
-            .creator();
-        cBodyNds.ln = ist;
-        // 折线
-        y += 20;
-        this.connElems['lnPolyCon'] = paper.rect(x, y, cw, prevH / 2)
-            .attr('fill', lnDefBkg);
-        // .attr(conAttr)
-        ly = y + prevH / 4 * 0.7,
-            lx = x + 20;
-        ist = ndMer.make('lnPoly', this._lnPolyConXyCrt(x, y, lx, ly))
-            .creator();
-        cBodyNds.lnPoly = ist;
-        this.cBodyNds = cBodyNds;
-        ch = y - ch;
-        this.connElems['lnCon'].attr('height', ch / 2);
-        this.connElems['lnPolyCon'].attr('height', ch / 2);
-    };
+        this.cBodyNds = {};
+        this.tBodyNds = {};
+        this.newToolBar();
+    }
     /**
      * 折线坐标点生成器
      * @param {number} x
@@ -484,8 +320,8 @@ var ToolBar = /** @class */ (function () {
      */
     ToolBar.prototype._lnPolyConXyCrt = function (x, y, lx, ly) {
         var polyAttr = {
-            P1: { x: lx - 5, y: ly - 5 },
-            P2: { x: lx + 25, y: ly + 2 },
+            P1: { x: lx - 50, y: ly - 5 },
+            P2: { x: lx + 2, y: ly + 2 },
             h: 4
         };
         return polyAttr;
@@ -501,8 +337,8 @@ var ToolBar = /** @class */ (function () {
      */
     ToolBar.prototype._lnConXyCrt = function (x, y, lx, ly) {
         var lnAttr = {
-            P1: { x: lx - 5, y: ly },
-            P2: { x: lx + 25, y: ly }
+            P1: { x: lx - 50, y: ly },
+            P2: { x: lx + 2, y: ly }
         };
         return lnAttr;
     };
@@ -629,6 +465,137 @@ var ToolBar = /** @class */ (function () {
             elem.hide();
         });
     };
+    /**
+     * 新版工具栏
+     * @memberof ToolBar
+     */
+    ToolBar.prototype.newToolBar = function () {
+        var p = this.paper;
+        // 工具栏控件
+        var tBar = p.set();
+        var w = 80, x = 2, y = 2, h = 30;
+        var bsAttr = { x: x, y: y, w: w, h: h };
+        // 标题
+        var tle = p.set();
+        tle.push(p.rect(x, y, w, h, 5), p.text(x + 35, y + 18, '工具栏'));
+        tle.attr({
+            fill: 'beige',
+            class: '-we-tool-bar-tle'
+        });
+        tle[1].attr("fill", "red");
+        // 容器
+        y += h;
+        var box = p.rect(x, y, w, h, 2);
+        box.attr('fill', 'azure');
+        // 可选部件
+        var config = this.config;
+        var menuSeting = config.menu || false; // 菜单设置性
+        if (!menuSeting) { // 默认菜单项
+            menuSeting = [
+                'begin', 'task', 'sign', 'cond',
+                'subFlow', 'parallel', 'merge', 'end',
+                'text'
+            ];
+        }
+        // --------------------------------- [节点/begin] -----------------------------
+        // 内用填充
+        var ist, ndMer = this.ndMer, tBodyNds = this.tBodyNds;
+        x += w / 2;
+        _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(menuSeting, function (mk, row) {
+            if ('object' != typeof row) {
+                mk = row;
+                row = {};
+            }
+            if (!_confNode__WEBPACK_IMPORTED_MODULE_3__["cNode"][mk]) {
+                return;
+            }
+            // console.log(mk)
+            y += 32;
+            var text = row.text || _confNode__WEBPACK_IMPORTED_MODULE_3__["cNode"][mk].text, cx = x, cy = y;
+            // box 高度自适应
+            if (parseInt(box.attr("height")) < y) {
+                box.attr("height", y);
+            }
+            // 特殊坐标调整（坐标修正）
+            if ('parallel' == mk) {
+                cy += 5;
+                cx += 20;
+            }
+            else if ('merge' == mk) {
+                cy += 5;
+                cx += 20;
+            }
+            ist = ndMer.make(mk, { cx: cx, cy: cy, w: 40, h: 20, text: text })
+                .creator();
+            if (ist.label) {
+                ist.label.attr('fill', '#FF8C00');
+                // ist.label.attr('fill', '#FFA500')
+            }
+            if (ist.sets) {
+                ist.sets.attr('calss', '-we-tb-tle-node');
+            }
+            else {
+                ist.c.attr('class', '-we-tb-tle-node');
+            }
+            // 特殊节点处理
+            if ('text' == mk) {
+                ist.c.attr({
+                    'font-size': 15,
+                    'stroke': 'none'
+                });
+            }
+            tBodyNds[mk] = ist;
+        });
+        this.tBodyNds = tBodyNds;
+        // --------------------------------- [节点/end] -----------------------------
+        // 连接线
+        // --------------------------------- [连线/begin] -----------------------------
+        // y += 23
+        var ch = h, th2 = 20;
+        var cBodyNds = this.cBodyNds;
+        ch = y;
+        y += th2;
+        var prevH = 60; // 预处理高度
+        this.config['lnSeledBkg'] = this.config['lnSeledBkg'] || '#CCFF99';
+        this.config['lnDefBkg'] = this.config['lnDefBkg'] || '#ffffff';
+        var lnDefBkg = this.config.lnDefBkg;
+        this.connElems['lnCon'] = p.rect(bsAttr.x, y, w, prevH / 2)
+            .attr('fill', lnDefBkg);
+        // .attr(conAttr)
+        var ly = y + prevH / 4 * 0.7, lx = x + 20;
+        ist = ndMer.make('ln', this._lnConXyCrt(bsAttr.x, y, lx, ly))
+            .creator();
+        cBodyNds.ln = ist;
+        // 折线
+        y += 20;
+        this.connElems['lnPolyCon'] = p.rect(bsAttr.x, y, w, prevH / 2)
+            .attr('fill', lnDefBkg);
+        // .attr(conAttr)
+        ly = y + prevH / 4 * 0.7,
+            lx = x + 20;
+        ist = ndMer.make('lnPoly', this._lnPolyConXyCrt(bsAttr.x, y, lx, ly))
+            .creator();
+        cBodyNds.lnPoly = ist;
+        this.cBodyNds = cBodyNds;
+        ch = y - ch;
+        this.connElems['lnCon'].attr('height', ch / 2);
+        this.connElems['lnPolyCon'].attr('height', ch / 2);
+        // --------------------------------- [连线/end] -----------------------------
+        tBar.push(tle, box);
+        // 添加样式
+        $('text.-we-tool-bar-tle').css({
+            'font-size': '1.13em',
+            'position': 'fixed',
+            top: 0,
+            left: 0
+        });
+        // $('.-we-tool-bar-tle').css({
+        //     'cursor': 'move'
+        // })
+        // $('.-we-tb-tle-node').css({
+        //     'cursor': 'move'
+        // })
+    };
     return ToolBar;
 }());
 /* harmony default export */ __webpack_exports__["default"] = (ToolBar);
@@ -645,10 +612,12 @@ var ToolBar = /** @class */ (function () {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./util */ "./src/util.ts");
 /**
  * WorkerEditor Plugin 插件级别
  * 2018年7月10日 星期二
  */
+
 var WePlg = /** @class */ (function () {
     function WePlg(worker) {
         this.worker = worker;
@@ -708,7 +677,7 @@ var WePlg = /** @class */ (function () {
                     $this.error();
                 }
                 // 移动，方向移动：缩放
-                else if ($.inArray(code, [38, 40, 37, 39, 107, 109]) > -1) {
+                else if (_util__WEBPACK_IMPORTED_MODULE_0__["Util"].inArray(code, [38, 40, 37, 39, 107, 109]) > -1) {
                     var nodeSelEd = $this.select();
                     if (nodeSelEd) {
                         switch (code) {
@@ -742,6 +711,40 @@ var WePlg = /** @class */ (function () {
     return WePlg;
 }());
 /* harmony default export */ __webpack_exports__["default"] = (WePlg);
+
+
+/***/ }),
+
+/***/ "./src/WeScreen.ts":
+/*!*************************!*\
+  !*** ./src/WeScreen.ts ***!
+  \*************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/**
+ * WE-Screen 屏幕移动
+ */
+var WeScreen = /** @class */ (function () {
+    function WeScreen() {
+    }
+    /**
+     * 同步移动
+     * @param x
+     * @param y
+     */
+    WeScreen.syncMoving = function (x, y) {
+        //console.log(window.event);
+        var e = window.event;
+        var screenX = e.screenX, screenY = e.screenY;
+        //console.log([screenX, screenY], [x, y], [e.clientX, e.clientY]);
+        console.log(e);
+    };
+    return WeScreen;
+}());
+/* harmony default export */ __webpack_exports__["default"] = (WeScreen);
 
 
 /***/ }),
@@ -895,7 +898,8 @@ var WorkerEditor = /** @class */ (function () {
             //     return null
             // }
             var ndAst, tP = { x: 0, y: 0 };
-            nd.c.drag(function (dx, dy) {
+            var btarget = nd.sets || nd.c;
+            btarget.drag(function (dx, dy) {
                 dx += tP.x;
                 dy += tP.y;
                 if (ndAst) {
@@ -2022,7 +2026,7 @@ var WorkerEditor = /** @class */ (function () {
             node = this.select();
         }
         if (node) {
-            var newOpt = $.extend(true, {}, node.opt), rate = 0.2;
+            var newOpt = _util__WEBPACK_IMPORTED_MODULE_2__["Util"].clone(node.opt), rate = 0.2;
             newOpt.cx += newOpt.w * rate;
             newOpt.cy += newOpt.h * rate;
             newNode = this.ndMer.make(node.NodeType, newOpt)
@@ -2130,7 +2134,7 @@ var WorkerEditor = /** @class */ (function () {
         //>> [{code:code, opt: nodeOpt, cls: ''}]
         var data = [], bkg = this.config.bkg || {}, bkgUrunNd = bkg.urunNd || '#CDC5BF', bkgUrunTxt = bkg.urunTxt || '#000000', stateMask = false;
         var pushToData = function (code, type, node) {
-            var opt = $.extend(true, {}, node.opt), NodeType = node.NodeType, dd = node.data();
+            var opt = _util__WEBPACK_IMPORTED_MODULE_2__["Util"].clone(node.opt), NodeType = node.NodeType, dd = node.data();
             // 状态过滤-2018年5月22日 星期二
             if (dd.state && opt.bkg) {
                 delete dd.state;
@@ -3120,13 +3124,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../util */ "./src/util.ts");
 /* harmony import */ var _confNode__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../confNode */ "./src/confNode.ts");
 /* harmony import */ var _NodeUtil__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./NodeUtil */ "./src/node/NodeUtil.ts");
+/* harmony import */ var _WeScreen__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../WeScreen */ "./src/WeScreen.ts");
 /**
  * 2018年3月26日 星期一
  * 抽象节点
  */
 ///<reference path="../../index.d.ts"/>
 ///<reference path="../types/raphael.ts"/>
-///<reference path="../types/jquery.ts"/>
+
 
 
 
@@ -3467,6 +3472,8 @@ var NodeAbstract = /** @class */ (function () {
             }
             dx += tP.cx;
             dy += tP.cy;
+            // 屏幕同步移动监听
+            _WeScreen__WEBPACK_IMPORTED_MODULE_3__["default"].syncMoving(dx, dy);
             // 结点偏移量检测
             // if(Math.abs(arguments[0]) < cDnum && Math.abs(arguments[1]) < cDnum){
             //     return
@@ -3786,7 +3793,7 @@ var NodeAbstract = /** @class */ (function () {
                 tArr_1 = [key];
             }
             _util__WEBPACK_IMPORTED_MODULE_0__["Util"].each(this.tRElem, function (k, elem) {
-                if ($.inArray(k, tArr_1) > -1) {
+                if (_util__WEBPACK_IMPORTED_MODULE_0__["Util"].inArray(k, tArr_1) > -1) {
                     elem.remove();
                     delete _this.tRElem[k];
                 }
@@ -3862,6 +3869,8 @@ var NodeAudit = /** @class */ (function (_super) {
         if (nOpt.text) {
             var _a = this._getTextPnt(), x = _a.x, y = _a.y;
             this.label = this.paper.text(x, y, nOpt.text);
+            this.sets = this.paper.set();
+            this.sets.push(this.c, this.label);
         }
     };
     /**
@@ -3958,6 +3967,8 @@ var NodeBegin = /** @class */ (function (_super) {
         if (opt.text) {
             var _a = this._getTextPnt(), x = _a.x, y = _a.y;
             this.label = this.paper.text(x, y, opt.text);
+            this.sets = this.paper.set();
+            this.sets.push(this.c, this.label);
         }
     };
     /**
@@ -4029,6 +4040,8 @@ var NodeCond = /** @class */ (function (_super) {
         if (opt.text) {
             var _a = this._getTextPnt(), x = _a.x, y = _a.y;
             this.label = this.paper.text(x, y, opt.text);
+            this.sets = this.paper.set();
+            this.sets.push(this.c, this.label);
         }
     };
     /**
@@ -4124,6 +4137,8 @@ var NodeEnd = /** @class */ (function (_super) {
         if (opt.text) {
             var _a = this._getTextPnt(), x = _a.x, y = _a.y;
             this.label = this.paper.text(x, y, opt.text);
+            this.sets = this.paper.set();
+            this.sets.push(this.c, this.label);
         }
     };
     /**
@@ -4768,6 +4783,8 @@ var NodeSign = /** @class */ (function (_super) {
         if (opt.text) {
             var _a = this._getTextPnt(), x = _a.x, y = _a.y;
             this.label = this.paper.text(x, y, opt.text);
+            this.sets = this.paper.set();
+            this.sets.push(this.c, this.label);
         }
     };
     /**
@@ -4868,6 +4885,8 @@ var NodeSubFlow = /** @class */ (function (_super) {
         if (opt.text) {
             var _b = this._getTextPnt(), x = _b.x, y = _b.y;
             this.label = this.paper.text(x, y, opt.text);
+            this.sets = this.paper.set();
+            this.sets.push(this.c, this.label);
         }
     };
     /**
@@ -4960,6 +4979,8 @@ var NodeTask = /** @class */ (function (_super) {
         if (opt.text) {
             var _a = this._getTextPnt(), x = _a.x, y = _a.y;
             this.label = this.paper.text(x, y, opt.text);
+            this.sets = this.paper.set();
+            this.sets.push(this.c, this.label);
         }
     };
     /**
@@ -5267,7 +5288,7 @@ var Util = /** @class */ (function () {
      */
     Util.each = function (obj, callback) {
         if ('object' == typeof obj) {
-            if ($.isArray(obj)) {
+            if (this.isArray(obj)) {
                 for (var i = 0; i < obj.length; i++) {
                     if (false === callback(i, obj[i])) {
                         break;
