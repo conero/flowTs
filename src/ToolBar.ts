@@ -64,10 +64,12 @@ export default class ToolBar{
         }
         this.config.aUpSrc = ObjX.value(this.config, 'aUpSrc', hasIcon? 'arrow_up.png' : null)
         this.config.aDownSrc = ObjX.value(this.config, 'aDownSrc', hasIcon? 'arrow_down.png':null)
+        // 属性初始化
+        this.tBodyNds = <any>[]
+        this.connElems = {}
+        this.cBodyNds = {}
+        this.tBodyNds = {}
         
-        this._headBar()
-        this._nodeBar()
-        this._connBar()
         this.newToolBar()
     }
     /**
@@ -284,8 +286,8 @@ export default class ToolBar{
      */
     private _lnPolyConXyCrt(x: number, y: number, lx: number, ly: number){
         let polyAttr = {
-            P1: {x: lx-5, y: ly-5},
-            P2: {x: lx+25, y: ly + 2},
+            P1: {x: lx-50, y: ly-5},
+            P2: {x: lx+2, y: ly + 2},
             h: 4
         }
         return polyAttr
@@ -302,8 +304,8 @@ export default class ToolBar{
      */
     private _lnConXyCrt(x: number, y: number, lx: number, ly: number){
         let lnAttr = {
-            P1: {x: lx-5, y: ly},
-            P2: {x: lx+25, y: ly}
+            P1: {x: lx-50, y: ly},
+            P2: {x: lx+2, y: ly}
         }
         return lnAttr
     }
@@ -452,14 +454,14 @@ export default class ToolBar{
         let p = this.paper
         // 工具栏控件
         let tBar = p.set()
-        let w = 80, x = 500, y = 30, h = 30;
+        let w = 80, x = 2, y = 2, h = 30;
         let bsAttr = {x, y, w, h}
         
         // 标题
         let tle = p.set()
         tle.push(
             p.rect(x, y, w, h, 5),
-            p.text(535, 46, '工具栏')
+            p.text(x+35, y+18, '工具栏')
         )
         tle.attr({
             fill: 'beige',
@@ -484,6 +486,7 @@ export default class ToolBar{
             ;
         }
 
+        // --------------------------------- [节点/begin] -----------------------------
         // 内用填充
         let ist: rSu.Node,
             ndMer = this.ndMer,
@@ -542,6 +545,8 @@ export default class ToolBar{
             }
             tBodyNds[<string>mk] = ist
         })
+        this.tBodyNds = tBodyNds;
+        // --------------------------------- [节点/end] -----------------------------
 
         // 连接线
         // --------------------------------- [连线/begin] -----------------------------
@@ -564,7 +569,6 @@ export default class ToolBar{
         ist = ndMer.make('ln', this._lnConXyCrt(bsAttr.x, y, lx, ly))
             .creator()
         cBodyNds.ln = ist
-        
 
         // 折线
         y += 20
@@ -588,11 +592,13 @@ export default class ToolBar{
             tle,
             box
         )
-        
 
         // 添加样式
         $('text.-we-tool-bar-tle').css({
             'font-size': '1.13em'
+            , 'position': 'fixed'
+            , top: 0
+            , left: 0
         })
         // $('.-we-tool-bar-tle').css({
         //     'cursor': 'move'

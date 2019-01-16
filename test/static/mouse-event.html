@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Mouse-Event</title>
+    <style>
+        #outter{
+            min-height: 500px;
+            background-color: beige;
+        }
+        #inner{
+            height: 100px;
+            width: 100px;
+            background-color:coral;
+            top: 100px;
+        }
+        #inner-c2{
+            height: 100px;
+            width: 100px;
+            background-color:darkgreen;
+            top: 100px;
+            left: 300px;
+        }
+        #inner-t2{
+            height: 100px;
+            width: 100px;
+            background-color:darkturquoise;
+            top: 100px;
+            left: 600px;
+        }
+        .model-conero{
+            background-color: burlywood;
+            height: 30px;
+            width: 30px;
+            border: 1px snow outset;
+        }
+        .model-conero h4{
+            margin-top: 0px; 
+        }
+        h4{
+            text-align: center;
+        }
+        [draggable="true"]{
+            cursor: move;
+            position: absolute;
+            float: left;
+        }
+        #fixed{
+            background-color: firebrick;
+            border: 2px seagreen ridge;
+            width: 50px;
+            height: 20px;
+            pad: 2px;
+            position: fixed;
+            top: 0px;
+            right: 0px;
+        }
+        #cs{
+            background-color:fuchsia;
+            position: fixed;
+            top: 0px;
+            left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="outter">
+        <h4>OUTTER BAR</h4>
+        <div id="inner" draggable="true">
+            <h4>INNER BAR</h4>
+        </div>
+        <div id="inner-c2" draggable="true">
+                <h4>JOSHUA CONERO</h4>
+            </div>
+        <div id="inner-t2" draggable="true">
+            <h4>SU.R</h4>
+        </div>
+        <div draggable="true" class="model-conero"><h4>C</h4></div>
+        <div draggable="true" class="model-conero"><h4>O</h4></div>
+        <div draggable="true" class="model-conero"><h4>N</h4></div>
+        <div draggable="true" class="model-conero"><h4>E</h4></div>
+        <div draggable="true" class="model-conero"><h4>R</h4></div>
+        <div draggable="true" class="model-conero"><h4>O</h4></div>
+    </div>
+    <div id="cs" draggable="true">
+        <h5>CONSOLE</h5>
+        <div></div>
+    </div>
+    <div id="fixed">Fixed</div>
+    <div style="min-height: 500px;background-color: tan;">
+        SUNNNNG
+    </div>
+    <script>
+        let dropables = document.querySelectorAll('[draggable="true"]');
+        function addEvts(nds, type, handler){
+            nds.forEach(element => {
+                element.addEventListener(type, handler);
+            });
+        }
+
+        let $cs = document.querySelector('#cs div');
+        addEvts(dropables, 'dragstart', function(e){
+            //console.log(e, 'dragstart');
+            // let el = e.srcElement;
+            // console.log(el.style.left);
+            
+            // el.style.left = e.offsetX;
+            // el.style.top = e.offsetX;
+        })
+
+
+        addEvts(dropables, 'drag', function(e){
+            // console.log(e);
+            let el = e.srcElement;
+            $cs.innerHTML = `
+                (x, y) => (${e.x}, ${e.y})
+                <br>(clientX, clientY) => (${e.clientX}, ${e.clientY})
+                <br>(layerX, layerY) => (${e.layerX}, ${e.layerY})
+                <br>(offsetX, offsetY) => (${e.offsetX}, ${e.offsetY})
+                <br>(pageX, pageY) => (${e.pageX}, ${e.pageY})
+                <br>(screenX, screenY) => (${e.screenX}, ${e.screenY})
+            `
+            
+            // el.style.left = e.offsetX + 'px';
+            // el.style.top = e.offsetY + 'px';
+
+            // el.style.left = e.screenX + 'px';
+            // el.style.top = e.screenY + 'px';
+            
+        })
+
+        addEvts(dropables, 'dragend', function(e){
+            // console.log(e);
+            let el = e.srcElement;
+            
+            // el.style.left = e.offsetX + 'px';
+            // el.style.top = e.offsetY + 'px';
+
+            el.style.left = e.screenX + 'px';
+            el.style.top = e.screenY + 'px';
+            
+        })
+        
+    </script>
+</body>
+</html>
