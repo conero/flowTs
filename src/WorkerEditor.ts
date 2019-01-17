@@ -173,16 +173,17 @@ export default class WorkerEditor{
             
             let btarget = nd.sets || nd.c
             btarget.drag(
-                function(dx: number, dy: number): any{
+                function(dx: number, dy: number): any{                  // moving
                     dx += tP.x
                     dy += tP.y
                     if(ndAst){
                         ndAst.updAttr({cx: dx, cy: dy})
                     }                    
                 },
-                function(): any{
+                function(x: number, y: number, evt: DragEvent): any{        // start
+                    console.log(evt);
                     let {cx, cy} = nd.opt
-                    tP.x = cx
+                    tP.x = cx+80
                     tP.y = cy
                     cx += 25
                     let ndOpt:rSu.NodeOpt = {cx, cy, w: 50, h:40}
@@ -195,7 +196,7 @@ export default class WorkerEditor{
                         .make(key, ndOpt)
                         .creator()
                 },
-                function(): any{
+                function(): any{                                         // end
                     ndAst.moveable({
                             beforeMv: function(node: rSu.Node){
                                 if($this.previewMk){
