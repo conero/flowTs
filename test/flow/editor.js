@@ -6,6 +6,7 @@ import workerflow from '../../src/WorkerEditor'
 $(function(){
     var $worker = new workerflow({
         dom: '#workflow',
+        el_toolbar: '#workflow-toolbar'            // 工具栏
         // noToolBar: true
     })
     // 暴露用于测试

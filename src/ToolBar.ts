@@ -3,11 +3,13 @@ import ObjX from "./ObjX";
 import { Util } from "./util";
 import { cNode } from "./confNode";
 
+// 工具命令
+const ElToolbar = 'el_toolbar'
+
 /**
  * 2018年3月29日 星期四
  * 工具栏
  */
-
 export default class ToolBar{
     private paper: RaphaelPaper
     private ndMer: rSu.NodeQue
@@ -35,6 +37,8 @@ export default class ToolBar{
     // 标题容器中的节点数
     cBodyNds: rSu.mapNode
 
+    cc: JQuery                      // 所在容器
+
     protected _tools: RaphaelElement[] = []     // 工具栏
     /**
      * @param {RaphaelPaper} paper
@@ -50,11 +54,14 @@ export default class ToolBar{
             ch: 0,              // 连接节点运行高度
             cw: 75              // 整个容器的宽度
         }
-        this.paper = paper
-        this.ndMer = new NodeQue(this.paper)
+        // this.paper = paper
+        // this.ndMer = new NodeQue(this.paper)
         this.option = opt
-        this.config = opt.toolBar || {}
+        this.config = opt.toolBar || {}       
         
+        // 工具栏元素处理
+        this.toolBarEl()
+
         // 图标处理
         let hasIcon = false
         if(!this.config.hasIcon && (this.config.aUpSrc || this.config.aDownSrc)){            
@@ -71,6 +78,42 @@ export default class ToolBar{
         this.tBodyNds = {}
         
         this.newToolBar()
+    }
+    /**
+     * 工具栏元素生成器
+     * @memberof ToolBar
+     */
+    toolBarEl(){
+        let {option} = this
+        if(option[ElToolbar]){
+            let el: JQuery = option[ElToolbar];
+            if('object' !== typeof el){
+                el = $(el)
+            }
+            el.html('');
+            el.css({
+                float: 'left',
+                position: 'fixed',
+                // backgroundColor: 'fuchsia',
+                minHeight: '500px',
+                // cursor: 'move',
+                // paddingTop: 10,
+                zIndex: 2
+            })
+            el.attr({
+                draggable: 'true'
+            })
+            this.paper = Raphael(<any>el.get(0))
+            el.on('dragend', function(e){
+                console.log(8);
+                el.css({
+                    left: e.pageX + 'px',
+                    top: e.pageY + 'px'
+                })
+            })
+            this.cc = el
+        }
+        this.ndMer = new NodeQue(this.paper)
     }
     /**
      * 折线坐标点生成器
@@ -331,6 +374,9 @@ export default class ToolBar{
                 ist.sets.attr('calss', '-we-tb-tle-node')
             }else{
                 ist.c.attr('class', '-we-tb-tle-node')
+                if(ist.label){
+                    ist.label.attr('class', '-we-tb-tle-node')
+                }
             }
 
             // 特殊节点处理
@@ -395,7 +441,10 @@ export default class ToolBar{
             'font-size': '1.13em'
             , 'position': 'fixed'
             , top: 0
-            , left: 0
+            , right: 0
+        })
+        $('.-we-tb-tle-node').css({
+            'position': 'fixed'
         })
         // $('.-we-tool-bar-tle').css({
         //     'cursor': 'move'
@@ -404,5 +453,8 @@ export default class ToolBar{
         //     'cursor': 'move'
         // })
 
+        this.cc.css({
+            'width': bsAttr.w
+        })
     }
 }
