@@ -155,7 +155,7 @@ export default class WorkerEditor{
         if(this.config.noToolBar){
             return null
         }
-        this.toolbarCtrl = new ToolBar(this.paper, this.config)
+        this.toolbarCtrl = new ToolBar(this.config)
 
         // 事件绑定处理
         let $this = this,
@@ -2030,14 +2030,14 @@ export default class WorkerEditor{
     preview(disable?: boolean){
         if(disable){
             if(this.toolbarCtrl){
-                this.toolbarCtrl.show()
+                this.toolbarCtrl.cc.show()
             }
             this.previewMk = false
         }
         else{
             // 隐藏工具栏
             if(this.toolbarCtrl){
-                this.toolbarCtrl.hide()
+                this.toolbarCtrl.cc.hide()
             }
             this.previewMk = true
         }

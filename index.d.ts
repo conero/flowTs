@@ -200,6 +200,7 @@ declare namespace rSu{
         option: rSu.bsMap
         config: rSu.bsMap
 
+        cc: JQuery              // 所在容器
         headElems: rSu.MapRElm  // 头部元素集合
         nodeElems: rSu.MapRElm  // 节点元素集合
         connElems: rSu.MapRElm  // 连接元素集合
@@ -222,23 +223,9 @@ declare namespace rSu{
         cBodyNds: rSu.mapNode
 
         /**
-         * 标题栏显示与隐藏
-         * @param {string} type 显示与隐藏， H/S
-         */
-        cToggle(type?:string, includeTit?: boolean): any
-        /**
-         * 标题栏显示与隐藏
-         * @param {string} type 显示与隐藏， H/S
-         * @param {boolean} includeTit 包含标题
-         */
-        tToggle(type?:string, includeTit?: boolean): any
-        /**
          * 连线框占据节点框
          */
-        connSizeNode(backMk?: boolean): any
-        show(): void
-        hide(): void
-
+        connSizeNode(backMk?: boolean): any        
     }
     // 自定义型 object 对象
     export interface ObjX{

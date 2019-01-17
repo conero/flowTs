@@ -75,16 +75,13 @@
 ```js
     new workerflow(config)
     config = {
-        dom: ''
+        dom: ''                     // workflow 工作流选择器
+        el_toolbar: ''              // 工具栏选择器
         w: ''
         h: ''
         // 工具栏相关配置
         toolBar: {
             title: 'string  默认: 工具栏',
-
-            hasIcon: 'default=false bool 默认为空；设置值键启用默认值'
-            aUpSrc: '箭头向下图片地址：默认 arrow_up.png',
-            aDownSrc: '箭头向上图片地址：默认 arrow_down.png',
             
             lnSeledBkg: ' 选择颜色码'
             lnDefBkg: ' 默认颜色码',
@@ -113,13 +110,6 @@
         disSR: 'default=false 禁止状态渲染'
         bindOEvts: 'bool-绑定操作事件'
         onKeydown: (code) => {} //  bindOEvts 绑定事件以后
-        // 图标， 设置 icon 时，设置空值时会自动默认
-        icon: {
-            state: {    // 状态
-                ran : 'state_ran.png | img-src'     // 已经运行节点
-                runing: 'state_running.png | img-src'   // 正在运行
-            }
-        }
         closeSize: 'default=false bool 关闭自动撑高'
         closeToolTip: 'default=false 关闭选题提示'
         readonly: 'true'        // 只读

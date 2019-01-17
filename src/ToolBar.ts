@@ -41,10 +41,9 @@ export default class ToolBar{
 
     protected _tools: RaphaelElement[] = []     // 工具栏
     /**
-     * @param {RaphaelPaper} paper
      * @param {rSu.bsMap} opt
      */
-    constructor(paper: RaphaelPaper, opt?: rSu.bsMap){
+    constructor(opt?: rSu.bsMap){
         this.rData = {
             cp: {x: 5, y: 5},
             th0: 23,            // 顶级标题高度
@@ -61,22 +60,12 @@ export default class ToolBar{
         
         // 工具栏元素处理
         this.toolBarEl()
-
-        // 图标处理
-        let hasIcon = false
-        if(!this.config.hasIcon && (this.config.aUpSrc || this.config.aDownSrc)){            
-            hasIcon = true
-        }else{
-            hasIcon = this.config.hasIcon || false
-        }
-        this.config.aUpSrc = ObjX.value(this.config, 'aUpSrc', hasIcon? 'arrow_up.png' : null)
-        this.config.aDownSrc = ObjX.value(this.config, 'aDownSrc', hasIcon? 'arrow_down.png':null)
         // 属性初始化
         this.tBodyNds = <any>[]
         this.connElems = {}
         this.cBodyNds = {}
         this.tBodyNds = {}
-        
+
         this.newToolBar()
     }
     /**
@@ -179,112 +168,6 @@ export default class ToolBar{
             lx = x + 20
         lnPoly.opt.MPs = []
         lnPoly.updAttr(this._lnPolyConXyCrt(x, y, lx, ly))
-    }
-
-    /**
-     * 标题栏显示与隐藏
-     * @param {string} type 显示与隐藏， H/S
-     * @param {boolean} includeTit 包含标题
-     */
-    tToggle(type?:string, includeTit?: boolean){
-        let tBodyNds = this.tBodyNds,
-            nodeElems = this.nodeElems,
-            {tBody} = nodeElems
-        if('H' != type){
-            Util.each(tBodyNds, (k: number, nd: rSu.Node) => {
-                nd.show()
-            })
-            if(includeTit){
-                nodeElems.title.show()
-                nodeElems.icon.show()
-            }
-            if(tBody){
-                tBody.show()
-            }
-            this.connSizeNode(true)
-        }
-        else{
-            Util.each(tBodyNds, (k: number, nd: rSu.Node) => {
-                nd.hide()
-            })
-            if(includeTit){
-                nodeElems.title.hide()
-                nodeElems.icon.hide()
-            }
-            if(tBody){
-                tBody.hide()
-            }
-            this.connSizeNode()
-        }
-    }
-    /**
-     * 标题栏显示与隐藏
-     * @param {string} type 显示与隐藏， H/S
-     * @param {boolean} includeTit 包含提示文本
-     */
-    cToggle(type?:string, includeTit?: boolean){
-        let cBodyNds = this.cBodyNds,
-            connElems = this.connElems,
-            {lnCon, lnPolyCon} = connElems
-        if('H' != type){
-            Util.each(cBodyNds, (k: number, nd: rSu.Node) => {
-                nd.show()
-            })
-            if(includeTit){
-                connElems.title.show()
-                connElems.icon.show()
-            }
-            if(lnCon){
-                lnCon.show()
-            }
-            if(lnPolyCon){
-                lnPolyCon.show()
-            }
-        }
-        else{
-            Util.each(cBodyNds, (k: number, nd: rSu.Node) => {
-                nd.hide()
-            })
-            if(includeTit){
-                connElems.title.hide()
-                connElems.icon.hide()
-            }
-            if(lnCon){
-                lnCon.hide()
-            }
-            if(lnPolyCon){
-                lnPolyCon.hide()
-            }
-        }
-    }
-    /**
-     * 显示与隐藏
-     * @param {string} type 
-     */
-    toggle(type?: string){
-        this.tToggle(type, true)
-        this.cToggle(type, true)
-    }
-    /**
-     * 工具栏显示
-     */
-    show(){
-        this.toggle('S')
-        this.cToggle('S')
-        Util.each(this.headElems, (k: string, elem: RaphaelElement) => {
-            elem.show()
-        })
-    }
-    /**
-     * 工具栏隐藏
-     */
-    hide(){
-        this.toggle('H')
-        this.cToggle('H')
-
-        Util.each(this.headElems, (k: string, elem: RaphaelElement) => {
-            elem.hide()
-        })
     }
     /**
      * 新版工具栏
