@@ -197,60 +197,6 @@ var NodeQue = /** @class */ (function () {
 
 /***/ }),
 
-/***/ "./src/ObjX.ts":
-/*!*********************!*\
-  !*** ./src/ObjX.ts ***!
-  \*********************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/**
- * 2018年3月30日 星期五
- * Object 类型扩展类
- */
-var ObjX = /** @class */ (function () {
-    function ObjX(jsonObj) {
-        if ('object' == typeof jsonObj && !(jsonObj instanceof Array)) {
-            this.jsonObj = jsonObj;
-        }
-        else {
-            this.jsonObj = {};
-        }
-    }
-    /**
-     * 参数获取
-     * @param key
-     * @param def
-     */
-    ObjX.prototype.get = function (key, def) {
-        if ('undefined' != typeof this.jsonObj[key]) {
-            return this.jsonObj[key];
-        }
-        else {
-            return def;
-        }
-    };
-    // 设置值
-    ObjX.prototype.set = function (key, value) {
-        this.jsonObj[key] = value;
-        return this;
-    };
-    // 获取值
-    ObjX.value = function (json, key, def) {
-        if ('object' == typeof json) {
-            return 'undefined' == typeof json[key] ? def : json[key];
-        }
-        return def;
-    };
-    return ObjX;
-}());
-/* harmony default export */ __webpack_exports__["default"] = (ObjX);
-
-
-/***/ }),
-
 /***/ "./src/ToolBar.ts":
 /*!************************!*\
   !*** ./src/ToolBar.ts ***!
@@ -261,23 +207,22 @@ var ObjX = /** @class */ (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _NodeQue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./NodeQue */ "./src/NodeQue.ts");
-/* harmony import */ var _ObjX__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ObjX */ "./src/ObjX.ts");
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./util */ "./src/util.ts");
-/* harmony import */ var _confNode__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./confNode */ "./src/confNode.ts");
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./util */ "./src/util.ts");
+/* harmony import */ var _confNode__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./confNode */ "./src/confNode.ts");
 
 
 
-
+// 工具命令
+var ElToolbar = 'el_toolbar';
 /**
  * 2018年3月29日 星期四
  * 工具栏
  */
 var ToolBar = /** @class */ (function () {
     /**
-     * @param {RaphaelPaper} paper
      * @param {rSu.bsMap} opt
      */
-    function ToolBar(paper, opt) {
+    function ToolBar(opt) {
         this._tools = []; // 工具栏
         this.rData = {
             cp: { x: 5, y: 5 },
@@ -288,26 +233,18 @@ var ToolBar = /** @class */ (function () {
             ch: 0,
             cw: 75 // 整个容器的宽度
         };
-        this.paper = paper;
-        this.ndMer = new _NodeQue__WEBPACK_IMPORTED_MODULE_0__["NodeQue"](this.paper);
+        // this.paper = paper
+        // this.ndMer = new NodeQue(this.paper)
         this.option = opt;
         this.config = opt.toolBar || {};
-        // 图标处理
-        var hasIcon = false;
-        if (!this.config.hasIcon && (this.config.aUpSrc || this.config.aDownSrc)) {
-            hasIcon = true;
-        }
-        else {
-            hasIcon = this.config.hasIcon || false;
-        }
-        this.config.aUpSrc = _ObjX__WEBPACK_IMPORTED_MODULE_1__["default"].value(this.config, 'aUpSrc', hasIcon ? 'arrow_up.png' : null);
-        this.config.aDownSrc = _ObjX__WEBPACK_IMPORTED_MODULE_1__["default"].value(this.config, 'aDownSrc', hasIcon ? 'arrow_down.png' : null);
+        // 工具栏元素处理
+        this._createCCElement();
         // 属性初始化
         this.tBodyNds = [];
         this.connElems = {};
         this.cBodyNds = {};
         this.tBodyNds = {};
-        this.newToolBar();
+        this._drawCCNodes();
     }
     /**
      * 折线坐标点生成器
@@ -366,110 +303,73 @@ var ToolBar = /** @class */ (function () {
         lnPoly.updAttr(this._lnPolyConXyCrt(x, y, lx, ly));
     };
     /**
-     * 标题栏显示与隐藏
-     * @param {string} type 显示与隐藏， H/S
-     * @param {boolean} includeTit 包含标题
-     */
-    ToolBar.prototype.tToggle = function (type, includeTit) {
-        var tBodyNds = this.tBodyNds, nodeElems = this.nodeElems, tBody = nodeElems.tBody;
-        if ('H' != type) {
-            _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(tBodyNds, function (k, nd) {
-                nd.show();
-            });
-            if (includeTit) {
-                nodeElems.title.show();
-                nodeElems.icon.show();
-            }
-            if (tBody) {
-                tBody.show();
-            }
-            this.connSizeNode(true);
-        }
-        else {
-            _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(tBodyNds, function (k, nd) {
-                nd.hide();
-            });
-            if (includeTit) {
-                nodeElems.title.hide();
-                nodeElems.icon.hide();
-            }
-            if (tBody) {
-                tBody.hide();
-            }
-            this.connSizeNode();
-        }
-    };
-    /**
-     * 标题栏显示与隐藏
-     * @param {string} type 显示与隐藏， H/S
-     * @param {boolean} includeTit 包含提示文本
-     */
-    ToolBar.prototype.cToggle = function (type, includeTit) {
-        var cBodyNds = this.cBodyNds, connElems = this.connElems, lnCon = connElems.lnCon, lnPolyCon = connElems.lnPolyCon;
-        if ('H' != type) {
-            _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(cBodyNds, function (k, nd) {
-                nd.show();
-            });
-            if (includeTit) {
-                connElems.title.show();
-                connElems.icon.show();
-            }
-            if (lnCon) {
-                lnCon.show();
-            }
-            if (lnPolyCon) {
-                lnPolyCon.show();
-            }
-        }
-        else {
-            _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(cBodyNds, function (k, nd) {
-                nd.hide();
-            });
-            if (includeTit) {
-                connElems.title.hide();
-                connElems.icon.hide();
-            }
-            if (lnCon) {
-                lnCon.hide();
-            }
-            if (lnPolyCon) {
-                lnPolyCon.hide();
-            }
-        }
-    };
-    /**
-     * 显示与隐藏
-     * @param {string} type
-     */
-    ToolBar.prototype.toggle = function (type) {
-        this.tToggle(type, true);
-        this.cToggle(type, true);
-    };
-    /**
      * 工具栏显示
+     * @memberof ToolBar
      */
     ToolBar.prototype.show = function () {
-        this.toggle('S');
-        this.cToggle('S');
-        _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(this.headElems, function (k, elem) {
-            elem.show();
-        });
+        this.cc.show();
     };
     /**
      * 工具栏隐藏
+     * @memberof ToolBar
      */
     ToolBar.prototype.hide = function () {
-        this.toggle('H');
-        this.cToggle('H');
-        _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(this.headElems, function (k, elem) {
-            elem.hide();
-        });
+        this.cc.hide();
+    };
+    /**
+     * 工具栏元素生成器
+     * @memberof ToolBar
+     */
+    ToolBar.prototype._createCCElement = function () {
+        var option = this.option;
+        if (option[ElToolbar]) {
+            var el_1 = option[ElToolbar];
+            if ('object' !== typeof el_1) {
+                el_1 = $(el_1);
+            }
+            el_1.html('');
+            el_1.css({
+                float: 'left',
+                position: 'fixed',
+                // backgroundColor: 'fuchsia',
+                minHeight: '500px',
+                // cursor: 'move',
+                // paddingTop: 10,
+                zIndex: 2
+            });
+            el_1.attr({
+                draggable: 'true'
+            });
+            this.paper = Raphael(el_1.get(0));
+            // 可以移动事件绑定
+            el_1.on('dragend', function (e) {
+                // el.css({
+                //     left: e.pageX + 'px',
+                //     top: e.pageY + 'px'
+                // })
+                // @todos need to learning more about HTML5 DRAG AND DROP
+                el_1.css({
+                    left: e.pageX,
+                    top: e.pageY
+                });
+                // console.log(e);
+                var scrollCate = document.documentElement;
+                el_1.css({
+                    left: e.pageX + scrollCate.scrollLeft,
+                    top: e.pageY + scrollCate.scrollTop
+                });
+            });
+            // 容器
+            this.cc = el_1;
+        }
+        this.ndMer = new _NodeQue__WEBPACK_IMPORTED_MODULE_0__["NodeQue"](this.paper);
     };
     /**
      * 新版工具栏
      * @memberof ToolBar
      */
-    ToolBar.prototype.newToolBar = function () {
+    ToolBar.prototype._drawCCNodes = function () {
+        var $this = this;
         var p = this.paper;
         // 工具栏控件
         var tBar = p.set();
@@ -478,15 +378,18 @@ var ToolBar = /** @class */ (function () {
         // 标题
         var tle = p.set();
         tle.push(p.rect(x, y, w, h, 5), p.text(x + 35, y + 18, '工具栏'));
+        var tleCFill = 'beige', tleTFill = 'red';
         tle.attr({
-            fill: 'beige',
+            fill: tleCFill,
             class: '-we-tool-bar-tle'
         });
-        tle[1].attr("fill", "red");
+        tle[1].attr("fill", tleTFill);
         // 容器
         y += h;
         var box = p.rect(x, y, w, h, 2);
         box.attr('fill', 'azure');
+        var boxs = p.set();
+        boxs.push(box);
         // 可选部件
         var config = this.config;
         var menuSeting = config.menu || false; // 菜单设置性
@@ -501,17 +404,17 @@ var ToolBar = /** @class */ (function () {
         // 内用填充
         var ist, ndMer = this.ndMer, tBodyNds = this.tBodyNds;
         x += w / 2;
-        _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(menuSeting, function (mk, row) {
+        _util__WEBPACK_IMPORTED_MODULE_1__["Util"].each(menuSeting, function (mk, row) {
             if ('object' != typeof row) {
                 mk = row;
                 row = {};
             }
-            if (!_confNode__WEBPACK_IMPORTED_MODULE_3__["cNode"][mk]) {
+            if (!_confNode__WEBPACK_IMPORTED_MODULE_2__["cNode"][mk]) {
                 return;
             }
             // console.log(mk)
             y += 32;
-            var text = row.text || _confNode__WEBPACK_IMPORTED_MODULE_3__["cNode"][mk].text, cx = x, cy = y;
+            var text = row.text || _confNode__WEBPACK_IMPORTED_MODULE_2__["cNode"][mk].text, cx = x, cy = y;
             // box 高度自适应
             if (parseInt(box.attr("height")) < y) {
                 box.attr("height", y);
@@ -536,6 +439,9 @@ var ToolBar = /** @class */ (function () {
             }
             else {
                 ist.c.attr('class', '-we-tb-tle-node');
+                if (ist.label) {
+                    ist.label.attr('class', '-we-tb-tle-node');
+                }
             }
             // 特殊节点处理
             if ('text' == mk) {
@@ -545,6 +451,7 @@ var ToolBar = /** @class */ (function () {
                 });
             }
             tBodyNds[mk] = ist;
+            boxs.push(ist);
         });
         this.tBodyNds = tBodyNds;
         // --------------------------------- [节点/end] -----------------------------
@@ -566,6 +473,7 @@ var ToolBar = /** @class */ (function () {
         ist = ndMer.make('ln', this._lnConXyCrt(bsAttr.x, y, lx, ly))
             .creator();
         cBodyNds.ln = ist;
+        boxs.push(this.connElems['lnCon']);
         // 折线
         y += 20;
         this.connElems['lnPolyCon'] = p.rect(bsAttr.x, y, w, prevH / 2)
@@ -576,18 +484,51 @@ var ToolBar = /** @class */ (function () {
         ist = ndMer.make('lnPoly', this._lnPolyConXyCrt(bsAttr.x, y, lx, ly))
             .creator();
         cBodyNds.lnPoly = ist;
+        boxs.push(this.connElems['lnPolyCon']);
         this.cBodyNds = cBodyNds;
         ch = y - ch;
         this.connElems['lnCon'].attr('height', ch / 2);
         this.connElems['lnPolyCon'].attr('height', ch / 2);
         // --------------------------------- [连线/end] -----------------------------
         tBar.push(tle, box);
+        // ------------------------------- [事件绑定/begin] ---------------------
+        tle.click(function (evt) {
+            var dk = '_inner_toggle', dc = tle[0], dv = tle[0].data(dk);
+            if ('hide' === dv) {
+                boxs.show();
+                $this._cBodyNdsToggle('show');
+                dc.data(dk, 'show');
+                tle[0].attr({
+                    r: 5,
+                    fill: tleCFill
+                });
+                tle[1].attr({
+                    fill: tleTFill
+                });
+            }
+            else {
+                boxs.hide();
+                dc.data(dk, 'hide');
+                $this._cBodyNdsToggle();
+                tle[0].attr({
+                    r: 20,
+                    fill: 'lime'
+                });
+                tle[1].attr({
+                    fill: 'CadetBlue'
+                });
+            }
+        });
+        // ------------------------------- [事件绑定/end] ---------------------
         // 添加样式
         $('text.-we-tool-bar-tle').css({
             'font-size': '1.13em',
             'position': 'fixed',
             top: 0,
-            left: 0
+            right: 0
+        });
+        $('.-we-tb-tle-node').css({
+            'position': 'fixed'
         });
         // $('.-we-tool-bar-tle').css({
         //     'cursor': 'move'
@@ -595,6 +536,30 @@ var ToolBar = /** @class */ (function () {
         // $('.-we-tb-tle-node').css({
         //     'cursor': 'move'
         // })
+        this.cc.css({
+            'width': bsAttr.w
+        });
+    };
+    /**
+     * 控件主体显示隐藏切换
+     * @param {string} type
+     * @memberof ToolBar
+     */
+    ToolBar.prototype._cBodyNdsToggle = function (type) {
+        var _a = this, cBodyNds = _a.cBodyNds, tBodyNds = _a.tBodyNds;
+        // 切换函数
+        var _toggle = function (ds) {
+            _util__WEBPACK_IMPORTED_MODULE_1__["Util"].each(ds, function (k, nd) {
+                if (type && 'show' === type) {
+                    nd.show();
+                }
+                else {
+                    nd.hide();
+                }
+            });
+        };
+        _toggle(tBodyNds);
+        _toggle(cBodyNds);
     };
     return ToolBar;
 }());
@@ -888,7 +853,7 @@ var WorkerEditor = /** @class */ (function () {
         if (this.config.noToolBar) {
             return null;
         }
-        this.toolbarCtrl = new _ToolBar__WEBPACK_IMPORTED_MODULE_3__["default"](this.paper, this.config);
+        this.toolbarCtrl = new _ToolBar__WEBPACK_IMPORTED_MODULE_3__["default"](this.config);
         // 事件绑定处理
         var $this = this, _a = $this.toolbarCtrl, tBodyNds = _a.tBodyNds, cBodyNds = _a.cBodyNds, connElems = _a.connElems, bkg = this.config.bkg || {};
         // 节点拖动处理事件
@@ -905,11 +870,15 @@ var WorkerEditor = /** @class */ (function () {
                 if (ndAst) {
                     ndAst.updAttr({ cx: dx, cy: dy });
                 }
-            }, function () {
+            }, function (x, y, evt) {
                 var _a = nd.opt, cx = _a.cx, cy = _a.cy;
-                tP.x = cx;
-                tP.y = cy;
-                cx += 25;
+                var _b = $this.config.dom.get(0), offsetLeft = _b.offsetLeft, offsetTop = _b.offsetTop;
+                // [INFO] INSPIRE BY THE YIHONG CHEN,20190117
+                // 滚动条载体
+                var scrollCate = document.documentElement;
+                // 移动起点
+                tP.x = evt.x - offsetLeft + scrollCate.scrollLeft;
+                tP.y = evt.y - offsetTop + scrollCate.scrollTop;
                 var ndOpt = { cx: cx, cy: cy, w: 50, h: 40 };
                 if (_confNode__WEBPACK_IMPORTED_MODULE_5__["cNode"][key]) {
                     ndOpt.text = _confNode__WEBPACK_IMPORTED_MODULE_5__["cNode"][key].text;
@@ -5419,7 +5388,7 @@ var Util = /** @class */ (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LibVersion", function() { return LibVersion; });
-var LibVersion = { "version": "2.2.11", "release": "20180710", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "3.0.0-alpha.1", "release": "20190117", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
 
 
 /***/ }),

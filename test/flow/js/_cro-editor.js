@@ -382,7 +382,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _src
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"LibVersion\", function() { return LibVersion; });\nvar LibVersion = { \"version\": \"2.2.11\", \"release\": \"20180710\", \"author\": \"Joshua Conero\", \"name\": \"zmapp-workflow-ts\" };\r\n\n\n//# sourceURL=webpack:///./version.ts?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"LibVersion\", function() { return LibVersion; });\nvar LibVersion = { \"version\": \"3.0.0-alpha.1\", \"release\": \"20190117\", \"author\": \"Joshua Conero\", \"name\": \"zmapp-workflow-ts\" };\r\n\n\n//# sourceURL=webpack:///./version.ts?");
 
 /***/ })
 
