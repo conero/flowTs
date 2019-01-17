@@ -130,7 +130,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _uti
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/**\r\n * WE-Screen 屏幕移动\r\n */\r\nvar WeScreen = /** @class */ (function () {\r\n    function WeScreen() {\r\n    }\r\n    /**\r\n     * 同步移动\r\n     * @param x\r\n     * @param y\r\n     */\r\n    WeScreen.syncMoving = function (x, y) {\r\n        //console.log(window.event);\r\n        var e = window.event;\r\n        var screenX = e.screenX, screenY = e.screenY;\r\n        //console.log([screenX, screenY], [x, y], [e.clientX, e.clientY]);\r\n        console.log(e);\r\n    };\r\n    return WeScreen;\r\n}());\r\n/* harmony default export */ __webpack_exports__[\"default\"] = (WeScreen);\r\n\n\n//# sourceURL=webpack:///./src/WeScreen.ts?");
+eval("__webpack_require__.r(__webpack_exports__);\n/**\r\n * WE-Screen 屏幕移动\r\n */\r\nvar WeScreen = /** @class */ (function () {\r\n    function WeScreen() {\r\n    }\r\n    /**\r\n     * 同步移动\r\n     * @param x\r\n     * @param y\r\n     */\r\n    WeScreen.syncMoving = function (x, y) {\r\n        //console.log(window.event);\r\n        var e = window.event;\r\n        var screenX = e.screenX, screenY = e.screenY;\r\n        //console.log([screenX, screenY], [x, y], [e.clientX, e.clientY]);\r\n        //console.log(e);\r\n        // 移动滚动条\r\n        // document.documentElement.scrollTo(e.pageX+10, e.pageY+10)\r\n        document.documentElement.scrollTo(e.pageX + 10, e.pageY + 10);\r\n    };\r\n    return WeScreen;\r\n}());\r\n/* harmony default export */ __webpack_exports__[\"default\"] = (WeScreen);\r\n\n\n//# sourceURL=webpack:///./src/WeScreen.ts?");
 
 /***/ }),
 

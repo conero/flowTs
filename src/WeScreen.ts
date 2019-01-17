@@ -12,7 +12,10 @@ export default class WeScreen{
         let e = <MouseEvent>window.event;
         let {screenX, screenY} = e;
         //console.log([screenX, screenY], [x, y], [e.clientX, e.clientY]);
-        console.log(e);
+        //console.log(e);
+        // 移动滚动条
+        // document.documentElement.scrollTo(e.pageX+10, e.pageY+10)
+        document.documentElement.scrollTo(e.pageX+10, e.pageY+10)
     }
 
 }
