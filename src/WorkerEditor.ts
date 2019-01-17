@@ -181,11 +181,16 @@ export default class WorkerEditor{
                     }                    
                 },
                 function(x: number, y: number, evt: DragEvent): any{        // start
-                    console.log(evt);
+                    // console.log(evt);
                     let {cx, cy} = nd.opt
-                    tP.x = cx+80
-                    tP.y = cy
-                    cx += 25
+                    let {offsetLeft, offsetTop} = $this.config.dom.get(0);
+                    
+                    // 滚动条载体
+                    let scrollCate = document.documentElement
+                    // 移动起点
+                    tP.x = evt.x - offsetLeft + scrollCate.scrollLeft
+                    tP.y = evt.y - offsetTop + scrollCate.scrollTop
+
                     let ndOpt:rSu.NodeOpt = {cx, cy, w: 50, h:40}
                     if(cNode[key]){
                         ndOpt.text = cNode[key].text
