@@ -59,51 +59,16 @@ export default class ToolBar{
         this.config = opt.toolBar || {}       
         
         // 工具栏元素处理
-        this.toolBarEl()
+        this._createCCElement()
         // 属性初始化
         this.tBodyNds = <any>[]
         this.connElems = {}
         this.cBodyNds = {}
         this.tBodyNds = {}
 
-        this.newToolBar()
+        this._drawCCNodes()
     }
-    /**
-     * 工具栏元素生成器
-     * @memberof ToolBar
-     */
-    toolBarEl(){
-        let {option} = this
-        if(option[ElToolbar]){
-            let el: JQuery = option[ElToolbar];
-            if('object' !== typeof el){
-                el = $(el)
-            }
-            el.html('');
-            el.css({
-                float: 'left',
-                position: 'fixed',
-                // backgroundColor: 'fuchsia',
-                minHeight: '500px',
-                // cursor: 'move',
-                // paddingTop: 10,
-                zIndex: 2
-            })
-            el.attr({
-                draggable: 'true'
-            })
-            this.paper = Raphael(<any>el.get(0))
-            el.on('dragend', function(e){
-                console.log(8);
-                el.css({
-                    left: e.pageX + 'px',
-                    top: e.pageY + 'px'
-                })
-            })
-            this.cc = el
-        }
-        this.ndMer = new NodeQue(this.paper)
-    }
+    
     /**
      * 折线坐标点生成器
      * @param {number} x
@@ -170,10 +135,80 @@ export default class ToolBar{
         lnPoly.updAttr(this._lnPolyConXyCrt(x, y, lx, ly))
     }
     /**
+     * 工具栏显示
+     * @memberof ToolBar
+     */
+    show(){
+        this.cc.show()
+    }
+
+    /**
+     * 工具栏隐藏
+     * @memberof ToolBar
+     */
+    hide(){
+        this.cc.hide()
+    }
+
+    /**
+     * 工具栏元素生成器
+     * @memberof ToolBar
+     */
+    private _createCCElement(){
+        let {option} = this
+        if(option[ElToolbar]){
+            let el: JQuery = option[ElToolbar];
+            if('object' !== typeof el){
+                el = $(el)
+            }
+            el.html('');
+            el.css({
+                float: 'left',
+                position: 'fixed',
+                // backgroundColor: 'fuchsia',
+                minHeight: '500px',
+                // cursor: 'move',
+                // paddingTop: 10,
+                zIndex: 2
+            })
+            el.attr({
+                draggable: 'true'
+            })
+            this.paper = Raphael(<any>el.get(0))
+
+            // 可以移动事件绑定
+            el.on('dragend', function(e: JQueryEventObject){
+                // el.css({
+                //     left: e.pageX + 'px',
+                //     top: e.pageY + 'px'
+                // })
+
+                // @todos need to learning more about HTML5 DRAG AND DROP
+                el.css({
+                    left: e.pageX,
+                    top: e.pageY
+                })
+
+                // console.log(e);
+
+                let scrollCate = document.documentElement
+                el.css({
+                    left: e.pageX + scrollCate.scrollLeft,
+                    top: e.pageY + scrollCate.scrollTop
+                })
+            })
+            
+            // 容器
+            this.cc = el
+        }
+        this.ndMer = new NodeQue(this.paper)
+    }
+    /**
      * 新版工具栏
      * @memberof ToolBar
      */
-    newToolBar(){
+    private _drawCCNodes(){
+        let $this = this;
         let p = this.paper
         // 工具栏控件
         let tBar = p.set()
@@ -186,16 +221,20 @@ export default class ToolBar{
             p.rect(x, y, w, h, 5),
             p.text(x+35, y+18, '工具栏')
         )
+        let tleCFill = 'beige',
+            tleTFill = 'red'
         tle.attr({
-            fill: 'beige',
+            fill: tleCFill,
             class: '-we-tool-bar-tle'
         })
-        tle[1].attr("fill", "red")        
+        tle[1].attr("fill", tleTFill)        
         
         // 容器
         y += h
         let box = p.rect(x, y, w, h, 2)
         box.attr('fill', 'azure')
+        let boxs = p.set()
+        boxs.push(box)
         
         // 可选部件
         let config = this.config
@@ -251,7 +290,6 @@ export default class ToolBar{
             if(ist.label){
                 ist.label.attr('fill', '#FF8C00')
                 // ist.label.attr('fill', '#FFA500')
-                
             }
             if(ist.sets){
                 ist.sets.attr('calss', '-we-tb-tle-node')
@@ -270,6 +308,7 @@ export default class ToolBar{
                 })
             }
             tBodyNds[<string>mk] = ist
+            boxs.push(ist)
         })
         this.tBodyNds = tBodyNds;
         // --------------------------------- [节点/end] -----------------------------
@@ -295,6 +334,7 @@ export default class ToolBar{
         ist = ndMer.make('ln', this._lnConXyCrt(bsAttr.x, y, lx, ly))
             .creator()
         cBodyNds.ln = ist
+        boxs.push(this.connElems['lnCon'])
 
         // 折线
         y += 20
@@ -306,6 +346,7 @@ export default class ToolBar{
         ist = ndMer.make('lnPoly', this._lnPolyConXyCrt(bsAttr.x, y, lx, ly))
             .creator()
         cBodyNds.lnPoly = ist
+        boxs.push(this.connElems['lnPolyCon'])
 
         this.cBodyNds = cBodyNds
         ch = y - ch
@@ -313,11 +354,42 @@ export default class ToolBar{
         this.connElems['lnPolyCon'].attr('height', ch/2)
 
         // --------------------------------- [连线/end] -----------------------------
-
         tBar.push(
             tle,
             box
         )
+
+        // ------------------------------- [事件绑定/begin] ---------------------
+        tle.click(function(evt: MouseEvent){
+            let dk = '_inner_toggle', 
+                dc = tle[0],
+                dv = tle[0].data(dk)
+            if('hide' === dv){
+                boxs.show()
+                $this._cBodyNdsToggle('show')
+                dc.data(dk, 'show')
+                                
+                tle[0].attr({
+                    r: 5,
+                    fill: tleCFill
+                })
+                tle[1].attr({
+                    fill: tleTFill
+                })
+            }else{
+                boxs.hide()
+                dc.data(dk, 'hide')
+                $this._cBodyNdsToggle()
+                tle[0].attr({
+                    r: 20,
+                    fill: 'lime'
+                })
+                tle[1].attr({
+                    fill: 'CadetBlue'
+                })
+            }
+        })
+        // ------------------------------- [事件绑定/end] ---------------------
 
         // 添加样式
         $('text.-we-tool-bar-tle').css({
@@ -335,9 +407,29 @@ export default class ToolBar{
         // $('.-we-tb-tle-node').css({
         //     'cursor': 'move'
         // })
-
+        
         this.cc.css({
             'width': bsAttr.w
         })
+    }
+    /**
+     * 控件主体显示隐藏切换
+     * @param {string} type
+     * @memberof ToolBar
+     */
+    _cBodyNdsToggle(type?: string){
+        let {cBodyNds, tBodyNds} = this;
+        // 切换函数
+        let _toggle = (ds: any) => {
+            Util.each(ds, (k: string, nd: RaphaelElement) => {
+                if(type && 'show' === type){
+                    nd.show()
+                }else{
+                    nd.hide()
+                }
+            })
+        }
+        _toggle(tBodyNds)   
+        _toggle(cBodyNds)   
     }
 }

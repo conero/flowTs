@@ -7,6 +7,7 @@
 - *[typescript](https://github.com/Microsoft/TypeScript)*
 - *[webpack](https://github.com/webpack/webpack)*
 - [raphael](https://github.com/DmitryBaranovskiy/raphael)
+  - [document](http://dmitrybaranovskiy.github.io/raphael/)
 
 
 

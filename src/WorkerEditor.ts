@@ -181,10 +181,10 @@ export default class WorkerEditor{
                     }                    
                 },
                 function(x: number, y: number, evt: DragEvent): any{        // start
-                    // console.log(evt);
                     let {cx, cy} = nd.opt
                     let {offsetLeft, offsetTop} = $this.config.dom.get(0);
                     
+                    // [INFO] INSPIRE BY THE YIHONG CHEN,20190117
                     // 滚动条载体
                     let scrollCate = document.documentElement
                     // 移动起点
@@ -2036,14 +2036,14 @@ export default class WorkerEditor{
     preview(disable?: boolean){
         if(disable){
             if(this.toolbarCtrl){
-                this.toolbarCtrl.cc.show()
+                this.toolbarCtrl.show()
             }
             this.previewMk = false
         }
         else{
             // 隐藏工具栏
             if(this.toolbarCtrl){
-                this.toolbarCtrl.cc.hide()
+                this.toolbarCtrl.hide()
             }
             this.previewMk = true
         }

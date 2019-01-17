@@ -225,7 +225,9 @@ declare namespace rSu{
         /**
          * 连线框占据节点框
          */
-        connSizeNode(backMk?: boolean): any        
+        connSizeNode(backMk?: boolean): any  
+        show(): void
+        hide(): void      
     }
     // 自定义型 object 对象
     export interface ObjX{
