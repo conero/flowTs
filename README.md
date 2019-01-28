@@ -1,4 +1,8 @@
-# svg-flow-ts
+# flowTs
+
+> 基本说明
+
+*项目开发/测试环境为Google浏览器，其最低支持版本为 Google v49.0.2623.75*
 
 
 

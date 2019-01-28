@@ -176,6 +176,7 @@ export default class ToolBar{
             })
             this.paper = Raphael(<any>el.get(0))
 
+            // ******************** 工具栏拖动效果实现/BEGIN ***************************
             // 可以移动事件绑定
             el.on('dragend', function(e: JQueryEventObject){
                 // el.css({
@@ -184,27 +185,35 @@ export default class ToolBar{
                 // })
 
                 // @todos need to learning more about HTML5 DRAG AND DROP
-                el.css({
-                    left: e.pageX,
-                    top: e.pageY
-                })
-
-                // console.log(e);
+                // el.css({
+                //     left: e.pageX,
+                //     top: e.pageY
+                // })
 
                 let scrollCate = document.documentElement
+                
+                // console.log([scrollCate.scrollLeft, scrollCate.scrollTop]);
+                
+                // console.log(e);
+                
+                // el.css({
+                //     left: e.pageX + scrollCate.scrollLeft,
+                //     top: e.pageY + scrollCate.scrollTop
+                // })
                 el.css({
-                    left: e.pageX + scrollCate.scrollLeft,
-                    top: e.pageY + scrollCate.scrollTop
+                    left: e.screenX + scrollCate.scrollLeft,
+                    top: e.screenY + scrollCate.scrollTop
                 })
             })
             
+            // ******************** 工具栏拖动效果实现/END ***************************
             // 容器
             this.cc = el
         }
         this.ndMer = new NodeQue(this.paper)
     }
     /**
-     * 新版工具栏
+     * 工具栏生成算法
      * @memberof ToolBar
      */
     private _drawCCNodes(){
@@ -388,6 +397,7 @@ export default class ToolBar{
                     fill: 'CadetBlue'
                 })
             }
+            $this.onClick($this, dv);
         })
         // ------------------------------- [事件绑定/end] ---------------------
 
@@ -432,4 +442,9 @@ export default class ToolBar{
         _toggle(tBodyNds)   
         _toggle(cBodyNds)   
     }
+    /**
+     * 点击事件绑定
+     * @memberof ToolBar
+     */
+    onClick(tb: rSu.ToolBar, type?: string){}
 }

@@ -241,6 +241,12 @@ export default class WorkerEditor{
             isSelEd: false,
             type: null
         }
+        
+        // 事件绑定
+        this.toolbarCtrl.onClick = function(tb: rSu.ToolBar, dv: string){
+            $this.removeAllSeled()
+        }
+
         let clearAllLinkSeled = () => {
             Util.each(cBodyNds, (key: string, nd: rSu.Node) => {
                 nd.isSelEd = false

@@ -227,7 +227,12 @@ declare namespace rSu{
          */
         connSizeNode(backMk?: boolean): any  
         show(): void
-        hide(): void      
+        hide(): void  
+        /**
+         * 事件绑定
+         * @memberof ToolBar
+         */
+        onClick(tb: rSu.ToolBar, type?: string): void
     }
     // 自定义型 object 对象
     export interface ObjX{

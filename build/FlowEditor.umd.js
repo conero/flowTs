@@ -341,6 +341,7 @@ var ToolBar = /** @class */ (function () {
                 draggable: 'true'
             });
             this.paper = Raphael(el_1.get(0));
+            // ******************** 工具栏拖动效果实现/BEGIN ***************************
             // 可以移动事件绑定
             el_1.on('dragend', function (e) {
                 // el.css({
@@ -348,24 +349,30 @@ var ToolBar = /** @class */ (function () {
                 //     top: e.pageY + 'px'
                 // })
                 // @todos need to learning more about HTML5 DRAG AND DROP
-                el_1.css({
-                    left: e.pageX,
-                    top: e.pageY
-                });
-                // console.log(e);
+                // el.css({
+                //     left: e.pageX,
+                //     top: e.pageY
+                // })
                 var scrollCate = document.documentElement;
+                // console.log([scrollCate.scrollLeft, scrollCate.scrollTop]);
+                // console.log(e);
+                // el.css({
+                //     left: e.pageX + scrollCate.scrollLeft,
+                //     top: e.pageY + scrollCate.scrollTop
+                // })
                 el_1.css({
-                    left: e.pageX + scrollCate.scrollLeft,
-                    top: e.pageY + scrollCate.scrollTop
+                    left: e.screenX + scrollCate.scrollLeft,
+                    top: e.screenY + scrollCate.scrollTop
                 });
             });
+            // ******************** 工具栏拖动效果实现/END ***************************
             // 容器
             this.cc = el_1;
         }
         this.ndMer = new _NodeQue__WEBPACK_IMPORTED_MODULE_0__["NodeQue"](this.paper);
     };
     /**
-     * 新版工具栏
+     * 工具栏生成算法
      * @memberof ToolBar
      */
     ToolBar.prototype._drawCCNodes = function () {
@@ -518,6 +525,7 @@ var ToolBar = /** @class */ (function () {
                     fill: 'CadetBlue'
                 });
             }
+            $this.onClick($this, dv);
         });
         // ------------------------------- [事件绑定/end] ---------------------
         // 添加样式
@@ -561,6 +569,11 @@ var ToolBar = /** @class */ (function () {
         _toggle(tBodyNds);
         _toggle(cBodyNds);
     };
+    /**
+     * 点击事件绑定
+     * @memberof ToolBar
+     */
+    ToolBar.prototype.onClick = function (tb, type) { };
     return ToolBar;
 }());
 /* harmony default export */ __webpack_exports__["default"] = (ToolBar);
@@ -705,7 +718,10 @@ var WeScreen = /** @class */ (function () {
         var e = window.event;
         var screenX = e.screenX, screenY = e.screenY;
         //console.log([screenX, screenY], [x, y], [e.clientX, e.clientY]);
-        console.log(e);
+        //console.log(e);
+        // 移动滚动条
+        // document.documentElement.scrollTo(e.pageX+10, e.pageY+10)
+        document.documentElement.scrollTo(e.pageX + 10, e.pageY + 10);
     };
     return WeScreen;
 }());
@@ -924,6 +940,10 @@ var WorkerEditor = /** @class */ (function () {
         this.lineCnMode = {
             isSelEd: false,
             type: null
+        };
+        // 事件绑定
+        this.toolbarCtrl.onClick = function (tb, dv) {
+            $this.removeAllSeled();
         };
         var clearAllLinkSeled = function () {
             _util__WEBPACK_IMPORTED_MODULE_2__["Util"].each(cBodyNds, function (key, nd) {
