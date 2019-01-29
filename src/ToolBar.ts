@@ -177,6 +177,14 @@ export default class ToolBar{
             this.paper = Raphael(<any>el.get(0))
 
             // ******************** 工具栏拖动效果实现/BEGIN ***************************
+            let dragPst: rSu.P = {x: 0, y: 0}
+            // 拖动开始
+            el.on('dragstart', function(e: JQueryEventObject){
+                // console.log(e, ':dragstart');
+                dragPst.x = e.screenX
+                dragPst.y = e.screenY
+            })
+
             // 可以移动事件绑定
             el.on('dragend', function(e: JQueryEventObject){
                 // el.css({
@@ -200,10 +208,17 @@ export default class ToolBar{
                 //     left: e.pageX + scrollCate.scrollLeft,
                 //     top: e.pageY + scrollCate.scrollTop
                 // })
+                // el.css({
+                //     left: e.screenX + scrollCate.scrollLeft,
+                //     top: e.screenY + scrollCate.scrollTop
+                // })
+                console.log(dragPst);
                 el.css({
-                    left: e.screenX + scrollCate.scrollLeft,
-                    top: e.screenY + scrollCate.scrollTop
+                    left: e.screenX,
+                    top: e.screenY
                 })
+                console.log(e.screenX, e.screenY);
+                
             })
             
             // ******************** 工具栏拖动效果实现/END ***************************
