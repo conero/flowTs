@@ -3,8 +3,28 @@ import ObjX from "./ObjX";
 import { Util } from "./util";
 import { cNode } from "./confNode";
 
+
 // 工具命令
 const ElToolbar = 'el_toolbar'
+const CgTleCFill = 'beige'
+const CgTleTFill = 'red'
+
+// date:   2019年1月29日 星期二
+// author: By Joshua Conero
+// 1. 通过，[ToolBar] 父级 div 与 [工作流编辑] div 分离的目的实现对 [ToolBar] 的固定
+// 
+// 
+// 2. [ToolBar] 的设计
+// 基本架构图
+//     cc: JQuery   工具栏容器
+//    
+//     |--------------------|
+//     |-- ccTle(容器标题) --|
+//     |--------------------|
+//     |-- ccBox(工具容器) --|
+//     |--------------------|
+
+
 
 /**
  * 2018年3月29日 星期四
@@ -38,6 +58,8 @@ export default class ToolBar{
     cBodyNds: rSu.mapNode
 
     cc: JQuery                      // 所在容器
+    ccBox: RaphaelSet
+    ccTle: RaphaelSet
     // cc 的属性
     ccAttr: {
         show: {
@@ -155,7 +177,7 @@ export default class ToolBar{
      * @memberof ToolBar
      */
     show(){
-        this.cc.show()
+        this.cc.show()             
     }
 
     /**
@@ -163,7 +185,7 @@ export default class ToolBar{
      * @memberof ToolBar
      */
     hide(){
-        this.cc.hide()
+        this.cc.hide()        
     }
 
     /**
@@ -182,7 +204,8 @@ export default class ToolBar{
                 float: 'left',
                 position: 'fixed',
                 // backgroundColor: 'fuchsia',
-                minHeight: '500px',
+                // minHeight: '500px',
+                maxHeight: '500px',
                 padding: 0,
                 // cursor: 'move',
                 // paddingTop: 10,
@@ -242,8 +265,8 @@ export default class ToolBar{
             // 容器
             this.cc = el
         }
-        this.ndMer = new NodeQue(this.paper)
-    }
+        this.ndMer = new NodeQue(this.paper)        
+    }    
     /**
      * 工具栏生成算法
      * @memberof ToolBar
@@ -262,13 +285,11 @@ export default class ToolBar{
             p.rect(x, y, w, h, 5),
             p.text(x+35, y+18, '工具栏')
         )
-        let tleCFill = 'beige',
-            tleTFill = 'red'
         tle.attr({
-            fill: tleCFill,
+            fill: CgTleCFill,
             class: '-we-tool-bar-tle'
         })
-        tle[1].attr("fill", tleTFill)        
+        tle[1].attr("fill", CgTleTFill)        
         
         // 容器
         y += h
@@ -395,46 +416,19 @@ export default class ToolBar{
         this.connElems['lnPolyCon'].attr('height', ch/2)
 
         // --------------------------------- [连线/end] -----------------------------
+        this.ccBox = boxs
+        this.ccTle = tle
         tBar.push(
             tle,
             box
         )
+        
+        // 记录显示的尺寸
+        this.ccAttr.show = {w:w+10, h: y+30} 
 
         // ------------------------------- [事件绑定/begin] ---------------------
         tle.click(function(evt: MouseEvent){
-            let dk = '_inner_toggle', 
-                dc = tle[0],
-                dv = tle[0].data(dk)
-            if('hide' === dv){
-                boxs.show()
-                $this._cBodyNdsToggle('show')
-                dc.data(dk, 'show')
-                                
-                tle[0].attr({
-                    r: 5,
-                    fill: tleCFill
-                })
-                tle[1].attr({
-                    fill: tleTFill
-                })
-                $this.paper.setSize($this.ccAttr.show.w, $this.ccAttr.show.h)
-            }else{
-                boxs.hide()
-                dc.data(dk, 'hide')
-                $this._cBodyNdsToggle()
-                tle[0].attr({
-                    r: 20,
-                    fill: 'lime'
-                })
-                tle[1].attr({
-                    fill: 'CadetBlue'
-                })
-                if($this.ccAttr.hide.w == 0){
-                    $this.ccAttr.hide = {w: tle[0].attr('width'), h:tle[0].attr('height')}
-                }      
-                $this.paper.setSize($this.ccAttr.hide.w+5, $this.ccAttr.hide.h+5)
-            }
-            $this.onClick($this, dv);
+            $this.toggleTools()            
         })
         // ------------------------------- [事件绑定/end] ---------------------
 
@@ -458,31 +452,74 @@ export default class ToolBar{
         let $cc = this.cc;
         $cc.css({
             'width': bsAttr.w
-        })
-        // 修改 svg 的尺寸
-        this.ccAttr.show = {w:w+10, h: y+30}
-        this.paper.setSize(this.ccAttr.show.w, this.ccAttr.show.h)
+        })        
+        // 显示，并自动适应svg视图的宽度   
+        this.toggleTools('show') 
     }
     /**
-     * 控件主体显示隐藏切换
-     * @param {string} type
+     * 工具集显示和隐藏
+     * @param {string} [tp]
      * @memberof ToolBar
      */
-    _cBodyNdsToggle(type?: string){
-        let {cBodyNds, tBodyNds} = this;
-        // 切换函数
-        let _toggle = (ds: any) => {
-            Util.each(ds, (k: string, nd: RaphaelElement) => {
-                if(type && 'show' === type){
-                    nd.show()
-                }else{
-                    nd.hide()
-                }
-            })
+    toggleTools(tp?: string){
+        let tle = this.ccTle
+        let dk = '_inner_toggle', 
+            dc = tle[0],
+            dv = tle[0].data(dk)
+        let boxs = this.ccBox  
+        
+        // 类型强制
+        if(tp){
+            dv = (tp === 'show')? 'hide':'show'            
         }
-        _toggle(tBodyNds)   
-        _toggle(cBodyNds)   
+
+        if('hide' === dv){
+            boxs.show()
+            dc.data(dk, 'show')
+                            
+            tle[0].attr({
+                r: 5,
+                fill: CgTleCFill
+            })
+            tle[1].attr({
+                fill: CgTleTFill
+            })
+
+            // 尺寸变化
+            if(this.ccAttr.show.w > 0){
+                this.paper.setSize(this.ccAttr.show.w, this.ccAttr.show.h)
+                this.cc.css({
+                    width: this.ccAttr.show.w,
+                    height: this.ccAttr.show.h
+                })
+            }
+            // $this.paper.setSize($this.ccAttr.show.w, $this.ccAttr.show.h)
+        }else{
+            boxs.hide()
+            dc.data(dk, 'hide')
+            tle[0].attr({
+                r: 20,
+                fill: 'lime'
+            })
+            tle[1].attr({
+                fill: 'CadetBlue'
+            })
+            // console.log($this.ccAttr.hide);
+            if(this.ccAttr.hide.w == 0){
+                this.ccAttr.hide = {w: tle[0].attr('width'), h:tle[0].attr('height')}
+            }             
+            // 尺寸变化
+            if(this.ccAttr.hide.w > 0){
+                this.paper.setSize(this.ccAttr.hide.w+5, this.ccAttr.hide.h+5)
+                this.cc.css({
+                    width: this.ccAttr.hide.w+5,
+                    height: this.ccAttr.hide.h+5
+                })
+            }            
+        }
+        this.onClick(this, dv)
     }
+
     /**
      * 点击事件绑定
      * @memberof ToolBar

@@ -228,6 +228,8 @@ declare namespace rSu{
         connSizeNode(backMk?: boolean): any  
         show(): void
         hide(): void  
+        toggleTools(tp?: string): void
+        
         /**
          * 事件绑定
          * @memberof ToolBar
