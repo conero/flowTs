@@ -39,7 +39,8 @@ let webpackData = new Msr4({
 })
     .js(jsCrtHlderFn([
         'editor',
-        'melemhtml'
+        'melemhtml',
+        'editor-actb'
     ]))
     .data
 // console.log(webpackData)

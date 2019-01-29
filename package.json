@@ -1,7 +1,7 @@
 {
-  "name": "zmapp-workflow-ts",
-  "version": "3.0.0-alpha.1",
-  "release": "20190117",
+  "name": "flowts",
+  "version": "3.0.0-alpha.2",
+  "release": "20190129",
   "description": "workflow chart",
   "author": "Joshua Conero",
   "main": "index.js",

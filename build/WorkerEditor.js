@@ -204,6 +204,22 @@ __webpack_require__.r(__webpack_exports__);
 
 // 工具命令
 var ElToolbar = 'el_toolbar';
+var CgTleCFill = 'beige';
+var CgTleTFill = 'red';
+// date:   2019年1月29日 星期二
+// author: By Joshua Conero
+// 1. 通过，[ToolBar] 父级 div 与 [工作流编辑] div 分离的目的实现对 [ToolBar] 的固定
+// 
+// 
+// 2. [ToolBar] 的设计
+// 基本架构图
+//     cc: JQuery   工具栏容器
+//    
+//     |--------------------|
+//     |-- ccTle(容器标题) --|
+//     |--------------------|
+//     |-- ccBox(工具容器) --|
+//     |--------------------|
 /**
  * 2018年3月29日 星期四
  * 工具栏
@@ -214,6 +230,11 @@ var ToolBar = /** @class */ (function () {
      */
     function ToolBar(opt) {
         this._tools = []; // 工具栏
+        // cc 参数化默认设置
+        this.ccAttr = {
+            show: { w: 0, h: 0 },
+            hide: { w: 0, h: 0 }
+        };
         this.rData = {
             cp: { x: 5, y: 5 },
             th0: 23,
@@ -307,11 +328,25 @@ var ToolBar = /** @class */ (function () {
         this.cc.hide();
     };
     /**
+     * 无配置文件式自动生成
+     * @private
+     * @memberof ToolBar
+     */
+    ToolBar.prototype._withoutElCfgThenCrtEl = function () {
+        var option = this.option;
+        if (option.dom && !option[ElToolbar]) {
+            var $dom = option.dom;
+            this.option[ElToolbar] = $dom.before('<div></div>');
+            console.log(new Date());
+        }
+    };
+    /**
      * 工具栏元素生成器
      * @memberof ToolBar
      */
     ToolBar.prototype._createCCElement = function () {
         var option = this.option;
+        this._withoutElCfgThenCrtEl();
         if (option[ElToolbar]) {
             var el_1 = option[ElToolbar];
             if ('object' !== typeof el_1) {
@@ -322,7 +357,9 @@ var ToolBar = /** @class */ (function () {
                 float: 'left',
                 position: 'fixed',
                 // backgroundColor: 'fuchsia',
-                minHeight: '500px',
+                // minHeight: '500px',
+                maxHeight: '500px',
+                padding: 0,
                 // cursor: 'move',
                 // paddingTop: 10,
                 zIndex: 2
@@ -332,6 +369,13 @@ var ToolBar = /** @class */ (function () {
             });
             this.paper = Raphael(el_1.get(0));
             // ******************** 工具栏拖动效果实现/BEGIN ***************************
+            var dragPst_1 = { x: 0, y: 0 };
+            // 拖动开始
+            el_1.on('dragstart', function (e) {
+                // console.log(e, ':dragstart');
+                dragPst_1.x = e.screenX;
+                dragPst_1.y = e.screenY;
+            });
             // 可以移动事件绑定
             el_1.on('dragend', function (e) {
                 // el.css({
@@ -343,17 +387,23 @@ var ToolBar = /** @class */ (function () {
                 //     left: e.pageX,
                 //     top: e.pageY
                 // })
-                var scrollCate = document.documentElement;
+                // let scrollCate = document.documentElement
                 // console.log([scrollCate.scrollLeft, scrollCate.scrollTop]);
                 // console.log(e);
                 // el.css({
                 //     left: e.pageX + scrollCate.scrollLeft,
                 //     top: e.pageY + scrollCate.scrollTop
                 // })
+                // el.css({
+                //     left: e.screenX + scrollCate.scrollLeft,
+                //     top: e.screenY + scrollCate.scrollTop
+                // })
+                // console.log(dragPst);
                 el_1.css({
-                    left: e.screenX + scrollCate.scrollLeft,
-                    top: e.screenY + scrollCate.scrollTop
+                    left: e.screenX,
+                    top: e.screenY
                 });
+                // console.log(e.screenX, e.screenY);
             });
             // ******************** 工具栏拖动效果实现/END ***************************
             // 容器
@@ -375,12 +425,11 @@ var ToolBar = /** @class */ (function () {
         // 标题
         var tle = p.set();
         tle.push(p.rect(x, y, w, h, 5), p.text(x + 35, y + 18, '工具栏'));
-        var tleCFill = 'beige', tleTFill = 'red';
         tle.attr({
-            fill: tleCFill,
+            fill: CgTleCFill,
             class: '-we-tool-bar-tle'
         });
-        tle[1].attr("fill", tleTFill);
+        tle[1].attr("fill", CgTleTFill);
         // 容器
         y += h;
         var box = p.rect(x, y, w, h, 2);
@@ -487,35 +536,14 @@ var ToolBar = /** @class */ (function () {
         this.connElems['lnCon'].attr('height', ch / 2);
         this.connElems['lnPolyCon'].attr('height', ch / 2);
         // --------------------------------- [连线/end] -----------------------------
+        this.ccBox = boxs;
+        this.ccTle = tle;
         tBar.push(tle, box);
+        // 记录显示的尺寸
+        this.ccAttr.show = { w: w + 10, h: y + 30 };
         // ------------------------------- [事件绑定/begin] ---------------------
         tle.click(function (evt) {
-            var dk = '_inner_toggle', dc = tle[0], dv = tle[0].data(dk);
-            if ('hide' === dv) {
-                boxs.show();
-                $this._cBodyNdsToggle('show');
-                dc.data(dk, 'show');
-                tle[0].attr({
-                    r: 5,
-                    fill: tleCFill
-                });
-                tle[1].attr({
-                    fill: tleTFill
-                });
-            }
-            else {
-                boxs.hide();
-                dc.data(dk, 'hide');
-                $this._cBodyNdsToggle();
-                tle[0].attr({
-                    r: 20,
-                    fill: 'lime'
-                });
-                tle[1].attr({
-                    fill: 'CadetBlue'
-                });
-            }
-            $this.onClick($this, dv);
+            $this.toggleTools();
         });
         // ------------------------------- [事件绑定/end] ---------------------
         // 添加样式
@@ -534,30 +562,70 @@ var ToolBar = /** @class */ (function () {
         // $('.-we-tb-tle-node').css({
         //     'cursor': 'move'
         // })
-        this.cc.css({
+        var $cc = this.cc;
+        $cc.css({
             'width': bsAttr.w
         });
+        // 显示，并自动适应svg视图的宽度   
+        this.toggleTools('show');
     };
     /**
-     * 控件主体显示隐藏切换
-     * @param {string} type
+     * 工具集显示和隐藏
+     * @param {string} [tp]
      * @memberof ToolBar
      */
-    ToolBar.prototype._cBodyNdsToggle = function (type) {
-        var _a = this, cBodyNds = _a.cBodyNds, tBodyNds = _a.tBodyNds;
-        // 切换函数
-        var _toggle = function (ds) {
-            _util__WEBPACK_IMPORTED_MODULE_1__["Util"].each(ds, function (k, nd) {
-                if (type && 'show' === type) {
-                    nd.show();
-                }
-                else {
-                    nd.hide();
-                }
+    ToolBar.prototype.toggleTools = function (tp) {
+        var tle = this.ccTle;
+        var dk = '_inner_toggle', dc = tle[0], dv = tle[0].data(dk);
+        var boxs = this.ccBox;
+        // 类型强制
+        if (tp) {
+            dv = (tp === 'show') ? 'hide' : 'show';
+        }
+        if ('hide' === dv) {
+            boxs.show();
+            dc.data(dk, 'show');
+            tle[0].attr({
+                r: 5,
+                fill: CgTleCFill
             });
-        };
-        _toggle(tBodyNds);
-        _toggle(cBodyNds);
+            tle[1].attr({
+                fill: CgTleTFill
+            });
+            // 尺寸变化
+            if (this.ccAttr.show.w > 0) {
+                this.paper.setSize(this.ccAttr.show.w, this.ccAttr.show.h);
+                this.cc.css({
+                    width: this.ccAttr.show.w,
+                    height: this.ccAttr.show.h
+                });
+            }
+            // $this.paper.setSize($this.ccAttr.show.w, $this.ccAttr.show.h)
+        }
+        else {
+            boxs.hide();
+            dc.data(dk, 'hide');
+            tle[0].attr({
+                r: 20,
+                fill: 'lime'
+            });
+            tle[1].attr({
+                fill: 'CadetBlue'
+            });
+            // console.log($this.ccAttr.hide);
+            if (this.ccAttr.hide.w == 0) {
+                this.ccAttr.hide = { w: tle[0].attr('width'), h: tle[0].attr('height') };
+            }
+            // 尺寸变化
+            if (this.ccAttr.hide.w > 0) {
+                this.paper.setSize(this.ccAttr.hide.w + 5, this.ccAttr.hide.h + 5);
+                this.cc.css({
+                    width: this.ccAttr.hide.w + 5,
+                    height: this.ccAttr.hide.h + 5
+                });
+            }
+        }
+        this.onClick(this, dv);
     };
     /**
      * 点击事件绑定
@@ -711,7 +779,6 @@ var WeScreen = /** @class */ (function () {
         //console.log(e);
         // 移动滚动条
         // document.documentElement.scrollTo(e.pageX+10, e.pageY+10)
-        document.documentElement.scrollTo(e.pageX + 10, e.pageY + 10);
     };
     return WeScreen;
 }());
@@ -5374,7 +5441,7 @@ var Util = /** @class */ (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LibVersion", function() { return LibVersion; });
-var LibVersion = { "version": "3.0.0-alpha.1", "release": "20190117", "author": "Joshua Conero", "name": "zmapp-workflow-ts" };
+var LibVersion = { "version": "3.0.0-alpha.2", "release": "20190129", "author": "Joshua Conero", "name": "flowts" };
 
 
 /***/ })

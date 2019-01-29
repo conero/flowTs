@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./test/flow/editor.js");
+/******/ 	return __webpack_require__(__webpack_require__.s = "./test/flow/editor-actb.ts");
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -362,15 +362,15 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) *
 
 /***/ }),
 
-/***/ "./test/flow/editor.js":
-/*!*****************************!*\
-  !*** ./test/flow/editor.js ***!
-  \*****************************/
+/***/ "./test/flow/editor-actb.ts":
+/*!**********************************!*\
+  !*** ./test/flow/editor-actb.ts ***!
+  \**********************************/
 /*! no exports provided */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _src_WorkerEditor__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../src/WorkerEditor */ \"./src/WorkerEditor.ts\");\n/**\r\n * 工作流程编辑器\r\n */\r\n\r\n\r\n$(function(){\r\n    var $worker = new _src_WorkerEditor__WEBPACK_IMPORTED_MODULE_0__[\"default\"]({\r\n        dom: '#workflow',\r\n        el_toolbar: '#workflow-toolbar'            // 工具栏\r\n        // noToolBar: true\r\n    })\r\n    // 暴露用于测试\r\n    window.$worker = $worker\r\n})\r\n\r\nwindow.workerflow = _src_WorkerEditor__WEBPACK_IMPORTED_MODULE_0__[\"default\"]\n\n//# sourceURL=webpack:///./test/flow/editor.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _src_WorkerEditor__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../src/WorkerEditor */ \"./src/WorkerEditor.ts\");\n\r\n$(function () {\r\n    var $worker = new _src_WorkerEditor__WEBPACK_IMPORTED_MODULE_0__[\"default\"]({\r\n        dom: '#workflow',\r\n    });\r\n    // 暴露用于测试\r\n    window.$worker = $worker;\r\n});\r\n\n\n//# sourceURL=webpack:///./test/flow/editor-actb.ts?");
 
 /***/ }),
 
