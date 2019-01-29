@@ -15,7 +15,6 @@ export default class WeScreen{
         //console.log(e);
         // 移动滚动条
         // document.documentElement.scrollTo(e.pageX+10, e.pageY+10)
-        document.documentElement.scrollTo(e.pageX+10, e.pageY+10)
     }
 
 }

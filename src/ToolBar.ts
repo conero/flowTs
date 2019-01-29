@@ -38,12 +38,28 @@ export default class ToolBar{
     cBodyNds: rSu.mapNode
 
     cc: JQuery                      // 所在容器
+    // cc 的属性
+    ccAttr: {
+        show: {
+            w: number,
+            h: number
+        },
+        hide:{
+            w: number,
+            h: number            
+        }
+    }
 
     protected _tools: RaphaelElement[] = []     // 工具栏
     /**
      * @param {rSu.bsMap} opt
      */
     constructor(opt?: rSu.bsMap){
+        // cc 参数化默认设置
+        this.ccAttr = {
+            show: {w:0, h:0},
+            hide: {w:0, h:0}
+        }
         this.rData = {
             cp: {x: 5, y: 5},
             th0: 23,            // 顶级标题高度
@@ -167,6 +183,7 @@ export default class ToolBar{
                 position: 'fixed',
                 // backgroundColor: 'fuchsia',
                 minHeight: '500px',
+                padding: 0,
                 // cursor: 'move',
                 // paddingTop: 10,
                 zIndex: 2
@@ -198,7 +215,7 @@ export default class ToolBar{
                 //     top: e.pageY
                 // })
 
-                let scrollCate = document.documentElement
+                // let scrollCate = document.documentElement
                 
                 // console.log([scrollCate.scrollLeft, scrollCate.scrollTop]);
                 
@@ -212,12 +229,12 @@ export default class ToolBar{
                 //     left: e.screenX + scrollCate.scrollLeft,
                 //     top: e.screenY + scrollCate.scrollTop
                 // })
-                console.log(dragPst);
+                // console.log(dragPst);
                 el.css({
                     left: e.screenX,
                     top: e.screenY
                 })
-                console.log(e.screenX, e.screenY);
+                // console.log(e.screenX, e.screenY);
                 
             })
             
@@ -400,6 +417,7 @@ export default class ToolBar{
                 tle[1].attr({
                     fill: tleTFill
                 })
+                $this.paper.setSize($this.ccAttr.show.w, $this.ccAttr.show.h)
             }else{
                 boxs.hide()
                 dc.data(dk, 'hide')
@@ -411,6 +429,10 @@ export default class ToolBar{
                 tle[1].attr({
                     fill: 'CadetBlue'
                 })
+                if($this.ccAttr.hide.w == 0){
+                    $this.ccAttr.hide = {w: tle[0].attr('width'), h:tle[0].attr('height')}
+                }      
+                $this.paper.setSize($this.ccAttr.hide.w+5, $this.ccAttr.hide.h+5)
             }
             $this.onClick($this, dv);
         })
@@ -433,9 +455,13 @@ export default class ToolBar{
         //     'cursor': 'move'
         // })
         
-        this.cc.css({
+        let $cc = this.cc;
+        $cc.css({
             'width': bsAttr.w
         })
+        // 修改 svg 的尺寸
+        this.ccAttr.show = {w:w+10, h: y+30}
+        this.paper.setSize(this.ccAttr.show.w, this.ccAttr.show.h)
     }
     /**
      * 控件主体显示隐藏切换
