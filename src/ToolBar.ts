@@ -189,7 +189,7 @@ export default class ToolBar{
     }
 
     /**
-     * 无配置文件式自动生成
+     * 无配置文件时自动生成
      * @private
      * @memberof ToolBar
      */
@@ -197,8 +197,9 @@ export default class ToolBar{
         let {option} = this;
         if(option.dom && !option[ElToolbar]){
             let $dom = option.dom;
-            this.option[ElToolbar] = $dom.before('<div></div>');
-            console.log(new Date());
+            let $div = $('<div></div>');
+            $dom.before($div);
+            this.option[ElToolbar] = $div;
         }
     }
 
@@ -207,8 +208,8 @@ export default class ToolBar{
      * @memberof ToolBar
      */
     private _createCCElement(){
-        let {option} = this
-        this._withoutElCfgThenCrtEl()
+        this._withoutElCfgThenCrtEl();
+        let {option} = this;
         if(option[ElToolbar]){
             let el: JQuery = option[ElToolbar];
             if('object' !== typeof el){

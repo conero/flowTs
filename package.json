@@ -1,7 +1,7 @@
 {
   "name": "flowts",
-  "version": "3.0.0-alpha.2",
-  "release": "20190129",
+  "version": "3.0.0-alpha.3",
+  "release": "20190211",
   "description": "workflow chart",
   "author": "Joshua Conero",
   "main": "index.js",

@@ -338,7 +338,7 @@ var ToolBar = /** @class */ (function () {
         this.cc.hide();
     };
     /**
-     * 无配置文件式自动生成
+     * 无配置文件时自动生成
      * @private
      * @memberof ToolBar
      */
@@ -346,8 +346,9 @@ var ToolBar = /** @class */ (function () {
         var option = this.option;
         if (option.dom && !option[ElToolbar]) {
             var $dom = option.dom;
-            this.option[ElToolbar] = $dom.before('<div></div>');
-            console.log(new Date());
+            var $div = $('<div></div>');
+            $dom.before($div);
+            this.option[ElToolbar] = $div;
         }
     };
     /**
@@ -355,8 +356,8 @@ var ToolBar = /** @class */ (function () {
      * @memberof ToolBar
      */
     ToolBar.prototype._createCCElement = function () {
-        var option = this.option;
         this._withoutElCfgThenCrtEl();
+        var option = this.option;
         if (option[ElToolbar]) {
             var el_1 = option[ElToolbar];
             if ('object' !== typeof el_1) {
@@ -5475,7 +5476,7 @@ var Util = /** @class */ (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LibVersion", function() { return LibVersion; });
-var LibVersion = { "version": "3.0.0-alpha.2", "release": "20190129", "author": "Joshua Conero", "name": "flowts" };
+var LibVersion = { "version": "3.0.0-alpha.3", "release": "20190211", "author": "Joshua Conero", "name": "flowts" };
 
 
 /***/ }),

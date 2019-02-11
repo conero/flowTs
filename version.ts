@@ -5,5 +5,5 @@
         author?: string
         name?: string
     }
-    export const LibVersion: VersionStruct = {"version":"3.0.0-alpha.2","release":"20190129","author":"Joshua Conero","name":"flowts"}
+    export const LibVersion: VersionStruct = {"version":"3.0.0-alpha.3","release":"20190211","author":"Joshua Conero","name":"flowts"}
     
